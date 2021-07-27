@@ -1,0 +1,3 @@
+variables:
+  - name: placeholder_variable_name
+    value: placeholder_value

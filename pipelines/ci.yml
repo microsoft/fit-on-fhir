@@ -1,0 +1,15 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  environment: ci
+
+stages:
+  - template: ../templates/stages/greetings.yml
+    parameters:
+      environment: ${{ variables.environment }}
