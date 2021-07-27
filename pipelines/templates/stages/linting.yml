@@ -1,0 +1,15 @@
+parameters:
+  environment: ''
+
+stages:
+  - stage: Linting
+    displayName: Linting
+    dependsOn: []
+    variables:
+      - template: ../variables/${{ parameters.environment }}.yml
+    jobs:      
+      - job: LintMarkdown
+        displayName: Markdown
+        steps:
+          - bash: npx markdownlint .
+            displayName: Lint the Markdown
