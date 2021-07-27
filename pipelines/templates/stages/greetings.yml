@@ -6,7 +6,7 @@ stages:
     displayName: Greetings
     dependsOn: []
     variables:
-      - template: ../variables/${{ parameters.environment }}.yaml
+      - template: ../variables/${{ parameters.environment }}.yml
     jobs:
       - job: SayHello
         displayName: Greet Everyone
