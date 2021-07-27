@@ -1,6 +1,8 @@
-# Initial Migration vs Interval Sync
+# Data Migration Design
 
-## Interval Sync
+## Initial Migration vs Interval Sync
+
+### Interval Sync
 
 Every hour, each user's data from the previous hour will be migrated.  At the top of the hour, the Sync Event Generator will kick off, adding each user to the queue.  The Publish Data Function App will get triggered by the queue, and migrate data for the user tied to the queue message for the previous hour.
 
@@ -9,7 +11,7 @@ Example:
 * 2:00pm - Sync Event Generator runs, adds users to queue
 * 2:05pm - Publish Data Function App runs for user X, migrates data from 1-2pm
 
-## Initial Migration
+### Initial Migration
 
 Some indicator may need to be stored in the user table and added to the queue message to tell the Publish Data Function App run for a particular user that this is the first run, and therefore needs to migrate the past 30 day's data.  This will start with the previous hour, and go backwards 30 days from there.
 
@@ -18,9 +20,12 @@ Example:
 * 7/27 2:00pm - Sync Event Generator runs, adds users to queue (indicator on user X)
 * 7/27 2:03pm - Publish Data Function App runs for user X, migrates data from 6/27 2pm-7/27 2pm.
 
-# Google Fit API Breakdown
-* List DataSources: https://fitness.googleapis.com/fitness/v1/users/me/dataSources/
-* Aggregate Datasource: https://fitness.googleapis.com/fitness/v1/users/me/dataset:aggregate
+## Google Fit API Breakdown
+
+API Base: fitness.googleapis.com/fitness/v1/
+
+* List DataSources: users/me/dataSources/
+* Aggregate Datasource: users/me/dataset:aggregate
 
 The below example will query all step data from Google Fit for a particular user, aggregated by hour buckets, between the two given timestamps.
 
