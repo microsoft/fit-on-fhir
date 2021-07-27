@@ -7,9 +7,15 @@ stages:
     dependsOn: []
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
-    jobs:      
+    jobs:
       - job: LintMarkdown
         displayName: Markdown
         steps:
           - bash: npx markdownlint .
             displayName: Lint the Markdown
+
+      - job: LintYAML
+        displayName: YAML
+        steps:
+          - bash: yamllint .
+            displayName: Lint the YAML
