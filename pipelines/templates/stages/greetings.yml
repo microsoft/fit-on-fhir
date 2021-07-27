@@ -1,0 +1,14 @@
+parameters:
+  environment: ''
+
+stages:
+  - stage: Greetings
+    displayName: Greetings
+    dependsOn: []
+    variables:
+      - template: ../variables/${{ parameters.environment }}.yml
+    jobs:
+      - job: SayHello
+        displayName: Greet Everyone
+        steps:
+          - template: ../steps/hello-world.yml
