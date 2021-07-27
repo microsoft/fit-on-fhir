@@ -10,6 +10,6 @@ variables:
   environment: ci
 
 stages:
-  - template: ./templates/stages/greetings.yml
+  - template: ./templates/stages/linting.yml
     parameters:
       environment: ${{ variables.environment }}
