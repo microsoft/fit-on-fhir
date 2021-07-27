@@ -11,7 +11,7 @@ stages:
       - job: LintMarkdown
         displayName: Markdown
         steps:
-          - bash: npx markdownlint .
+          - bash: npx markdownlint-cli .
             displayName: Lint the Markdown
 
       - job: LintYAML
