@@ -3,10 +3,8 @@
 @maxLength(16)
 param basename string = 'fitonfhir'
 
-var keyVaultName = 'kv-${basename}'
-
-resource kv 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: keyVaultName
+resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
+  name: 'kv-${basename}'
   location: resourceGroup().location
   properties: {
     sku: {
@@ -31,3 +29,5 @@ resource kv 'Microsoft.KeyVault/vaults@2019-09-01' = {
     softDeleteRetentionInDays: 30
   }
 }
+
+output keyVaultName string = keyVault.name
