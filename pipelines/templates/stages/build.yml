@@ -2,7 +2,7 @@ parameters:
   environment: ''
 
 stages:
-  - stage: Building
+  - stage: Build
     displayName: Building
     dependsOn: []
     variables:
