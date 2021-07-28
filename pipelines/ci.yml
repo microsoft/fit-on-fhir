@@ -10,6 +10,18 @@ variables:
   environment: ci
 
 stages:
-  - template: ./templates/stages/linting.yml
+  - template: ./templates/stages/lint.yml
+    parameters:
+      environment: ${{ variables.environment }}
+
+  - template: ./templates/stages/build.yml
+    parameters:
+      environment: ${{ variables.environment }}
+
+  - template: ./templates/stages/deploy.yml
+    parameters:
+      environment: ${{ variables.environment }}
+
+  - template: ./templates/stages/clean.yml
     parameters:
       environment: ${{ variables.environment }}
