@@ -9,7 +9,7 @@ stages:
       - template: ../variables/${{ parameters.environment }}.yml
     jobs:
       - job: DeployResources
-        displayName: Deploy Reesources
+        displayName: Deploy Resources
         steps:
           - bash: echo "🔮"
             displayName: Deploy <resource-group>

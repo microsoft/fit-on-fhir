@@ -21,7 +21,7 @@ stages:
   - template: ./templates/stages/deploy.yml
     parameters:
       environment: ${{ variables.environment }}
-  
+
   - template: ./templates/stages/clean.yml
     parameters:
       environment: ${{ variables.environment }}

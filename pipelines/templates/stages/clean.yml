@@ -9,7 +9,7 @@ stages:
       - template: ../variables/${{ parameters.environment }}.yml
     jobs:
       - job: DestroyResources
-        displayName: Cleanup Reesources
+        displayName: Cleanup Resources
         steps:
           - bash: echo "🧨"
             displayName: Destroy <resource-group>
