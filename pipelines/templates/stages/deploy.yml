@@ -1,0 +1,15 @@
+parameters:
+  environment: ''
+
+stages:
+  - stage: Deploy
+    displayName: Deploying
+    dependsOn: [Build]
+    variables:
+      - template: ../variables/${{ parameters.environment }}.yml
+    jobs:
+      - job: DeployResources
+        displayName: Deploy Reesources
+        steps:
+          - bash: echo "🔮"
+            displayName: Deploy <resource-group>

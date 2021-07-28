@@ -1,0 +1,15 @@
+parameters:
+  environment: ''
+
+stages:
+  - stage: Building
+    displayName: Building
+    dependsOn: []
+    variables:
+      - template: ../variables/${{ parameters.environment }}.yml
+    jobs:
+      - job: BuildPlaceholder      # Rename to Build<Project>
+        displayName: Build Project # Having 1 job per build means 
+        steps:                     # they run in parallel
+          - bash: echo "🔨👷"
+            displayName: Build the Bob
