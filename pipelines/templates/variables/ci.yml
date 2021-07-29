@@ -1,5 +1,5 @@
 variables:
   - name: basename
-    value: gfof-ci-$(Build.BuildId)
+    value: gfof-ci
   - name: rgLocation
     value: centralus
