@@ -1,5 +1,5 @@
 parameters:
-  environment: 'ci'
+  environment: ''
 
 stages:
   - stage: Clean
@@ -11,5 +11,5 @@ stages:
       - job: DestroyResources
         displayName: Cleanup Resources
         steps:
-          - bash: az group delete -n $(basename)-$(Build.BuildId)
-            displayName: Destroy $(basename)-$(Build.BuildId)
+          - bash: az group delete -n $(basename)
+            displayName: Destroy $(basename)

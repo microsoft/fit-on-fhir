@@ -1,5 +1,5 @@
 parameters:
-  environment: 'ci'
+  environment: ''
 
 stages:
   - stage: Deploy
@@ -11,10 +11,19 @@ stages:
       - job: DeployResourceGroup
         displayName: Deploy Resource Group
         steps:
-          - bash: az group create --location $(rgLocation) --name $(basename)-$(Build.BuildId)
-            displayName: Deploy $(basename)-$(Build.BuildId)
+          - bash: az group create --location $(location) --name $(basename)
+            displayName: Deploy $(basename)
+
       - job: DeployResources
         displayName: Deploy Resources
         steps:
-          - bash: az deployment group create --resource-group $(basename)-$(Build.BuildId) --template-file ./build.yml
-            displayName: Deploy resources for $(basename)-$(Build.BuildId)
+          - template: ../steps/deploy-parse-arm.yml
+            parameters:
+            displayName: Deploy resources for $(basename)
+            azureSubscription: |
+              ${​{​ variables.azure_service_connection_name }​}​
+            resourceGroupName: $(basename)
+            location: $(location)
+            overrideParameters: >
+              -basename "$(basename)"
+            armFile: ./deploy/azuredeploy.json
