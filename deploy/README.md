@@ -2,7 +2,7 @@
 
 There are two methods of deployment available: ARM template and Bicep template. The Bicep template is used to generate the ARM template via the azure cli. Example:
 
-```script
+```sh
 az bicep build -f azuredeploy.bicep
 ```
 
@@ -24,7 +24,7 @@ The following parameters can be supplied to the `az deployment group create` com
 
 You can use the `azuredeploy.parameters.json` file to supply parameters or you can manually supply parameters using key-value pairs.
 
-```script
+```sh
 az deployment group create \
     --name rollout01 \
     --resource-group rg-googlefitonfhir \
