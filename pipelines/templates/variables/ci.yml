@@ -1,5 +1,5 @@
 variables:
-  - name: rgName
+  - name: basename
     value: rg-googlefitonfhir-dev-$(Build.BuildId)
   - name: rgLocation
     value: centralus
