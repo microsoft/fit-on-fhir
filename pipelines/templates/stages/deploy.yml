@@ -28,3 +28,4 @@ stages:
               overrideParameters: >
                 -basename "$(basename)"
               armFile: ./deploy/azuredeploy.json
+              deploymentName: ''
