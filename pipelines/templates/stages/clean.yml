@@ -19,3 +19,4 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 az group delete -n $(basename) --yes
+            condition: always()
