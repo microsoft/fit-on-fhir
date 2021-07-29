@@ -1,5 +1,5 @@
 parameters:
-  environment: "ci"
+  environment: 'ci'
 
 stages:
   - stage: Deploy
