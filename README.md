@@ -1,17 +1,14 @@
-# Project
+# Google FIT on FHIR
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+> This repo is available to help you get started with bringing Google FIT to FHIR. The webapp will help to authenticate your patients with the Google FIT API and the Function that continously publishes patient data as it becomes available.
 
-As the maintainer of this project, please make a few updates:
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+## High Level Architecture Diagram 
 
-## Contributing
+![Architecture Diagram](https://github.com/microsoft/googlefit-on-fhir/blob/architecture-diagram/Media/Arch%20doc.png)
 
+
+## Contributors 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
 the rights to use your contribution. For details, visit [https://cla.opensource.microsoft.com](https://cla.opensource.microsoft.com).
