@@ -1,11 +1,11 @@
 parameters:
-  - name: displayName
-  - name: azureSubscription
-  - name: resourceGroupName
-  - name: location
-  - name: overrideParameters
-  - name: armFile
-  - name: deploymentName
+  displayName: ''
+  azureSubscription: ''
+  resourceGroupName: ''
+  location: ''
+  overrideParameters: ''
+  armFile: ''
+  deploymentName: ''
 
 steps:
   - task: AzureResourceGroupDeployment@2
