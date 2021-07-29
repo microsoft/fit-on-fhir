@@ -11,5 +11,11 @@ stages:
       - job: DestroyResources
         displayName: Cleanup Resources
         steps:
-          - bash: az group delete -n $(basename)
+          - task: AzureCLI@2
             displayName: Destroy $(basename)
+            inputs:
+              azureSubscription: dev
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az group delete -n $(basename)
