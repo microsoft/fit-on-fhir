@@ -1,5 +1,5 @@
 parameters:
-  environment: ''
+  environment: ""
 
 stages:
   - stage: Deploy
@@ -11,5 +11,5 @@ stages:
       - job: DeployResources
         displayName: Deploy Resources
         steps:
-          - bash: echo "🔮"
-            displayName: Deploy <resource-group>
+          - bash: az group create --location $(rgLocation) --name $(basename)
+            displayName: Deploy $(basename)
