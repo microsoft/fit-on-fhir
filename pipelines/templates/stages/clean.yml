@@ -18,4 +18,4 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                az group delete -n $(basename)
+                az group delete -n $(basename) --yes
