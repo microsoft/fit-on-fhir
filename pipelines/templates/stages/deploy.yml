@@ -15,7 +15,7 @@ stages:
             displayName: Deploy $(basename)
             inputs:
               azureSubscription: |
-                ${{ parameters.azure_service_connection_name }}
+                ${{ variables.azure_service_connection_name }}
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
@@ -24,7 +24,7 @@ stages:
             parameters:
               displayName: Deploy resources for $(basename)
               azureSubscription: |
-                ${{ parameters.azure_service_connection_name }}
+                ${{ variables.azure_service_connection_name }}
               resourceGroupName: $(basename)
               location: $(location)
               overrideParameters: >

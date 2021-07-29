@@ -15,7 +15,7 @@ stages:
             displayName: Destroy $(basename)
             inputs:
               azureSubscription: |
-                ${{ parameters.azure_service_connection_name }}
+                ${{ variables.azure_service_connection_name }}
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
