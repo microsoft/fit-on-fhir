@@ -14,7 +14,8 @@ stages:
           - task: AzureCLI@2
             displayName: Deploy $(basename)
             inputs:
-              azureSubscription: dev
+              azureSubscription: |
+                ${{ parameters.azure_service_connection_name }}
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
@@ -22,7 +23,8 @@ stages:
           - template: ../steps/deploy-parse-arm.yml
             parameters:
               displayName: Deploy resources for $(basename)
-              azureSubscription: dev
+              azureSubscription: |
+                ${{ parameters.azure_service_connection_name }}
               resourceGroupName: $(basename)
               location: $(location)
               overrideParameters: >

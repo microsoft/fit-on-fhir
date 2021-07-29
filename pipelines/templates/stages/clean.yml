@@ -14,7 +14,8 @@ stages:
           - task: AzureCLI@2
             displayName: Destroy $(basename)
             inputs:
-              azureSubscription: dev
+              azureSubscription: |
+                ${{ parameters.azure_service_connection_name }}
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
