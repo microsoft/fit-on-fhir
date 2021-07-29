@@ -20,7 +20,8 @@ stages:
           - template: ../steps/deploy-parse-arm.yml
             parameters:
               displayName: Deploy resources for $(basename)
-              azureSubscription: $(azure_service_connection_name)
+              azureSubscription: |
+                ${​{​ variables.azure_service_connection_name }​}​
               resourceGroupName: $(basename)
               location: $(location)
               overrideParameters: >
