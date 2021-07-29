@@ -11,12 +11,14 @@ stages:
       - job: DeployResourceGroup
         displayName: Deploy Resource Group
         steps:
-          - bash: az group create --location $(location) --name $(basename)
+          - task: AzureCLI@2
             displayName: Deploy $(basename)
-
-      - job: DeployResources
-        displayName: Deploy Resources
-        steps:
+            inputs:
+              azureSubscription: dev
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az group create --location $(location) --name $(basename)
           - template: ../steps/deploy-parse-arm.yml
             parameters:
               displayName: Deploy resources for $(basename)
