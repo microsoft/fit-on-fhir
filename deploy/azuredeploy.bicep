@@ -3,8 +3,46 @@
 @maxLength(16)
 param basename string = 'fitonfhir'
 
+var vKeyVaultName = 'kv-${basename}'
+var vFhirServiceName = 'ha-${basename}'
+var vIomtConnectorName = 'im-${basename}'
+var vIomtConnectionName = 'ic-${basename}'
+
+resource fhirService 'Microsoft.HealthcareApis/services@2021-01-11' = {
+  name: vFhirServiceName
+  location: resourceGroup().location
+  kind: 'fhir-R4'
+  properties: {
+    authenticationConfiguration: {
+      audience: 'https://${vFhirServiceName}.azurehealthcareapis.com'
+      authority: uri(environment().authentication.loginEndpoint, subscription().tenantId)
+    }
+  }
+}
+
+resource iomtConnector 'Microsoft.HealthcareApis/services/iomtconnectors@2020-05-01-preview' = {
+  name: vIomtConnectorName
+  location: resourceGroup().location
+  dependsOn: [
+    fhirService
+  ]
+  properties: {
+    serviceConfiguration: {
+      resourceIdentityResolutiontype: 'Create'
+    }
+  }
+}
+
+resource iomtConnection 'Microsoft.HealthcareApis/services/iomtconnectors/connections@2020-05-01-preview' = {
+  name: vIomtConnectionName
+  location: resourceGroup().location
+  dependsOn: [
+    iomtConnector
+  ]
+}
+
 resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: 'kv-${basename}'
+  name: vKeyVaultName
   location: resourceGroup().location
   properties: {
     sku: {
@@ -27,6 +65,18 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     enableSoftDelete: true
     enablePurgeProtection: true
     softDeleteRetentionInDays: 30
+  }
+}
+
+resource iomtConnectionSecret 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
+  name: '${vKeyVaultName}/eventHubConnStr'
+  dependsOn: [
+    keyVault
+    iomtConnection
+  ]
+  properties: {
+    value: listkeys(iomtConnection.id, '2020-05-01-preview').primaryConnectionString
+    contentType: 'string'
   }
 }
 

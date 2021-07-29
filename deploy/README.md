@@ -42,3 +42,6 @@ The following resources will be provisioned in Azure.
 | type      | purpose   |
 |-----------|-----------|
 | keyvault  | used to store user authentication tokens |
+| fhir service | used to store patients and observations |
+| iomt connector | used to ingest IoMT data from Google Fit |
+| iomt connection | event hub connection string to IoMT connector ingestion hub |
