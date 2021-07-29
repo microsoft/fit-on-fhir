@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace GoogleFitOnFhir
+namespace GoogleFitOnFhir.Identity
 {
-    public static class Identity
+    public static class IdentityFunction
     {
         [FunctionName("Identity")]
         public static async Task<IActionResult> Run(
