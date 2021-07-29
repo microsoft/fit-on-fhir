@@ -4,4 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Fitness.v1" Version="1.53.0.2350" />
+  </ItemGroup>
+
 </Project>
