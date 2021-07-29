@@ -1,5 +1,5 @@
 parameters:
-  environment: ""
+  environment: ''
 
 stages:
   - stage: Lint

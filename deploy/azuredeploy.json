@@ -39,7 +39,9 @@
             "tenantId": "[subscription().tenantId]",
             "objectId": "[subscription().tenantId]",
             "permissions": {
-              "secrets": ["all"]
+              "secrets": [
+                "all"
+              ]
             }
           }
         ],
