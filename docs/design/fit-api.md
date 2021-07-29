@@ -110,3 +110,133 @@ Data Types:
 | Blood Glucose     | com.google.blood_glucose     |
 | Body Mass         | com.google.weight            |
 | Height            | com.google.height            |
+
+`users/me/dataSources/derived:com.google.active_minutes:com.google.android.gms:merge_active_minutes/datasets/0-1627490142702000000`
+```json
+{
+  "minStartTimeNs": "0", 
+  "maxEndTimeNs": "1627490142702000000", 
+  "dataSourceId": "derived:com.google.active_minutes:com.google.android.gms:merge_active_minutes", 
+  "point": [
+    {
+      "modifiedTimeMillis": "1575335024555", 
+      "startTimeNanos": "1575331980000000000", 
+      "endTimeNanos": "1575332040000000000", 
+      "value": [
+        {
+          "mapVal": [], 
+          "intVal": 1
+        }
+      ], 
+      "dataTypeName": "com.google.active_minutes", 
+      "originDataSourceId": "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"
+    }, 
+    {
+      "modifiedTimeMillis": "1575335024555", 
+      "startTimeNanos": "1575332040000000000", 
+      "endTimeNanos": "1575332100000000000", 
+      "value": [
+        {
+          "mapVal": [], 
+          "intVal": 1
+        }
+      ], 
+      "dataTypeName": "com.google.active_minutes", 
+      "originDataSourceId": "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"
+    }, 
+```
+
+users/me/dataSources/derived:com.google.heart_rate.bpm:com.google.android.gms:merge_heart_rate_bpm/datasets/0-1627490142702000000
+
+```json
+{
+  "minStartTimeNs": "0", 
+  "maxEndTimeNs": "1627490142702000000", 
+  "dataSourceId": "derived:com.google.heart_rate.bpm:com.google.android.gms:merge_heart_rate_bpm", 
+  "point": [
+    {
+      "modifiedTimeMillis": "1615568861420", 
+      "startTimeNanos": "1615565625294000000", 
+      "endTimeNanos": "1615565625294000000", 
+      "value": [
+        {
+          "mapVal": [], 
+          "fpVal": 85.86285400390625
+        }
+      ], 
+      "dataTypeName": "com.google.heart_rate.bpm", 
+      "originDataSourceId": "raw:com.google.heart_rate.bpm:com.google.android.apps.fitness:user_input"
+    }, 
+    {
+      "modifiedTimeMillis": "1615584621143", 
+      "startTimeNanos": "1615584287536000000", 
+      "endTimeNanos": "1615584287536000000", 
+      "value": [
+        {
+          "mapVal": [], 
+          "fpVal": 76.31412506103516
+        }
+      ], 
+      "dataTypeName": "com.google.heart_rate.bpm", 
+      "originDataSourceId": "raw:com.google.heart_rate.bpm:com.google.android.apps.fitness:user_input"
+    }, 
+    {
+      "modifiedTimeMillis": "1615591528319", 
+      "startTimeNanos": "1615585689211000000", 
+      "endTimeNanos": "1615585689211000000", 
+      "value": [
+        {
+          "mapVal": [], 
+          "fpVal": 83.35336303710938
+        }
+      ], 
+      "dataTypeName": "com.google.heart_rate.bpm", 
+      "originDataSourceId": "raw:com.google.heart_rate.bpm:com.google.android.apps.fitness:user_input"
+    }, 
+    {
+      "modifiedTimeMillis": "1615777445180", 
+      "startTimeNanos": "1615775930059000000", 
+      "endTimeNanos": "1615775930059000000", 
+      "value": [
+        {
+          "mapVal": [], 
+          "fpVal": 70.96192169189453
+        }
+      ], 
+      "dataTypeName": "com.google.heart_rate.bpm", 
+      "originDataSourceId": "raw:com.google.heart_rate.bpm:com.google.android.apps.fitness:user_input"
+    }
+  ]
+}
+```
+
+Heart Rate Aggregate
+```json
+{
+  "aggregateBy": [{
+    "dataTypeName": "com.google.heart_rate.bpm"
+  }],
+  "bucketByTime": { "durationMillis": 3600000 },
+  "startTimeMillis": 1615585689210,
+  "endTimeMillis": 1615585689211
+}
+```
+
+```json
+{
+  "bucket": [
+    {
+      "startTimeMillis": "1615585689210", 
+      "endTimeMillis": "1615585689211", 
+      "dataset": [
+        {
+          "dataSourceId": "derived:com.google.heart_rate.summary:com.google.android.gms:aggregated", 
+          "point": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+https://fitness.googleapis.com/fitness/v1/users/me/dataSources/derived:com.google.heart_rate.summary:com.google.android.gms
