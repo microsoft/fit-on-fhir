@@ -6,7 +6,7 @@ parameters:
   - name: overrideParameters
   - name: armFile
   - name: deploymentName
-    value: 'default'
+    default: ''
 
 
 steps:
