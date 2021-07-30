@@ -5,7 +5,8 @@ parameters:
   - name: location
   - name: overrideParameters
   - name: armFile
-  - name: deploymentName
+  deploymentName: ''
+
 
 steps:
   - task: AzureResourceGroupDeployment@2
