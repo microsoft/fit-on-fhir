@@ -5,6 +5,7 @@ parameters:
   - name: location
   - name: overrideParameters
   - name: armFile
+  - name: deploymentName
 
 steps:
   - task: AzureResourceGroupDeployment@2
@@ -19,6 +20,7 @@ steps:
       templateLocation: Linked artifact
       csmFile: ${{ parameters.armFile }}
       deploymentOutputs: armOutput
+      deploymentName: ${{ parameters.deploymentName }}
 
   - bash: |
       for key in $(echo $output | jq -r 'keys[]'); do
