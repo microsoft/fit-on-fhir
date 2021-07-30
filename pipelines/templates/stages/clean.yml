@@ -11,5 +11,12 @@ stages:
       - job: DestroyResources
         displayName: Cleanup Resources
         steps:
-          - bash: echo "🧨"
-            displayName: Destroy <resource-group>
+          - task: AzureCLI@2
+            displayName: Destroy $(basename)
+            inputs:
+              azureSubscription: ${{ variables.azure_service_connection_name }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az group delete -n $(basename) --yes
+            condition: always()
