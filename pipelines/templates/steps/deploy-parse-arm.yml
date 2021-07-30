@@ -5,7 +5,8 @@ parameters:
   - name: location
   - name: overrideParameters
   - name: armFile
-  deploymentName: ''
+  - name: deploymentName
+    value: ''
 
 
 steps:
