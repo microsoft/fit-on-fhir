@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# If deploy/azuredeploy.bicep is staged then run
+# az bicep build -f azuredeploy.bicep against it
+TOUCHED_BICEP=$(git diff --cached --name-status | awk '$1 != "D" { print $2 }' | grep -qFx 'deploy/azuredeploy.bicep')
+if $TOUCHED_BICEP; then
+	echo 'Compiling bicep into arm'
+	cd deploy && az bicep build -f azuredeploy.bicep && cd -
+	git add deploy/azuredeploy.json
+fi
