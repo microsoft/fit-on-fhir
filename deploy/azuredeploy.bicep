@@ -62,7 +62,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   location: resourceGroup().location
   kind: 'StorageV2'
   sku: {
-    name: 'Premium_LRS'
+    name: 'Standard_GRS'
   }
 }
 
@@ -80,6 +80,16 @@ resource queue 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-04-0
   dependsOn: [
     storageAccount
   ]
+}
+
+resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2021-02-01' = {
+  parent: storageAccount
+  name: 'default'
+}
+
+resource tableUsersTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2021-02-01' = {
+  parent: tableService
+  name: 'users'
 }
 
 resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
