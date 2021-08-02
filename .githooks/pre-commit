@@ -5,6 +5,8 @@
 TOUCHED_BICEP=$(git diff --cached --name-status | awk '$1 != "D" { print $2 }' | grep -qFx 'deploy/azuredeploy.bicep')
 if $TOUCHED_BICEP; then
 	echo 'Compiling bicep into arm'
-	cd deploy && az bicep build -f azuredeploy.bicep && cd -
+	# Only compile staged changes
+	git show ":deploy/azuredeploy.bicep" > /tmp/azuredeploy.bicep
+	az bicep build -f /tmp/azuredeploy.bicep --outdir deploy
 	git add deploy/azuredeploy.json
 fi
