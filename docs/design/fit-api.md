@@ -41,7 +41,7 @@ Data Types:
 | Body Mass         | com.google.weight            |
 | Height            | com.google.height            |
 
-We will be sending individual data points to the iomt connector with no aggregation.  This means that we will first need to query the datasources available for each user to find the particular dataType we are interested in (for example, com.google.blood_glucose), and then prepare to query the individual datasets for each of those datasources.
+We will be sending individual data points to the IoMT connector with no aggregation.  This means that we will first need to query the datasources available for each user to find the particular dataType we are interested in (for example, com.google.blood_glucose), and then prepare to query the individual datasets for each of those datasources.
 
 The dataset endpoint takes a datasourceId and a datasetId - the datasetId is crafted as a representation of a range of two unix epoch timestamps in nanoseconds, for example: 1574159699023000000-1574159699023000000
 
