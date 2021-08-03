@@ -4,15 +4,6 @@
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
   </PropertyGroup>
 
-  <!-- Ignoring error CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member' -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <NoWarn>1591</NoWarn>
-  </PropertyGroup>
-
-  <!-- <PropertyGroup>
-    <CodeAnalysisRuleSet>stylecop.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup> -->
-
   <ItemGroup>
     <PackageReference Include="Google.Apis.Fitness.v1" Version="1.53.0.2350" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.11" />
@@ -27,17 +18,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <AdditionalFiles Include="../stylecop.json" />
   </ItemGroup>
 
   <ItemGroup>

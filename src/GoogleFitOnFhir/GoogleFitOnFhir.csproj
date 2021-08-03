@@ -3,11 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
-
-  <!-- Ignoring error CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member' -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <NoWarn>1591</NoWarn>
-  </PropertyGroup>
   
   <ItemGroup>
     <PackageReference Include="Google.Apis.Fitness.v1" Version="1.53.0.2350" />

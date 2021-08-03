@@ -2,9 +2,27 @@
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- <CodeAnalysisRuleSet>stylecop.ruleset</CodeAnalysisRuleSet> -->
+    <CodeAnalysisRuleSet>../stylecop.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+
+  <!-- Ignoring error CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member' -->
+  <PropertyGroup>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)*.ruleset" Link="%(Filename)%(Extension)" />
+    <None Include="$(MSBuildThisFileDirectory)/../stylecop.ruleset" Link="%(Filename)%(Extension)" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="../stylecop.json" />
+  </ItemGroup>
+
 </Project>
