@@ -3,7 +3,7 @@
     <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
         <Rule Id="SA1005"  Action="None" />          <!-- Single line comments should begin with single space -->
         <Rule Id="SA1633"  Action="None" />          <!-- File should have header -->
-        <Rule Id="SA1210"  Action="None" />
-        <Rule Id="SA1600"  Action="None" />
+        <Rule Id="SA1210"  Action="None" />          <!-- Using directives should be ordered alphabetically by namespace -->
+        <Rule Id="SA1600"  Action="None" />          <!-- Elements should be documented -->
     </Rules>
 </RuleSet>
