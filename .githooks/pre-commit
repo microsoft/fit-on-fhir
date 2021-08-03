@@ -2,8 +2,8 @@
 
 # If deploy/azuredeploy.bicep is staged then run
 # az bicep build -f azuredeploy.bicep against it
-TOUCHED_BICEP=$(git diff --cached --name-status | awk '$1 != "D" { print $2 }' | grep -qFx 'deploy/azuredeploy.bicep')
-if $TOUCHED_BICEP; then
+git diff --cached --name-status | awk '$1 != "D" { print $2 }' | grep -qFx 'deploy/azuredeploy.bicep'
+if [ $? -eq 0 ]; then
 	echo 'Compiling bicep into arm'
 	# Only compile staged changes
 	git show ":deploy/azuredeploy.bicep" > /tmp/azuredeploy.bicep
@@ -11,9 +11,9 @@ if $TOUCHED_BICEP; then
 	git add deploy/azuredeploy.json
 fi
 
-TOUCHED_DURABLE_E2E_BICEP=$(git diff --cached --name-status | awk '$1 != "D" { print $2 }' | grep -qFx 'deploy/e2e-durable/azuredeploy.bicep')
-if $TOUCHED_DURABLE_E2E_BICEP; then
-	echo 'Compiling bicep into arm'
+git diff --cached --name-status | awk '$1 != "D" { print $2 }' | grep -qFx 'deploy/e2e-durable/azuredeploy.bicep'
+if [ $? -eq 0 ]; then
+	echo 'Compiling durable e2e bicep into arm'
 	# Only compile staged changes
 	git show ":deploy/e2e-durable/azuredeploy.bicep" > /tmp/azuredeploy.bicep
 	az bicep build -f /tmp/azuredeploy.bicep --outdir deploy/e2e-durable
