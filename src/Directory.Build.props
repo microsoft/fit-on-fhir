@@ -1,8 +1,9 @@
 <Project>
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- <GenerateDocumentationFile>true</GenerateDocumentationFile> -->
+    <!-- <CodeAnalysisRuleSet>stylecop.ruleset</CodeAnalysisRuleSet> -->
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
