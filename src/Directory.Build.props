@@ -1,13 +1,10 @@
 <Project>
   <PropertyGroup>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- <GenerateDocumentationFile>true</GenerateDocumentationFile> -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- <CodeAnalysisRuleSet>stylecop.ruleset</CodeAnalysisRuleSet> -->
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <None Include="$(MSBuildThisFileDirectory)*.ruleset" Link="%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>
