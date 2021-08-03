@@ -1,3 +1,7 @@
 variables:
-  - name: placeholder_variable_name
-    value: placeholder_value
+  - name: basename
+    value: gfof-ci-$(Build.BuildId)
+  - name: location
+    value: centralus
+  - name: azure_service_connection_name
+    value: dev

@@ -8,8 +8,23 @@ stages:
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     jobs:
-      - job: DeployResources
-        displayName: Deploy Resources
+      - job: DeployResourceGroup
+        displayName: Deploy Resource Group
         steps:
-          - bash: echo "🔮"
-            displayName: Deploy <resource-group>
+          - task: AzureCLI@2
+            displayName: Deploy $(basename)
+            inputs:
+              azureSubscription: ${{ variables.azure_service_connection_name }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az group create --location $(location) --name $(basename)
+          - template: ../steps/deploy-parse-arm.yml
+            parameters:
+              displayName: Deploy resources for $(basename)
+              azureSubscription: ${{ variables.azure_service_connection_name }}
+              resourceGroupName: $(basename)
+              location: $(location)
+              overrideParameters: >
+                -basename "$(basename)"
+              armFile: ./deploy/azuredeploy.json
