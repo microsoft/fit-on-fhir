@@ -4,7 +4,7 @@
 
 ## High Level Architecture Diagram
 
-![Architecture Diagram](https://github.com/microsoft/googlefit-on-fhir/blob/architecture-diagram/media/Arch%20doc.png)
+![Architecture Diagram](https://github.com/microsoft/googlefit-on-fhir/blob/main/media/Arch%20doc.png)
 
 ## Contributing
 
