@@ -3,11 +3,11 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 
-namespace GoogleFitOnFhir.SyncEventGenerator
+namespace GoogleFitOnFhir.PublishData
 {
-    public static class SyncEventGenerator
+    public static class PublishData
     {
-        [FunctionName("SyncEventGenerator")]
+        [FunctionName("PublishData")]
         public static void Run([QueueTrigger("myqueue-items", Connection = "")]string myQueueItem, ILogger log)
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
