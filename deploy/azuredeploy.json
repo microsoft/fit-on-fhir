@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.451.19169",
-      "templateHash": "4764997909023972489"
+      "templateHash": "13672681543927749393"
     }
   },
   "parameters": {
@@ -82,7 +82,7 @@
       "location": "[resourceGroup().location]",
       "kind": "StorageV2",
       "sku": {
-        "name": "Standard_LRS"
+        "name": "Standard_GRS"
       },
       "properties": {
         "minimumTlsVersion": "TLS1_2",
@@ -153,6 +153,23 @@
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts/queueServices', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/tableServices",
+      "apiVersion": "2021-02-01",
+      "name": "[format('{0}/{1}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
+      "apiVersion": "2021-02-01",
+      "name": "[format('{0}/{1}/{2}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default', 'users')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+        "[resourceId('Microsoft.Storage/storageAccounts/tableServices', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]"
       ]
     },
     {
