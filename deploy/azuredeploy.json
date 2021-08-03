@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.451.19169",
-      "templateHash": "11506958063772724748"
+      "templateHash": "9217930684632093076"
     }
   },
   "parameters": {
@@ -23,7 +23,7 @@
   "variables": {
     "vKeyVaultName": "[format('kv-{0}', parameters('basename'))]",
     "vFhirServiceName": "[format('ha-{0}', parameters('basename'))]",
-    "vIomtConnectorName": "[format('im-{0}', parameters('basename'))]",
+    "vIomtConnectorName": "[format('{0}/im-{1}', variables('vFhirServiceName'), parameters('basename'))]",
     "vIomtConnectionName": "[format('ic-{0}', parameters('basename'))]"
   },
   "resources": [

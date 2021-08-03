@@ -5,8 +5,8 @@ param basename string = 'fitonfhir'
 
 var vKeyVaultName = 'kv-${basename}'
 var vFhirServiceName = 'ha-${basename}'
-var vIomtConnectorName = 'im-${basename}'
-var vIomtConnectionName = 'ic-${basename}'
+var vIomtConnectorName = '${vFhirServiceName}/im-${basename}'
+var vIomtConnectionName = '${vIomtConnectorName}/ic-${basename}'
 
 resource fhirService 'Microsoft.HealthcareApis/services@2021-01-11' = {
   name: vFhirServiceName
