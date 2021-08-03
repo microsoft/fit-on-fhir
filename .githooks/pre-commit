@@ -10,3 +10,12 @@ if $TOUCHED_BICEP; then
 	az bicep build -f /tmp/azuredeploy.bicep --outdir deploy
 	git add deploy/azuredeploy.json
 fi
+
+TOUCHED_DURABLE_E2E_BICEP=$(git diff --cached --name-status | awk '$1 != "D" { print $2 }' | grep -qFx 'deploy/e2e-durable/azuredeploy.bicep')
+if $TOUCHED_DURABLE_E2E_BICEP; then
+	echo 'Compiling bicep into arm'
+	# Only compile staged changes
+	git show ":deploy/e2e-durable/azuredeploy.bicep" > /tmp/azuredeploy.bicep
+	az bicep build -f /tmp/azuredeploy.bicep --outdir deploy/e2e-durable
+	git add deploy/e2e-durable/azuredeploy.json
+fi
