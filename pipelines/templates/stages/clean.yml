@@ -7,6 +7,7 @@ stages:
     dependsOn: [Deploy]
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
+    condition: always()
     jobs:
       - job: DestroyResources
         displayName: Cleanup Resources
@@ -19,4 +20,3 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 az group delete -n $(basename) --yes
-            condition: always()
