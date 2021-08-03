@@ -1,14 +1,18 @@
+using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Producer;
 using System;
+using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace GoogleFitOnFhir.PublishData
 {
     public static class PublishData
     {
         [FunctionName("PublishData")]
-        public static void Run([QueueTrigger("myqueue-items", Connection = "")]string myQueueItem, ILogger log)
+        public static async Task Run([QueueTrigger("myqueue-items", Connection = "")]string myQueueItem, ILogger log)
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
@@ -25,7 +29,7 @@ namespace GoogleFitOnFhir.PublishData
             // Filter by dataType, first example using com.google.blood_glucose
             // Datasource.Type "raw" is an original datasource
             // Datasource.Type "derived" is a combination/merge of raw datasources
-            var glucoseDataSourcesDataStreamIds = response.DataSource
+            var glucoseDataSourcesDataStreamIds = datasourceList.DataSource
                 .Where(d => d.DataType.Name == "com.google.blood_glucose" && d.Type == "raw")
                 .Select(d => d.DataStreamId);
 
