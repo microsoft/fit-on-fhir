@@ -13,3 +13,8 @@ stages:
         steps:                      # they run in parallel
           - bash: echo "🔨👷"
             displayName: Build the Bob
+          - task: DotNetCoreCLI@2
+            displayName: Build
+            inputs:
+              command: build
+              projects: '**/*.csproj'
