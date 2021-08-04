@@ -9,7 +9,7 @@ stages:
       - template: ../variables/${{ parameters.environment }}.yml
     jobs:
       - job: BuildARM
-        displayName: Build ARM & Verify
+        displayName: ARM & Verify
         steps:
           - bash: az bicep build -f deploy/azuredeploy.bicep --outdir /tmp
             displayName: Build ARM
@@ -22,7 +22,7 @@ stages:
             displayName: Verify built ARM matches ARM in repo
 
       - job: BuildPlaceholder       # Rename to Build<Project>
-        displayName: Build Project  # Having 1 job per build means
+        displayName: Project  # Having 1 job per build means
         steps:                      # they run in parallel
           - bash: echo "🔨👷"
             displayName: Build the Bob
