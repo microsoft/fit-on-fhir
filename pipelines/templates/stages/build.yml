@@ -13,7 +13,12 @@ stages:
         steps:
           - bash: az bicep build -f deploy/azuredeploy.bicep --outdir /tmp
             displayName: Build ARM
-          - bash: cmp --silent /tmp/azuredeploy.json deploy/azuredeploy.json
+          - bash: |
+              cmp --silent /tmp/azuredeploy.json deploy/azuredeploy.json
+              if [ $? -ne  0 ]; then
+                echo 'Compiled ARM json does not match what is checked into the repo'
+                exit 1
+              fi
             displayName: Verify built ARM matches ARM in repo
 
       - job: BuildPlaceholder       # Rename to Build<Project>
