@@ -1,8 +1,8 @@
-using Google.Apis.Fitness.v1.Data;
+﻿using System;
 using System.Collections.Generic;
-using System;
-using Newtonsoft.Json;
 using System.Linq;
+using Google.Apis.Fitness.v1.Data;
+using Newtonsoft.Json;
 
 namespace GoogleFitOnFhir
 {
@@ -20,9 +20,11 @@ namespace GoogleFitOnFhir
             MaxEndTimeNs = dataset.MaxEndTimeNs;
             MinStartTimeNs = dataset.MinStartTimeNs;
             NextPageToken = dataset.NextPageToken;
-            Point = new List<IomtDataPoint>(dataset.Point.Select(dp => {
+            Point = new List<IomtDataPoint>(dataset.Point.Select(dp =>
+            {
                 DateTime dateTime = new DateTime(1970, 1, 1).AddTicks(dp.EndTimeNanos.Value / 100);
-                return new IomtDataPoint{
+                return new IomtDataPoint
+                {
                     ComputationTimeMillis = dp.ComputationTimeMillis,
                     DataTypeName = dp.DataTypeName,
                     EndTimeNanos = dp.EndTimeNanos,

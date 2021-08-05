@@ -1,8 +1,8 @@
-using Azure.Messaging.EventHubs;
-using Azure.Messaging.EventHubs.Producer;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Producer;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
@@ -13,7 +13,7 @@ namespace GoogleFitOnFhir.PublishData
     public static class PublishData
     {
         [FunctionName("PublishData")]
-        public static async Task Run([QueueTrigger("myqueue-items", Connection = "")]string myQueueItem, ILogger log)
+        public static async Task Run([QueueTrigger("myqueue-items", Connection = "")] string myQueueItem, ILogger log)
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
@@ -38,7 +38,7 @@ namespace GoogleFitOnFhir.PublishData
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await producerClient.CreateBatchAsync();
 
-             // Get dataset for each dataSource
+            // Get dataset for each dataSource
             foreach (var dataStreamId in glucoseDataSourcesDataStreamIds)
             {
                 // TODO: Generate datasetId based on event type
