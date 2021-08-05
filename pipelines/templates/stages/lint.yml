@@ -29,4 +29,4 @@ stages:
               command: custom
               custom: tool
               arguments: |
-              dotnet tool install --global dotnet-format --version 5.1.225507
+                dotnet tool install --global dotnet-format --version 5.1.225507
