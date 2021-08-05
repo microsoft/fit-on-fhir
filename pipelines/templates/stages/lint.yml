@@ -19,3 +19,15 @@ stages:
         steps:
           - bash: yamllint .
             displayName: Lint the YAML
+          - task: DotNetCoreCLI@2
+            displayName: Install dotnet format
+            inputs:
+              command: custom
+              custom: tool
+              arguments: dotnet tool install -g dotnet-format
+          - task: DotNetCoreCLI@2
+            displayName: Check the Functions
+            inputs:
+              command: custom
+              custom: tool
+              arguments: dotnet format GoogleFitOnFhir.sln --check
