@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -12,24 +11,52 @@ namespace GoogleFitOnFhir.Identity
 {
     public static class IdentityFunction
     {
+        // Whitelisted Files
+        private static readonly string[][] FileMap = new string[][]
+        {
+            new [] {'/public/index.html',   'text/html; charset=utf-8'},
+            new [] {'/public/css/main.css', 'text/css; charset=utf-8'},
+            new [] {'/public/favicon.ico',  'image/x-icon'}            
+        };
+
         [FunctionName("Identity")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            string root = context.FunctionAppDirectory;
+            string path = 'public/' + req.Path.Value;
+            
+            var contentType = FileMap.FirstOrDefault((kv => path.StartsWith(kv[0])));
+            
+            // Flatten the user supplied path to it's absolute path on the system
+            // This will remove relative bits like ../../
+            var absPath = IO.Path.GetFullPath(IO.Path.Combine(root, absPath));
+            
+            var matchedFile = FileMap.FirstOrDefault((allowedResources => {
+                // If the flattened path matches the whitelist exactly
+                return IO.Path.Combine(root, allowedResources[0]) == absPath;
+            }));
 
-            string name = req.Query["name"];
+            if(matchedFile != null)
+            {
+                // Reconstruct the absPath without using user input at all
+                // For maximum safety
+                var cleanAbsPath = IO.Path.Combine(root, matchedFile[0]);
+                return fileStreamOrNotFound(cleanAbsPath, matchedFile[1]);
+            }
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            // Return the first item in the FileMap by default
+            var firstFile = FileMap.First();
+            var firstFilePath = IO.Path.Combine(firstFile[0], firstFile[1]);
+            return fileStreamOrNotFound(firstFilePath, firstFile[1]);
+        }
 
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
-
-            return new OkObjectResult(responseMessage);
+        private static IActionResult fileStreamOrNotFound(filePath, contentType)
+        {
+            return File.Exists(filePath) ? 
+                (IActionResult)new FileStreamResult(File.OpenRead(filePath), contentType) : 
+                new NotFoundResult();
         }
     }
 }
