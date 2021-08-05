@@ -1,6 +1,10 @@
+﻿<<<<<<< HEAD
 ﻿using System;
 using System.IO;
 using System.Linq;
+=======
+using System;
+>>>>>>> 5965499... Init static html responder
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
