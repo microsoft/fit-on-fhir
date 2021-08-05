@@ -1,10 +1,6 @@
-﻿<<<<<<< HEAD
-﻿using System;
+﻿﻿using System;
 using System.IO;
 using System.Linq;
-=======
-using System;
->>>>>>> 5965499... Init static html responder
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -50,6 +46,8 @@ namespace GoogleFitOnFhir.Identity
                 var cleanAbsPath = Path.Combine(root, matchedFile[0]);
                 return fileStreamOrNotFound(cleanAbsPath, matchedFile[1]);
             }
+
+            log.LogError("help");
 
             // Return the first item in the FileMap by default
             var firstFile = FileMap.First();
