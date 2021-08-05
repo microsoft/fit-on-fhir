@@ -19,6 +19,10 @@ stages:
         steps:
           - bash: yamllint .
             displayName: Lint the YAML
+
+      - job: LintFunctions
+        displayName: Functions
+        steps:
           - task: DotNetCoreCLI@2
             displayName: Install dotnet format
             inputs:
