@@ -30,3 +30,9 @@ stages:
               custom: tool
               arguments: |
                 install -g dotnet-format --version 5.1.225507
+          - task: DotNetCoreCLI@2
+            displayName: Check the Functions
+            inputs:
+              command: custom
+              custom: tool
+              arguments: dotnet format GoogleFitOnFhir.sln --check
