@@ -28,4 +28,5 @@ stages:
             inputs:
               command: custom
               custom: tool
-              arguments: install -g dotnet-format --version 5.1.225507 --ignore-failed-sources
+              arguments: |
+              install -g dotnet-format --version 5.1.225507
