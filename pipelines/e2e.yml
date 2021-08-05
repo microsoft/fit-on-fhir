@@ -1,0 +1,30 @@
+schedules:
+  - cron: 0 0 * * *
+    displayName: Daily midnight e2e tests
+    branches:
+      include:
+        - main
+    always: true
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  environment: e2e
+
+stages:
+  - template: ./templates/stages/build.yml
+    parameters:
+      environment: ${{ variables.environment }}
+
+  - template: ./templates/stages/durable-deploy.yml
+    parameters:
+      environment: ${{ variables.environment }}
+
+  - template: ./templates/stages/deploy.yml
+    parameters:
+      environment: ${{ variables.environment }}
+
+  - template: ./templates/stages/clean.yml
+    parameters:
+      environment: ${{ variables.environment }}
