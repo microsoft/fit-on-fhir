@@ -34,5 +34,5 @@ stages:
             displayName: Check the Functions
             inputs:
               command: custom
-              custom: tool
-              arguments: dotnet format GoogleFitOnFhir.sln --check
+              custom: format
+              arguments: --check --verbosity diagnostic
