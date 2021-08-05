@@ -35,4 +35,4 @@ stages:
             inputs:
               command: custom
               custom: format
-              arguments: --check --verbosity diagnostic
+              arguments: GoogleFitOnFhir.sln --check --verbosity diagnostic
