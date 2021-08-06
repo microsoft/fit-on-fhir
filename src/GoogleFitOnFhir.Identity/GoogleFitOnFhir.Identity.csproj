@@ -26,4 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\GoogleFitOnFhir\GoogleFitOnFhir.csproj" />
   </ItemGroup>
+    <Target Name="RunFunction">
+    <Exec Command="func start" />
+  </Target>
 </Project>
