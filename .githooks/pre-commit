@@ -21,4 +21,4 @@ if [ $? -eq 0 ]; then
 fi
 
 # Format files with dotnet-format
-# dotnet format src/GoogleFitOnFhir.sln -wsa
+dotnet format src/GoogleFitOnFhir.sln -wsa
