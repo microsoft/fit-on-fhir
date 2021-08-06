@@ -7,3 +7,5 @@ The dotnet-format autofix for C# linting errors is available as a pre-commit hoo
 ```dotnet tool install -g dotnet-format```
 
 [dotnet-format documentation](https://github.com/dotnet/format)
+
+The autofix also requires .NET 5.0. [Download here](https://dotnet.microsoft.com/download)
