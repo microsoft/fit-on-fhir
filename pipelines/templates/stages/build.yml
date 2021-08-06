@@ -8,8 +8,22 @@ stages:
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     jobs:
+      - job: BuildARM
+        displayName: ARM & Verify
+        steps:
+          - bash: az bicep build -f deploy/azuredeploy.bicep --outdir /tmp
+            displayName: Compile Bicep
+          - bash: |
+              cmp --silent /tmp/azuredeploy.json deploy/azuredeploy.json
+              if [ $? -ne  0 ]; then
+                echo '🚨 Compiled ARM json does not match'
+                echo '⚠️ Compile the bicep into ARM and commit to pass'
+                exit 1
+              fi
+            displayName: Verify built bicep matches ARM in repo
+
       - job: BuildGoogleFitOnFhir
-        displayName: Build Project
+        displayName: Project
         steps:
           - task: DotNetCoreCLI@2
             displayName: Build
