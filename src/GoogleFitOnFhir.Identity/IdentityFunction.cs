@@ -47,8 +47,6 @@ namespace GoogleFitOnFhir.Identity
                 return fileStreamOrNotFound(cleanAbsPath, matchedFile[1]);
             }
 
-            log.LogError("help");
-
             // Return the first item in the FileMap by default
             var firstFile = FileMap.First();
             var firstFilePath = Path.Combine(root, firstFile[0]);
