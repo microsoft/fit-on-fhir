@@ -19,3 +19,6 @@ if [ $? -eq 0 ]; then
 	az bicep build -f /tmp/azuredeploy.bicep --outdir deploy/e2e-durable
 	git add deploy/e2e-durable/azuredeploy.json
 fi
+
+# Format files with dotnet-format
+dotnet format src/GoogleFitOnFhir.sln -wsa

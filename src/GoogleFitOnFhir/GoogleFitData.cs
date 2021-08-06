@@ -1,10 +1,8 @@
+﻿using System.IO;
+using Google.Apis.Auth.OAuth2;
 using Google.Apis.Fitness.v1;
 using Google.Apis.Fitness.v1.Data;
-
 using Google.Apis.Services;
-using Google.Apis.Auth.OAuth2;
-
-using System.IO;
 
 namespace GoogleFitOnFhir
 {
