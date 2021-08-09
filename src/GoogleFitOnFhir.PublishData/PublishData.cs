@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using Azure.Storage.Blobs;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -76,21 +77,15 @@ namespace GoogleFitOnFhir.PublishData
         private static bool updateUserLastSync(ILogger log)
         {
             string storageAccountConnectionString = "";
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageAccountConnectionString);
-
-            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-            CloudTable table = tableClient.GetTableReference("users");
+            TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
 
             UserRecord user = new UserRecord();
             user.UserId = "testUserId"; // TODO: Update this with the userID when we have it
-            user.LastSync = DateTime.Now();
-
-            TableOperation insertOrMerge = TableOperation.insertOrMerge(user);
+            user.LastSync = DateTime.Now;
 
             try
             {
-                table.Execute(insertOperation);
-
+                tableClient.UpsertEntity(user);
                 return true;
             }
             catch (Exception ex)

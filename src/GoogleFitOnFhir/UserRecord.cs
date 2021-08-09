@@ -1,16 +1,17 @@
-﻿namespace GoogleFitOnFhir
+﻿using System;
+using Azure;
+using Azure.Data.Tables;
+
+namespace GoogleFitOnFhir
 {
-    public class UserRecord : TableEntity
+    public class UserRecord : ITableEntity
     {
-        public UserRecord(string skey, string srow)
-        {
-            this.PartitionKey = skey;
-            this.RowKey = srow;
-        }
+        public string PartitionKey { get; set; }
+        public string RowKey { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
 
-        public UserRecord() { }
-
-        public int UserId { get; set; }
-        public DateTime LastSync { get; set; }
+        public string UserId { get; set; }
+        public DateTimeOffset? LastSync { get; set; }
     }
 }
