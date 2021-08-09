@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.1.0" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.5.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.10" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.11" />
   </ItemGroup>
