@@ -35,13 +35,13 @@ namespace GoogleFitOnFhir.Identity
             string root = context.FunctionAppDirectory;
             string path = req.Path.Value.Substring(1);
 
-            if (path.Split('/')[1] == "login")
+            if (path.StartsWith("api/login"))
             {
                 return await Task.Run(() => {
                     return Login(req, context, log);
                 });
             }
-            else if (path.Split('/')[1] == "callback")
+            else if (path.StartsWith("api/callback"))
             {
                 return await Task.Run(() => {
                     return Callback(req, context, log);
