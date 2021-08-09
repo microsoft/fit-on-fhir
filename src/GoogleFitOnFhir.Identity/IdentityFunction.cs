@@ -80,7 +80,7 @@ namespace GoogleFitOnFhir.Identity
             ILogger log
         )
         {
-            FileDataStore fileStore = new(".");
+            FileDataStore fileStore = new FileDataStore(".");
             IAuthorizationCodeFlow flow = GetFlow(fileStore);
             TokenResponse tokenResponse = await fileStore.GetAsync<TokenResponse>("me");
 
@@ -96,7 +96,7 @@ namespace GoogleFitOnFhir.Identity
             }
 
             // Contains access and refresh tokens
-            UserCredential userCredential = new(flow, "me", tokenResponse);
+            UserCredential userCredential = new UserCredential(flow, "me", tokenResponse);
 
             return new OkObjectResult("auth flow successful");
         }
@@ -107,7 +107,7 @@ namespace GoogleFitOnFhir.Identity
             ILogger log
         )
         {
-            FileDataStore fileStore = new(".");
+            FileDataStore fileStore = new FileDataStore(".");
             IAuthorizationCodeFlow flow = GetFlow(fileStore);
 
             string callback = "http" + (req.IsHttps ? "s" : "") + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
