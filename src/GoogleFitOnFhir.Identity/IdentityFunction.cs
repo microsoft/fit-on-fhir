@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 
 namespace GoogleFitOnFhir.Identity
 {
@@ -17,7 +17,7 @@ namespace GoogleFitOnFhir.Identity
         {
             new [] {"api/index.html",   "text/html; charset=utf-8"},
             new [] {"api/css/main.css", "text/css; charset=utf-8"},
-            new [] {"api/favicon.ico",  "image/x-icon"}            
+            new [] {"api/favicon.ico",  "image/x-icon"}
         };
 
         [FunctionName("api")]
@@ -32,13 +32,14 @@ namespace GoogleFitOnFhir.Identity
             // Flatten the user supplied path to it's absolute path on the system
             // This will remove relative bits like ../../
             var absPath = Path.GetFullPath(Path.Combine(root, path));
-            
-            var matchedFile = FileMap.FirstOrDefault((allowedResources => {
+
+            var matchedFile = FileMap.FirstOrDefault((allowedResources =>
+            {
                 // If the flattened path matches the whitelist exactly
                 return Path.Combine(root, allowedResources[0]) == absPath;
             }));
 
-            if(matchedFile != null)
+            if (matchedFile != null)
             {
                 // Reconstruct the absPath without using user input at all
                 // For maximum safety
@@ -54,8 +55,8 @@ namespace GoogleFitOnFhir.Identity
 
         private static IActionResult fileStreamOrNotFound(string filePath, string contentType)
         {
-            return File.Exists(filePath) ? 
-                (IActionResult)new FileStreamResult(File.OpenRead(filePath), contentType) : 
+            return File.Exists(filePath) ?
+                (IActionResult)new FileStreamResult(File.OpenRead(filePath), contentType) :
                 new NotFoundResult();
         }
     }
