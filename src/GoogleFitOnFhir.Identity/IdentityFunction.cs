@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,11 +12,11 @@ namespace GoogleFitOnFhir.Identity
     public static class IdentityFunction
     {
         // Whitelisted Files
-        private static readonly string[][] FileMap = new string[][]
+        private static readonly string[][] fileArray = new string[][]
         {
-            new [] {"api/index.html",   "text/html; charset=utf-8"},
+            new [] {"api/index.html", "text/html; charset=utf-8"},
             new [] {"api/css/main.css", "text/css; charset=utf-8"},
-            new [] {"api/favicon.ico",  "image/x-icon"}
+            new [] {"api/favicon.ico", "image/x-icon"}
         };
 
         [FunctionName("api")]
@@ -27,35 +28,36 @@ namespace GoogleFitOnFhir.Identity
             string root = context.FunctionAppDirectory;
             string path = req.Path.Value.Substring(1);
 
-            // Flatten the user supplied path to it's absolute path on the system
+            // Flatten the user supplied path to its absolute path on the system
             // This will remove relative bits like ../../
-            var absPath = Path.GetFullPath(Path.Combine(root, path));
+            string absPath = Path.GetFullPath(Path.Combine(root, path));
 
-            var matchedFile = FileMap.FirstOrDefault((allowedResources =>
+            string[] matchedFile = fileArray.FirstOrDefault(allowedResources =>
             {
                 // If the flattened path matches the whitelist exactly
                 return Path.Combine(root, allowedResources[0]) == absPath;
-            }));
+            });
 
-            if (matchedFile != null)
+            if (matchedFile == null)
+            {
+                return new NotFoundResult();
+            }
+            else
             {
                 // Reconstruct the absPath without using user input at all
                 // For maximum safety
-                var cleanAbsPath = Path.Combine(root, matchedFile[0]);
-                return fileStreamOrNotFound(cleanAbsPath, matchedFile[1]);
+                string cleanAbsPath = Path.Combine(root, matchedFile[0]);
+
+                try
+                {
+                    return new FileStreamResult(new FileStream(cleanAbsPath, FileMode.Open), matchedFile[1]);
+                }
+                catch (FileNotFoundException err)
+                {
+                    log.LogError(err.Message);
+                    return new NotFoundResult();
+                }
             }
-
-            // Return the first item in the FileMap by default
-            var firstFile = FileMap.First();
-            var firstFilePath = Path.Combine(root, firstFile[0]);
-            return fileStreamOrNotFound(firstFilePath, firstFile[1]);
-        }
-
-        private static IActionResult fileStreamOrNotFound(string filePath, string contentType)
-        {
-            return File.Exists(filePath) ?
-                (IActionResult)new FileStreamResult(File.OpenRead(filePath), contentType) :
-                new NotFoundResult();
         }
     }
 }
