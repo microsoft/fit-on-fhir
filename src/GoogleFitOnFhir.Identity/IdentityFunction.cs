@@ -24,7 +24,8 @@ namespace GoogleFitOnFhir.Identity
         {
             new [] {"api/index.html",   "text/html; charset=utf-8"},
             new [] {"api/css/main.css", "text/css; charset=utf-8"},
-            new [] {"api/favicon.ico",  "image/x-icon"}
+            new [] {"api/favicon.ico",  "image/x-icon"},
+            new [] {"api/img/google-fit-logo.png",  "image/png"}
         };
 
         [FunctionName("api")]
