@@ -1,8 +1,8 @@
-using Azure.Messaging.EventHubs;
-using Azure.Messaging.EventHubs.Producer;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Producer;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
@@ -13,15 +13,16 @@ namespace GoogleFitOnFhir.PublishData
     public static class PublishData
     {
         [FunctionName("PublishData")]
-        public static async Task Run([QueueTrigger("myqueue-items", Connection = "")]string myQueueItem, ILogger log)
+        public static async Task Run([QueueTrigger("myqueue-items", Connection = "")] string myQueueItem, ILogger log)
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
-
-            // TODO: iomtConnectingString from env var or key vault?
+        
             string iomtConnectionString = "";
+            
             // TODO: Retrieve refresh token for user
             // TODO: Get access token and new refresh token from Google Identity
             string accessToken = "";
+            
             // TODO: Store new refresh token
 
             GoogleFitData googleFitData = new GoogleFitData(accessToken);
@@ -35,10 +36,11 @@ namespace GoogleFitOnFhir.PublishData
                 .Select(d => d.DataStreamId);
 
             var producerClient = new EventHubProducerClient(iomtConnectionString);
+            
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await producerClient.CreateBatchAsync();
 
-             // Get dataset for each dataSource
+            // Get dataset for each dataSource
             foreach (var dataStreamId in glucoseDataSourcesDataStreamIds)
             {
                 // TODO: Generate datasetId based on event type
@@ -55,18 +57,47 @@ namespace GoogleFitOnFhir.PublishData
                 {
                     throw new Exception($"Event is too large for the batch and cannot be sent.");
                 }
-            }
+            } 
 
             try
             {
                 // Use the producer client to send the batch of events to the event hub
                 await producerClient.SendAsync(eventBatch);
                 log.LogInformation("A batch of events has been published.");
+                updateUserLastSync(log);
             }
             finally
             {
                 await producerClient.DisposeAsync();
             }
+        }
+
+        private static bool updateUserLastSync(ILogger log)
+        {
+            string storageAccountConnectionString = "";
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageAccountConnectionString);
+
+            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            CloudTable table = tableClient.GetTableReference("users");
+
+            UserRecord user = new UserRecord();
+            user.UserId = "testUserId"; // TODO: Update this with the userID when we have it
+            user.LastSync = DateTime.Now();
+
+            TableOperation insertOrMerge = TableOperation.insertOrMerge(user);
+
+            try
+            {
+                table.Execute(insertOperation);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.Message);
+            }
+
+            return false;
         }
     }
 }
