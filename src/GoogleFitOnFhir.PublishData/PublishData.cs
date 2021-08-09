@@ -17,6 +17,7 @@ namespace GoogleFitOnFhir.PublishData
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
         
+            // Get the iomtConnectionString from a keyvault backed app setting
             string iomtConnectionString = "";
             
             // TODO: Retrieve refresh token for user
