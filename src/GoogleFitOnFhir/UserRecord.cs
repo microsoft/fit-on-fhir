@@ -21,6 +21,6 @@ namespace GoogleFitOnFhir
             this.UserId = userId;
         }
 
-        public UserRecord(){}
+        public UserRecord() { }
     }
 }

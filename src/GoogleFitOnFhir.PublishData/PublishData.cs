@@ -16,7 +16,7 @@ namespace GoogleFitOnFhir.PublishData
         [FunctionName("publish-data")]
         public static async Task Run([QueueTrigger("publish-data", Connection = "QueueConnectionString")] string myQueueItem, ILogger log)
         {
-            /*log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
+            log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
             // Get the iomtConnectionString from a keyvault backed app setting
             string iomtConnectionString = "";
@@ -59,18 +59,18 @@ namespace GoogleFitOnFhir.PublishData
                 {
                     throw new Exception($"Event is too large for the batch and cannot be sent.");
                 }
-            }*/
+            }
 
             try
             {
                 // Use the producer client to send the batch of events to the event hub
-                //await producerClient.SendAsync(eventBatch);
+                await producerClient.SendAsync(eventBatch);
                 log.LogInformation("A batch of events has been published.");
                 updateUserLastSync(log);
             }
             finally
             {
-                //await producerClient.DisposeAsync();
+                await producerClient.DisposeAsync();
             }
         }
 
@@ -79,8 +79,8 @@ namespace GoogleFitOnFhir.PublishData
             string storageAccountConnectionString = "";
             TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
 
-            UserRecord user = new UserRecord("testUserId"); // TODO: Update this with 
-            user.LastSync = DateTime.Now;                   // the userID when we have it
+            UserRecord user = new UserRecord("testUserId"); // TODO: Update this with the
+            user.LastSync = DateTime.Now;                   // userID when we have it
 
             try
             {
