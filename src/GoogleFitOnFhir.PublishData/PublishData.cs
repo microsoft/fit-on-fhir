@@ -16,14 +16,14 @@ namespace GoogleFitOnFhir.PublishData
         public static async Task Run([QueueTrigger("myqueue-items", Connection = "")] string myQueueItem, ILogger log)
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
-        
+
             // Get the iomtConnectionString from a keyvault backed app setting
             string iomtConnectionString = "";
-            
+
             // TODO: Retrieve refresh token for user
             // TODO: Get access token and new refresh token from Google Identity
             string accessToken = "";
-            
+
             // TODO: Store new refresh token
 
             GoogleFitData googleFitData = new GoogleFitData(accessToken);
@@ -37,7 +37,7 @@ namespace GoogleFitOnFhir.PublishData
                 .Select(d => d.DataStreamId);
 
             var producerClient = new EventHubProducerClient(iomtConnectionString);
-            
+
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await producerClient.CreateBatchAsync();
 
@@ -58,7 +58,7 @@ namespace GoogleFitOnFhir.PublishData
                 {
                     throw new Exception($"Event is too large for the batch and cannot be sent.");
                 }
-            } 
+            }
 
             try
             {
