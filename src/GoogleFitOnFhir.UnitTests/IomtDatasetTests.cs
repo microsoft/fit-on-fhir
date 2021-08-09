@@ -1,5 +1,5 @@
+﻿using System.Collections.Generic;
 using Google.Apis.Fitness.v1.Data;
-using System.Collections.Generic;
 using Xunit;
 
 namespace GoogleFitOnFhir.UnitTests
@@ -10,7 +10,8 @@ namespace GoogleFitOnFhir.UnitTests
         public void TestIomtDatasetConvertsDataset()
         {
             long nanos = 1628009728000000000;
-            Dataset dataset = new Dataset{
+            Dataset dataset = new Dataset
+            {
                 DataSourceId = "dataSourceId",
                 MaxEndTimeNs = 12345,
                 MinStartTimeNs = 12345,

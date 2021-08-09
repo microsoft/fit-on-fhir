@@ -22,8 +22,11 @@ stages:
               fi
             displayName: Verify built bicep matches ARM in repo
 
-      - job: BuildPlaceholder       # Rename to Build<Project>
-        displayName: Project        # Having 1 job per build means
-        steps:                      # they run in parallel
-          - bash: echo "🔨👷"
-            displayName: Build the Bob
+      - job: BuildGoogleFitOnFhir
+        displayName: Project
+        steps:
+          - task: DotNetCoreCLI@2
+            displayName: Build
+            inputs:
+              command: build
+              projects: '**/*.csproj'

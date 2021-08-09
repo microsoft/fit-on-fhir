@@ -19,3 +19,20 @@ stages:
         steps:
           - bash: yamllint .
             displayName: Lint the YAML
+
+      - job: LintFunctions
+        displayName: Functions
+        steps:
+          - task: DotNetCoreCLI@2
+            displayName: Install dotnet format
+            inputs:
+              command: custom
+              custom: tool
+              arguments: |
+                install -g dotnet-format --version 5.1.225507
+          - task: DotNetCoreCLI@2
+            displayName: Check the Functions
+            inputs:
+              command: custom
+              custom: format
+              arguments: src/GoogleFitOnFhir.sln --check --verbosity diagnostic
