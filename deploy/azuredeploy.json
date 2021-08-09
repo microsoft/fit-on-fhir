@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.451.19169",
-      "templateHash": "12825802567941250262"
+      "templateHash": "10319203682102741527"
     }
   },
   "parameters": {
@@ -20,41 +20,171 @@
     }
   },
   "functions": [],
+  "variables": {
+    "fhirWriterRoleId": "3f88fce4-5892-4214-ae73-ba5294559913",
+    "eventHubReceiverRoleId": "a638d3c7-ab3a-418d-83e6-5f17a39d4fde"
+  },
   "resources": [
     {
-      "type": "Microsoft.HealthcareApis/services",
-      "apiVersion": "2021-01-11",
-      "name": "[format('ha-{0}', parameters('basename'))]",
-      "location": "[resourceGroup().location]",
-      "kind": "fhir-R4",
-      "properties": {
-        "authenticationConfiguration": {
-          "audience": "[format('https://ha-{0}.azurehealthcareapis.com', parameters('basename'))]",
-          "authority": "[uri(environment().authentication.loginEndpoint, subscription().tenantId)]"
-        }
-      }
+      "type": "Microsoft.HealthcareApis/workspaces",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[replace(format('hw-{0}', parameters('basename')), '-', '')]",
+      "location": "[resourceGroup().location]"
     },
     {
-      "type": "Microsoft.HealthcareApis/services/iomtconnectors",
-      "apiVersion": "2020-05-01-preview",
-      "name": "[format('{0}/im-{1}', format('ha-{0}', parameters('basename')), parameters('basename'))]",
+      "type": "Microsoft.HealthcareApis/workspaces/iotconnectors",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), 'iot-connector')]",
       "location": "[resourceGroup().location]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "properties": {
-        "serviceConfiguration": {
-          "resourceIdentityResolutiontype": "Create"
+        "ingestionEndpointConfiguration": {
+          "eventHubName": "ingest",
+          "fullyQualifiedEventHubNamespace": "[format('{0}.servicebus.windows.net', format('en-{0}', parameters('basename')))]",
+          "consumerGroup": "$Default"
+        },
+        "deviceMapping": {
+          "content": {
+            "templateType": "CollectionContent",
+            "template": [
+              {
+                "templateType": "JsonPathContent",
+                "template": {
+                  "typeName": "bloodglucose",
+                  "typeMatchExpression": "$..[?(@.point[0].value[0].fpVal)]",
+                  "timestampExpression": "$.point[0].endTimeISO8601",
+                  "deviceIdExpression": "$.dataSourceId",
+                  "patientIdExpression": "$.userId",
+                  "values": [
+                    {
+                      "valueName": "Blood Glucose",
+                      "valueExpression": "$.point[0].value[0].fpVal",
+                      "required": true
+                    }
+                  ]
+                }
+              }
+            ]
+          }
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.HealthcareApis/services', format('ha-{0}', parameters('basename')))]"
+        "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]",
+        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]"
       ]
     },
     {
-      "type": "Microsoft.HealthcareApis/services/iomtconnectors/connections",
-      "apiVersion": "2020-05-01-preview",
-      "name": "[format('{0}/ic-{1}', format('{0}/im-{1}', format('ha-{0}', parameters('basename')), parameters('basename')), parameters('basename'))]",
+      "type": "Microsoft.HealthcareApis/workspaces/iotconnectors/destinations",
+      "apiVersion": "2020-11-01-preview",
+      "name": "[format('{0}/{1}/{2}', replace(format('hw-{0}', parameters('basename')), '-', ''), 'iot-connector', 'dest1')]",
       "location": "[resourceGroup().location]",
+      "properties": {
+        "destinationType": "FhirServer",
+        "resourceIdentityResolutionType": "Create",
+        "fhirServiceResourceId": "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hs-{0}', parameters('basename')))]",
+        "fhirMapping": {
+          "content": {
+            "templateType": "CollectionFhir",
+            "template": [
+              {
+                "templateType": "CodeValueFhir",
+                "template": {
+                  "typeName": "bloodglucose",
+                  "value": {
+                    "valueName": "Blood Glucose",
+                    "valueType": "Quantity",
+                    "defaultPeriod": "5000",
+                    "unit": "mmol/L",
+                    "system": "http://loinc.org"
+                  },
+                  "codes": []
+                }
+              }
+            ]
+          }
+        }
+      },
       "dependsOn": [
-        "[resourceId('Microsoft.HealthcareApis/services/iomtconnectors', split(format('{0}/im-{1}', format('ha-{0}', parameters('basename')), parameters('basename')), '/')[0], split(format('{0}/im-{1}', format('ha-{0}', parameters('basename')), parameters('basename')), '/')[1])]"
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hs-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), 'iot-connector')]"
+      ]
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces",
+      "apiVersion": "2021-01-01-preview",
+      "name": "[format('en-{0}', parameters('basename'))]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic",
+        "capacity": 1
+      },
+      "properties": {
+        "zoneRedundant": true
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs",
+      "apiVersion": "2021-01-01-preview",
+      "name": "[format('{0}/{1}', format('en-{0}', parameters('basename')), 'ingest')]",
+      "properties": {
+        "messageRetentionInDays": 1,
+        "partitionCount": 2
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces/fhirservices",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hs-{0}', parameters('basename')))]",
+      "location": "[resourceGroup().location]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "kind": "fhir-R4",
+      "properties": {
+        "authenticationConfiguration": {
+          "audience": "[format('https://{0}-ha-{1}.azurehealthcareapis.com', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
+          "authority": "[uri(environment().authentication.loginEndpoint, subscription().tenantId)]",
+          "smartProxyEnabled": false
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-08-01-preview",
+      "scope": "[format('Microsoft.HealthcareApis/workspaces/{0}/fhirservices/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hs-{0}', parameters('basename')))]",
+      "name": "[guid(format('{0}-FhirWriter', resourceGroup().id))]",
+      "properties": {
+        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('fhirWriterRoleId'))]",
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), 'iot-connector'), '2021-06-01-preview', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hs-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), 'iot-connector')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-08-01-preview",
+      "scope": "[format('Microsoft.EventHub/namespaces/{0}/eventhubs/{1}', format('en-{0}', parameters('basename')), 'ingest')]",
+      "name": "[guid(format('{0}-EventHubDataReceiver', resourceGroup().id))]",
+      "properties": {
+        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('eventHubReceiverRoleId'))]",
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), 'iot-connector'), '2021-06-01-preview', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), 'iot-connector')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
       ]
     },
     {
@@ -206,19 +336,6 @@
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
         "[resourceId('Microsoft.Storage/storageAccounts/tableServices', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]"
-      ]
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2021-04-01-preview",
-      "name": "[format('{0}/eventHubConnStr', format('kv-infra-{0}', parameters('basename')))]",
-      "properties": {
-        "value": "[listkeys(resourceId('Microsoft.HealthcareApis/services/iomtconnectors/connections', split(format('{0}/ic-{1}', format('{0}/im-{1}', format('ha-{0}', parameters('basename')), parameters('basename')), parameters('basename')), '/')[0], split(format('{0}/ic-{1}', format('{0}/im-{1}', format('ha-{0}', parameters('basename')), parameters('basename')), parameters('basename')), '/')[1], split(format('{0}/ic-{1}', format('{0}/im-{1}', format('ha-{0}', parameters('basename')), parameters('basename')), parameters('basename')), '/')[2]), '2020-05-01-preview').primaryConnectionString]",
-        "contentType": "string"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.HealthcareApis/services/iomtconnectors/connections', split(format('{0}/ic-{1}', format('{0}/im-{1}', format('ha-{0}', parameters('basename')), parameters('basename')), parameters('basename')), '/')[0], split(format('{0}/ic-{1}', format('{0}/im-{1}', format('ha-{0}', parameters('basename')), parameters('basename')), parameters('basename')), '/')[1], split(format('{0}/ic-{1}', format('{0}/im-{1}', format('ha-{0}', parameters('basename')), parameters('basename')), parameters('basename')), '/')[2])]"
       ]
     },
     {

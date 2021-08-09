@@ -3,37 +3,156 @@
 @maxLength(16)
 param basename string = 'fitonfhir'
 
-resource fhirService 'Microsoft.HealthcareApis/services@2021-01-11' = {
-  name: 'ha-${basename}'
+// @description('Json string containing the device mapping')
+// param deviceMapping string
+
+var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
+var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
+
+resource healthcareWorkspace 'Microsoft.HealthcareApis/workspaces@2021-06-01-preview' = {
+  name: replace('hw-${basename}', '-', '')
   location: resourceGroup().location
-  kind: 'fhir-R4'
+}
+
+resource iotConnector 'Microsoft.HealthcareApis/workspaces/iotconnectors@2021-06-01-preview' = {
+  name: 'iot-connector'
+  location: resourceGroup().location
+  parent: healthcareWorkspace
+  dependsOn: [
+    healthcareWorkspace
+    iotEventHubNamespace
+    iotEventHub
+  ]
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
-    authenticationConfiguration: {
-      audience: 'https://ha-${basename}.azurehealthcareapis.com'
-      authority: uri(environment().authentication.loginEndpoint, subscription().tenantId)
+    ingestionEndpointConfiguration: {
+      eventHubName: iotEventHub.name
+      fullyQualifiedEventHubNamespace: '${iotEventHubNamespace.name}.servicebus.windows.net'
+      consumerGroup: '$Default'
+    }
+    deviceMapping: {
+      content: {
+        templateType: 'CollectionContent'
+        template: [
+          {
+            templateType: 'JsonPathContent'
+            template: {
+              typeName: 'bloodglucose'
+              typeMatchExpression: '$..[?(@.point[0].value[0].fpVal)]'
+              timestampExpression: '$.point[0].endTimeISO8601'
+              deviceIdExpression: '$.dataSourceId'
+              patientIdExpression: '$.userId'
+              values: [
+                {
+                  valueName: 'Blood Glucose'
+                  valueExpression: '$.point[0].value[0].fpVal'
+                  required: true
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   }
 }
 
-resource iomtConnector 'Microsoft.HealthcareApis/services/iomtconnectors@2020-05-01-preview' = {
-  name: '${fhirService.name}/im-${basename}'
+resource iotConnectorDestination 'Microsoft.HealthcareApis/workspaces/iotconnectors/destinations@2020-11-01-preview' = {
+  name: 'dest1'
   location: resourceGroup().location
+  parent: iotConnector
   dependsOn: [
+    iotConnector
     fhirService
   ]
   properties: {
-    serviceConfiguration: {
-      resourceIdentityResolutiontype: 'Create'
+    destinationType: 'FhirServer'
+    resourceIdentityResolutionType: 'Create'
+    fhirServiceResourceId: fhirService.id
+    fhirMapping: {
+      content: {
+        templateType: 'CollectionFhir'
+        template: [
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              typeName: 'bloodglucose'
+              value: {
+                valueName: 'Blood Glucose'
+                valueType: 'Quantity'
+                defaultPeriod: '5000'
+                unit: 'mmol/L'
+                system: 'http://loinc.org'
+              }
+              codes: []
+            }
+          }
+        ]
+      }
     }
   }
 }
 
-resource iomtConnection 'Microsoft.HealthcareApis/services/iomtconnectors/connections@2020-05-01-preview' = {
-  name: '${iomtConnector.name}/ic-${basename}'
+resource iotEventHubNamespace 'Microsoft.EventHub/namespaces@2021-01-01-preview' = {
+  name: 'en-${basename}'
+  location: resourceGroup().location
+  sku: {
+    name: 'Basic'
+    tier: 'Basic'
+    capacity: 1
+  }
+  properties: {
+    zoneRedundant: true
+  }
+}
+
+resource iotEventHub 'Microsoft.EventHub/namespaces/eventhubs@2021-01-01-preview' = {
+  name: 'ingest'
+  parent: iotEventHubNamespace
+  properties: {
+    messageRetentionInDays: 1
+    partitionCount: 2
+  }
+}
+
+resource fhirService 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-06-01-preview' = {
+  name: 'hs-${basename}'
   location: resourceGroup().location
   dependsOn: [
-    iomtConnector
+    healthcareWorkspace
   ]
+  parent: healthcareWorkspace
+  identity: {
+    type: 'SystemAssigned'
+  }
+  kind: 'fhir-R4'
+  properties: {
+    authenticationConfiguration: {
+      audience: 'https://${healthcareWorkspace.name}-ha-${basename}.azurehealthcareapis.com'
+      authority: uri(environment().authentication.loginEndpoint, subscription().tenantId)
+      smartProxyEnabled: false
+    }
+  }
+}
+
+resource iotFhirWriterRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+  name: guid('${resourceGroup().id}-FhirWriter')
+  scope: fhirService
+  properties: {
+    roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${fhirWriterRoleId}'
+    principalId: iotConnector.identity.principalId
+  }
+}
+
+resource eventHubReceiverRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+  name: guid('${resourceGroup().id}-EventHubDataReceiver')
+  scope: iotEventHub
+  properties: {
+    roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${eventHubReceiverRoleId}'
+    principalId: iotConnector.identity.principalId
+  }
 }
 
 resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
@@ -170,18 +289,6 @@ resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2021-02-0
 resource tableUsersTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2021-02-01' = {
   parent: tableService
   name: 'users'
-}
-
-resource iomtConnectionSecret 'Microsoft.KeyVault/vaults/secrets@2021-04-01-preview' = {
-  name: '${infraKeyVault.name}/eventHubConnStr'
-  dependsOn: [
-    infraKeyVault
-    iomtConnection
-  ]
-  properties: {
-    value: listkeys(iomtConnection.id, '2020-05-01-preview').primaryConnectionString
-    contentType: 'string'
-  }
 }
 
 resource queueSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
