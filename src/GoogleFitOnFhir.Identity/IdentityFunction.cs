@@ -2,17 +2,17 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Auth.OAuth2.Web;
+using Google.Apis.Fitness.v1;
+using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Auth.OAuth2.Web;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Fitness.v1;
-using Google.Apis.Util.Store;
 
 namespace GoogleFitOnFhir.Identity
 {
@@ -37,13 +37,15 @@ namespace GoogleFitOnFhir.Identity
 
             if (path.StartsWith("api/login"))
             {
-                return await Task.Run(() => {
+                return await Task.Run(() =>
+                {
                     return Login(req, context, log);
                 });
             }
             else if (path.StartsWith("api/callback"))
             {
-                return await Task.Run(() => {
+                return await Task.Run(() =>
+                {
                     return Callback(req, context, log);
                 });
             }
@@ -78,7 +80,7 @@ namespace GoogleFitOnFhir.Identity
             ILogger log
         )
         {
-            FileDataStore fileStore = new FileDataStore(".");
+            FileDataStore fileStore = new(".");
             IAuthorizationCodeFlow flow = GetFlow(fileStore);
             TokenResponse tokenResponse = await fileStore.GetAsync<TokenResponse>("me");
 
@@ -94,7 +96,7 @@ namespace GoogleFitOnFhir.Identity
             }
 
             // Contains access and refresh tokens
-            UserCredential userCredential = new UserCredential(flow, "me", tokenResponse);
+            UserCredential userCredential = new(flow, "me", tokenResponse);
 
             return new OkObjectResult("auth flow successful");
         }
@@ -105,7 +107,7 @@ namespace GoogleFitOnFhir.Identity
             ILogger log
         )
         {
-            FileDataStore fileStore = new FileDataStore(".");
+            FileDataStore fileStore = new(".");
             IAuthorizationCodeFlow flow = GetFlow(fileStore);
 
             string callback = "http" + (req.IsHttps ? "s" : "") + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
@@ -149,7 +151,7 @@ namespace GoogleFitOnFhir.Identity
                     FitnessService.Scope.FitnessBloodGlucoseWrite,
                     FitnessService.Scope.FitnessHeartRateRead,
                     FitnessService.Scope.FitnessHeartRateWrite,
-                
+
                 },
                 DataStore = fileStore
             });
