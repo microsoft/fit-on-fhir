@@ -5,7 +5,6 @@ namespace GoogleFitOnFhir
 {
     public class IomtDataPoint : DataPoint
     {
-
         [JsonProperty("endTimeISO8601")]
         public virtual string EndTimeISO8601 { get; set; }
     }
