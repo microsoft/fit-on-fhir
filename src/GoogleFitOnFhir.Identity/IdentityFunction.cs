@@ -34,8 +34,10 @@ namespace GoogleFitOnFhir.Identity
             Microsoft.Azure.WebJobs.ExecutionContext context,
             ILogger log)
         {
+            string requestPath = await new StreamReader(req.Path).ReadToEndAsync();
+
             string root = context.FunctionAppDirectory;
-            string path = req.Path.Value.Substring(1);
+            string path = requestPath.Substring(1);
 
             // Flatten the user supplied path to its absolute path on the system
             // This will remove relative bits like ../../
