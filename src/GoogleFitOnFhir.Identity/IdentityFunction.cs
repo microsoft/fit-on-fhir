@@ -29,7 +29,7 @@ namespace GoogleFitOnFhir.Identity
             new[] { "api/img/logo.png", "image/png" },
         };
 
-        [FunctionName("id")]
+        [FunctionName("ListFiles")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "content/{p1?}/{p2?}/{p3?}")] HttpRequest req,
             Microsoft.Azure.WebJobs.ExecutionContext context,
@@ -102,7 +102,7 @@ namespace GoogleFitOnFhir.Identity
             return new OkObjectResult("auth flow successful");
         }
 
-        [FunctionName("login")]
+        [FunctionName("Login")]
         public static async Task<IActionResult> Login(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req,
             Microsoft.Azure.WebJobs.ExecutionContext context)
