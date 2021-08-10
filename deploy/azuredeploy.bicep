@@ -21,6 +21,15 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
           ]
         }
       }
+      {
+        tenantId: identityFn.identity.tenantId
+        objectId: identityFn.identity.principalId
+        permissions: {
+          secrets: [
+            'all'
+          ]
+        }
+      }
     ]
     tenantId: subscription().tenantId
     enableSoftDelete: true
@@ -178,6 +187,9 @@ resource identityFn 'Microsoft.Web/sites@2020-06-01' = {
   name: 'identity-${basename}'
   location: resourceGroup().location
   kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     httpsOnly: true
     serverFarmId: hostingPlan.id
@@ -255,6 +267,6 @@ resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
 output usersKeyVaultName string = usersKeyVault.name
 output infraKeyVaultName string = infraKeyVault.name
 
-output identityAppName    string = identityFn.name
-output syncEventAppName   string = syncEventFn.name
+output identityAppName string = identityFn.name
+output syncEventAppName string = syncEventFn.name
 output publishDataAppName string = publishDataFn.name

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.451.19169",
-      "templateHash": "11694917554434127146"
+      "templateHash": "511582183468916568"
     }
   },
   "parameters": {
@@ -40,6 +40,15 @@
                 "all"
               ]
             }
+          },
+          {
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "all"
+              ]
+            }
           }
         ],
         "tenantId": "[subscription().tenantId]",
@@ -48,6 +57,7 @@
         "softDeleteRetentionInDays": 30
       },
       "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]"
       ]
     },
@@ -228,6 +238,9 @@
       "name": "[format('identity-{0}', parameters('basename'))]",
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "properties": {
         "httpsOnly": true,
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
