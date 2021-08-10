@@ -22,6 +22,15 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
         }
       }
       {
+        tenantId: syncEventFn.identity.tenantId
+        objectId: syncEventFn.identity.principalId
+        permissions: {
+          secrets: [
+            'all'
+          ]
+        }
+      }
+      {
         tenantId: identityFn.identity.tenantId
         objectId: identityFn.identity.principalId
         permissions: {
@@ -215,6 +224,9 @@ resource syncEventFn 'Microsoft.Web/sites@2020-06-01' = {
   name: 'sync-event-${basename}'
   location: resourceGroup().location
   kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     httpsOnly: true
     serverFarmId: hostingPlan.id
