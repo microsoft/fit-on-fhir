@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
@@ -18,12 +18,14 @@ namespace GoogleFitOnFhir.PublishData
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
             // TODO: iomtConnectingString from env var or key vault?
-            string iomtConnectionString = "";
-            // TODO: Retrieve refresh token for user
-            // TODO: Get access token and new refresh token from Google Identity
-            string accessToken = "";
-            // TODO: Store new refresh token
+            string iomtConnectionString = string.Empty;
 
+            // TODO: Retrieve refresh token for user
+
+            // TODO: Get access token and new refresh token from Google Identity
+            string accessToken = string.Empty;
+
+            // TODO: Store new refresh token
             GoogleFitData googleFitData = new GoogleFitData(accessToken);
             var datasourceList = googleFitData.GetDataSourceList();
 
@@ -35,6 +37,7 @@ namespace GoogleFitOnFhir.PublishData
                 .Select(d => d.DataStreamId);
 
             var producerClient = new EventHubProducerClient(iomtConnectionString);
+
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await producerClient.CreateBatchAsync();
 
