@@ -13,9 +13,17 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     }
     accessPolicies: [
       {
-        //TODO: this is a placeholder policy that is required for provisioning but should be removed when there is a managed identity that can be used
-        tenantId: subscription().tenantId
-        objectId: subscription().tenantId
+        tenantId: publishDataFn.identity.tenantId
+        objectId: publishDataFn.identity.principalId
+        permissions: {
+          secrets: [
+            'all'
+          ]
+        }
+      }
+      {
+        tenantId: publishDataFn.identity.tenantId
+        objectId: publishDataFn.identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -179,6 +187,9 @@ resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
   name: 'publish-data-${basename}'
   location: resourceGroup().location
   kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     httpsOnly: true
     serverFarmId: hostingPlan.id
