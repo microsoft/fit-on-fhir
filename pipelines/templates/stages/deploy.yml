@@ -36,14 +36,14 @@ stages:
               azureSubscription: ${{ variables.azure_service_connection_name }}
               resourceGroupName: $(basename)
               appName: GoogleFitOnFhir.Identity
-              resourceName: $(publishDataAppName)
+              resourceName: $(identityAppName)
               releasesDir: $(Pipeline.Workspace)/dotnet-release
           - template: ../steps/deploy-source-to-functionapp.yml
             parameters:
               azureSubscription: ${{ variables.azure_service_connection_name }}
               resourceGroupName: $(basename)
               appName: GoogleFitOnFhir.SyncEvent
-              resourceName: $(publishDataAppName)
+              resourceName: $(syncEventAppName)
               releasesDir: $(Pipeline.Workspace)/dotnet-release
           - template: ../steps/deploy-source-to-functionapp.yml
             parameters:
