@@ -6,14 +6,6 @@ TODO: Expand introduction with a little more detail/context
 
 This repo is available to help you get started with bringing Google FIT to FHIR. The webapp will help to authenticate your patients with the Google FIT API and the Azure Function that continously publishes patient data as it becomes available.
 
-## Prerequisites
-
-* [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
-* [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet/3.1)
-* ...TODO: Other prerequisites
-
-Note: To verify that you have both versions of the .NET SDK installed, run the command `dotnet --list-sdks`.
-
 ## Architecture
 
 ### Architecture Diagram
