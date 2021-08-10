@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -22,9 +22,9 @@ namespace GoogleFitOnFhir.Identity
         // Whitelisted Files
         private static readonly string[][] FileMap = new string[][]
         {
-            new [] {"api/index.html",   "text/html; charset=utf-8"},
-            new [] {"api/css/main.css", "text/css; charset=utf-8"},
-            new [] {"api/favicon.ico",  "image/x-icon"}
+            new[] { "api/index.html", "text/html; charset=utf-8" },
+            new[] { "api/css/main.css", "text/css; charset=utf-8" },
+            new[] { "api/favicon.ico", "image/x-icon" },
         };
 
         [FunctionName("api")]
@@ -55,31 +55,30 @@ namespace GoogleFitOnFhir.Identity
             // This will remove relative bits like ../../
             var absPath = Path.GetFullPath(Path.Combine(root, path));
 
-            var matchedFile = FileMap.FirstOrDefault((allowedResources =>
+            var matchedFile = FileMap.FirstOrDefault(allowedResources =>
             {
                 // If the flattened path matches the whitelist exactly
                 return Path.Combine(root, allowedResources[0]) == absPath;
-            }));
+            });
 
             if (matchedFile != null)
             {
                 // Reconstruct the absPath without using user input at all
                 // For maximum safety
                 var cleanAbsPath = Path.Combine(root, matchedFile[0]);
-                return fileStreamOrNotFound(cleanAbsPath, matchedFile[1]);
+                return FileStreamOrNotFound(cleanAbsPath, matchedFile[1]);
             }
 
             // Return the first item in the FileMap by default
             var firstFile = FileMap.First();
             var firstFilePath = Path.Combine(root, firstFile[0]);
-            return fileStreamOrNotFound(firstFilePath, firstFile[1]);
+            return FileStreamOrNotFound(firstFilePath, firstFile[1]);
         }
 
         public static async Task<IActionResult> Callback(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{p1?}/{p2?}/{p3?}")] HttpRequest req,
             Microsoft.Azure.WebJobs.ExecutionContext context,
-            ILogger log
-        )
+            ILogger log)
         {
             FileDataStore fileStore = new FileDataStore(".");
             IAuthorizationCodeFlow flow = GetFlow(fileStore);
@@ -87,7 +86,8 @@ namespace GoogleFitOnFhir.Identity
 
             if (tokenResponse == null)
             {
-                string callback = "http" + (req.IsHttps ? "s" : "") + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
+                string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
+
                 // Token data does not exist for this user
                 tokenResponse = await flow.ExchangeCodeForTokenAsync(
                     "me",
@@ -105,14 +105,13 @@ namespace GoogleFitOnFhir.Identity
         public static async Task<IActionResult> Login(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{p1?}/{p2?}/{p3?}")] HttpRequest req,
             Microsoft.Azure.WebJobs.ExecutionContext context,
-            ILogger log
-        )
+            ILogger log)
         {
             FileDataStore fileStore = new FileDataStore(".");
             IAuthorizationCodeFlow flow = GetFlow(fileStore);
 
-            string callback = "http" + (req.IsHttps ? "s" : "") + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
-            var authResult = await new AuthorizationCodeWebApp(flow, callback, "")
+            string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
+            var authResult = await new AuthorizationCodeWebApp(flow, callback, string.Empty)
                 .AuthorizeAsync("user", CancellationToken.None);
 
             if (authResult.Credential == null)
@@ -126,7 +125,7 @@ namespace GoogleFitOnFhir.Identity
             }
         }
 
-        private static IActionResult fileStreamOrNotFound(string filePath, string contentType)
+        private static IActionResult FileStreamOrNotFound(string filePath, string contentType)
         {
             return File.Exists(filePath) ?
                 (IActionResult)new FileStreamResult(File.OpenRead(filePath), contentType) :
@@ -141,20 +140,21 @@ namespace GoogleFitOnFhir.Identity
                 // TODO: Securely store and make ClientId/ClientSecret available
                 ClientSecrets = new ClientSecrets
                 {
-                    ClientId = "",
-                    ClientSecret = ""
+                    ClientId = string.Empty,
+                    ClientSecret = string.Empty,
                 },
+
                 // TODO: Only need write scopes for e2e tests - make this dynamic
-                Scopes = new[] {
+                Scopes = new[]
+                {
                     "https://www.googleapis.com/auth/userinfo.email",
                     "https://www.googleapis.com/auth/userinfo.profile",
                     FitnessService.Scope.FitnessBloodGlucoseRead,
                     FitnessService.Scope.FitnessBloodGlucoseWrite,
                     FitnessService.Scope.FitnessHeartRateRead,
                     FitnessService.Scope.FitnessHeartRateWrite,
-
                 },
-                DataStore = fileStore
+                DataStore = fileStore,
             });
         }
     }

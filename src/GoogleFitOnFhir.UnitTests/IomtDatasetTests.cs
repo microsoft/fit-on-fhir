@@ -16,8 +16,10 @@ namespace GoogleFitOnFhir.UnitTests
                 MaxEndTimeNs = 12345,
                 MinStartTimeNs = 12345,
                 NextPageToken = "token",
-                Point = new List<DataPoint>(){
-                    new DataPoint{
+                Point = new List<DataPoint>()
+                {
+                    new DataPoint
+                    {
                         ComputationTimeMillis = 12345,
                         DataTypeName = "test",
                         EndTimeNanos = nanos,
@@ -25,15 +27,17 @@ namespace GoogleFitOnFhir.UnitTests
                         OriginDataSourceId = "test",
                         RawTimestampNanos = 12345,
                         StartTimeNanos = 12345,
-                        Value = new List<Value>(){
-                            new Value{
+                        Value = new List<Value>()
+                        {
+                            new Value
+                            {
                                 FpVal = 5,
-                                MapVal = new List<ValueMapValEntry>(){}
-                            }
+                                MapVal = new List<ValueMapValEntry>() { },
+                            },
                         },
-                        ETag = "etag"
-                    }
-                }
+                        ETag = "etag",
+                    },
+                },
             };
 
             IomtDataset iomtDataset = new IomtDataset(dataset);

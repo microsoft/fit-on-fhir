@@ -18,15 +18,15 @@ namespace GoogleFitOnFhir.PublishData
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
-            // Get the iomtConnectionString from a keyvault backed app setting
-            string iomtConnectionString = "";
+            // TODO: iomtConnectingString from env var or key vault?
+            string iomtConnectionString = string.Empty;
 
             // TODO: Retrieve refresh token for user
+
             // TODO: Get access token and new refresh token from Google Identity
-            string accessToken = "";
+            string accessToken = string.Empty;
 
             // TODO: Store new refresh token
-
             GoogleFitData googleFitData = new GoogleFitData(accessToken);
             var datasourceList = googleFitData.GetDataSourceList();
 

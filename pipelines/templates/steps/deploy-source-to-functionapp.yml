@@ -1,0 +1,19 @@
+parameters:
+  - name: azureSubscription
+  - name: resourceGroupName
+  - name: appName
+  - name: resourceName
+  - name: releasesDir
+
+steps:
+  - task: AzureCLI@2
+    displayName: Deploy zip to ${{ parameters.appName }}
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: >
+        az functionapp deployment source config-zip
+        -g ${{ parameters.resourceGroupName }}
+        -n ${{ parameters.resourceName }}
+        --src ${{ parameters.releasesDir }}/${{ parameters.appName }}.zip
