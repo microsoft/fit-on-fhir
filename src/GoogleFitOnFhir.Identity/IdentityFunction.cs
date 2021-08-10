@@ -20,7 +20,7 @@ namespace GoogleFitOnFhir.Identity
 {
     public static class IdentityFunction
     {
-        // Whitelisted Files
+        // Allow-listed Files
         private static readonly string[][] FileArray = new string[][]
         {
             new[] { "api/index.html", "text/html; charset=utf-8" },
