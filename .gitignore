@@ -264,6 +264,7 @@ __pycache__/
 *.pyc
 
 ### VisualStudioCode ###
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -278,3 +279,5 @@ __pycache__/
 # Ignore all local history of files
 .history
 .ionide
+
+.DS_Store
