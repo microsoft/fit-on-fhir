@@ -166,5 +166,41 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
+resource hostingPlan 'Microsoft.Web/serverfarms@2020-10-01' = {
+  name: 'app-plan-${basename}'
+  location: resourceGroup().location
+  sku: {
+    name: 'Y1'
+    tier: 'Dynamic'
+  }
+}
+
+resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
+  name: 'publish-data-${basename}'
+  location: resourceGroup().location
+  kind: 'functionapp'
+  properties: {
+    httpsOnly: true
+    serverFarmId: hostingPlan.id
+    clientAffinityEnabled: true
+    siteConfig: {
+      appSettings: [
+        {
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+        }
+      ]
+    }
+  }
+
+  dependsOn: [
+    appInsights
+    hostingPlan
+    storageAccount
+  ]
+}
+
 output usersKeyVaultName string = usersKeyVault.name
 output infraKeyVaultName string = infraKeyVault.name
+
+output publishDataAppName string = publishDataFn.name
