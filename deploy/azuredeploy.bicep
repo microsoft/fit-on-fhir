@@ -21,6 +21,24 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
           ]
         }
       }
+      {
+        tenantId: syncEventFn.identity.tenantId
+        objectId: syncEventFn.identity.principalId
+        permissions: {
+          secrets: [
+            'all'
+          ]
+        }
+      }
+      {
+        tenantId: identityFn.identity.tenantId
+        objectId: identityFn.identity.principalId
+        permissions: {
+          secrets: [
+            'all'
+          ]
+        }
+      }
     ]
     tenantId: subscription().tenantId
     enableSoftDelete: true
@@ -174,6 +192,62 @@ resource hostingPlan 'Microsoft.Web/serverfarms@2020-10-01' = {
   }
 }
 
+resource identityFn 'Microsoft.Web/sites@2020-06-01' = {
+  name: 'identity-${basename}'
+  location: resourceGroup().location
+  kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    httpsOnly: true
+    serverFarmId: hostingPlan.id
+    clientAffinityEnabled: true
+    siteConfig: {
+      appSettings: [
+        {
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+        }
+      ]
+    }
+  }
+
+  dependsOn: [
+    appInsights
+    hostingPlan
+    storageAccount
+  ]
+}
+
+resource syncEventFn 'Microsoft.Web/sites@2020-06-01' = {
+  name: 'sync-event-${basename}'
+  location: resourceGroup().location
+  kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    httpsOnly: true
+    serverFarmId: hostingPlan.id
+    clientAffinityEnabled: true
+    siteConfig: {
+      appSettings: [
+        {
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+        }
+      ]
+    }
+  }
+
+  dependsOn: [
+    appInsights
+    hostingPlan
+    storageAccount
+  ]
+}
+
 resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
   name: 'publish-data-${basename}'
   location: resourceGroup().location
@@ -205,4 +279,6 @@ resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
 output usersKeyVaultName string = usersKeyVault.name
 output infraKeyVaultName string = infraKeyVault.name
 
+output identityAppName string = identityFn.name
+output syncEventAppName string = syncEventFn.name
 output publishDataAppName string = publishDataFn.name
