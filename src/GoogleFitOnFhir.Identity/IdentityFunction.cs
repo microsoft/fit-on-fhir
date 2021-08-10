@@ -22,9 +22,10 @@ namespace GoogleFitOnFhir.Identity
         // Whitelisted Files
         private static readonly string[][] fileArray = new string[][]
         {
-            new [] {"api/index.html", "text/html; charset=utf-8"},
-            new [] {"api/css/main.css", "text/css; charset=utf-8"},
-            new [] {"api/favicon.ico",  "image/x-icon"}
+            new[] { "api/index.html", "text/html; charset=utf-8" },
+            new[] { "api/css/main.css", "text/css; charset=utf-8" },
+            new[] { "api/img/favicon.ico", "image/x-icon" },
+            new[] { "api/img/logo.png", "image/png" },
         };
 
         [FunctionName("id")]
