@@ -23,6 +23,10 @@ stages:
       - job: LintFunctions
         displayName: Functions
         steps:
+          - task: UseDotNet@2
+            displayName: 'Use .NET Core sdk'
+            inputs:
+              useGlobalJson: true
           - task: DotNetCoreCLI@2
             displayName: Install dotnet format
             inputs:
