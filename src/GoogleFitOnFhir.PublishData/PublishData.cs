@@ -66,7 +66,7 @@ namespace GoogleFitOnFhir.PublishData
                 // Use the producer client to send the batch of events to the event hub
                 await producerClient.SendAsync(eventBatch);
                 log.LogInformation("A batch of events has been published.");
-                updateUserLastSync(log);
+                UpdateUserLastSync(log);
             }
             finally
             {
@@ -74,7 +74,7 @@ namespace GoogleFitOnFhir.PublishData
             }
         }
 
-        private static bool updateUserLastSync(ILogger log)
+        private static bool UpdateUserLastSync(ILogger log)
         {
             string storageAccountConnectionString = "";
             TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
