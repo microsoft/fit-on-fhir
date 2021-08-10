@@ -23,6 +23,8 @@ The following is a visual representation of the architecture that gets deployed 
 
 ### Resource List
 
+TODO: Insert links to Microsoft docs where applicable
+
 The following resources are deployed by the Bicep/ARM templates contained in the `deploy/` directory:
 
 #### Function Apps
