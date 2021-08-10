@@ -82,13 +82,17 @@ namespace GoogleFitOnFhir.Identity
 
             if (tokenResponse == null)
             {
-                string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
+                StringBuilder stringBuilder = new StringBuilder("http")
+                .Append(req.IsHttps ? "s" : string.Empty)
+                .Append("://")
+                .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
+                .Append("/api/callback");
 
                 // Token data does not exist for this user
                 tokenResponse = await flow.ExchangeCodeForTokenAsync(
                     "me",
                     req.Query["code"],
-                    callback,
+                    stringBuilder.ToString(),
                     CancellationToken.None);
             }
 
@@ -106,9 +110,8 @@ namespace GoogleFitOnFhir.Identity
             FileDataStore fileStore = new FileDataStore(".");
             IAuthorizationCodeFlow flow = GetFlow(fileStore);
 
-            StringBuilder stringBuilder = new StringBuilder("http");
-
-            stringBuilder.Append(req.IsHttps ? "s" : string.Empty)
+            StringBuilder stringBuilder = new StringBuilder("http")
+            .Append(req.IsHttps ? "s" : string.Empty)
             .Append("://")
             .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
             .Append("/api/callback");
