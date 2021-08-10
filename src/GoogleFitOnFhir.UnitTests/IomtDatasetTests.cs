@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Google.Apis.Fitness.v1.Data;
 using Xunit;
 
