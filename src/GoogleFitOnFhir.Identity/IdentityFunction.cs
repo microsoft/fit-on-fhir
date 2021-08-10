@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Text;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
@@ -15,12 +15,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+
 namespace GoogleFitOnFhir.Identity
 {
     public static class IdentityFunction
     {
         // Whitelisted Files
-        private static readonly string[][] fileArray = new string[][]
+        private static readonly string[][] FileArray = new string[][]
         {
             new[] { "api/index.html", "text/html; charset=utf-8" },
             new[] { "api/css/main.css", "text/css; charset=utf-8" },
@@ -43,12 +44,11 @@ namespace GoogleFitOnFhir.Identity
             // This will remove relative bits like ../../
             string absPath = Path.GetFullPath(Path.Combine(root, path));
 
-            var matchedFile = fileArray.FirstOrDefault((allowedResources =>
+            var matchedFile = FileArray.FirstOrDefault(allowedResources =>
             {
                 // If the flattened path matches the whitelist exactly
                 return Path.Combine(root, allowedResources[0]) == absPath;
-            }));
-            
+            });
 
             if (matchedFile == null)
             {
@@ -82,7 +82,8 @@ namespace GoogleFitOnFhir.Identity
 
             if (tokenResponse == null)
             {
-                string callback = "http" + (req.IsHttps ? "s" : "") + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
+                string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
+
                 // Token data does not exist for this user
                 tokenResponse = await flow.ExchangeCodeForTokenAsync(
                     "me",
@@ -100,20 +101,19 @@ namespace GoogleFitOnFhir.Identity
         [FunctionName("login")]
         public static async Task<IActionResult> Login(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req,
-            Microsoft.Azure.WebJobs.ExecutionContext context
-        )
+            Microsoft.Azure.WebJobs.ExecutionContext context)
         {
             FileDataStore fileStore = new FileDataStore(".");
             IAuthorizationCodeFlow flow = GetFlow(fileStore);
 
             StringBuilder stringBuilder = new StringBuilder("http");
 
-            stringBuilder.Append(req.IsHttps ? "s" : "")
+            stringBuilder.Append(req.IsHttps ? "s" : string.Empty)
             .Append("://")
             .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
             .Append("/api/callback");
 
-            var authResult = await new AuthorizationCodeWebApp(flow, stringBuilder.ToString(), "")
+            var authResult = await new AuthorizationCodeWebApp(flow, stringBuilder.ToString(), string.Empty)
                 .AuthorizeAsync("user", CancellationToken.None);
 
             if (authResult.Credential == null)
@@ -127,29 +127,28 @@ namespace GoogleFitOnFhir.Identity
             }
         }
 
-        private static IAuthorizationCodeFlow GetFlow(FileDataStore fileStore)
-        {
-            // TODO: Customize datastore to use KeyVault
-            return new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+        private static IAuthorizationCodeFlow GetFlow(FileDataStore fileStore) =>
+            new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
             {
+                // TODO: Customize datastore to use KeyVault
                 // TODO: Securely store and make ClientId/ClientSecret available
                 ClientSecrets = new ClientSecrets
                 {
-                    ClientId = "",
-                    ClientSecret = ""
+                    ClientId = string.Empty,
+                    ClientSecret = string.Empty,
                 },
+
                 // TODO: Only need write scopes for e2e tests - make this dynamic
-                Scopes = new[] {
+                Scopes = new[]
+                {
                     "https://www.googleapis.com/auth/userinfo.email",
                     "https://www.googleapis.com/auth/userinfo.profile",
                     FitnessService.Scope.FitnessBloodGlucoseRead,
                     FitnessService.Scope.FitnessBloodGlucoseWrite,
                     FitnessService.Scope.FitnessHeartRateRead,
                     FitnessService.Scope.FitnessHeartRateWrite,
-
                 },
-                DataStore = fileStore
+                DataStore = fileStore,
             });
-        }
     }
 }
