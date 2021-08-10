@@ -1,4 +1,4 @@
-# Infrastructure Deployment
+# Google Fit on FHIR Infrastructure Deployment
 
 There are two methods of deployment available: ARM template and Bicep template. The Bicep template is used to generate the ARM template via the azure cli. Example:
 
@@ -6,7 +6,7 @@ There are two methods of deployment available: ARM template and Bicep template. 
 az bicep build -f azuredeploy.bicep
 ```
 
-## Pre-requisites
+## Prerequisites
 
 - Azure subscription
 - Resource Group

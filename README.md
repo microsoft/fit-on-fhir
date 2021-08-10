@@ -29,12 +29,11 @@ The following resources are deployed by the Bicep/ARM templates contained in the
 
 #### Function Apps
 
-* Identity Function App
-    * Identity Azure Function (HTTP trigger): Presents a UI for users to authenticate to Google Fit and authorize data sync.  Receives OAuth callback.  Stores refresh token in the "users" key vault, stores user ID in the "users" table in storage, and registers the user on the FHIR server.
-* Sync Event Function App
-    * Sync Event Azure Function (timer trigger): Periodically runs and retrieves list of user ID's to sync from the "users" table in storage.
-* Publish Data Function App
-    * Publish Data Azure Function (queue trigger): Retrieves messages from the "users" queue in the storage account.  Pulls user data from Google Fit and publishes it to FHIR server.  Handles update of refresh token and stores new token in key vault.
+Note: More detail on the following functions can be found in the /src directory README [here](./src/README.md).
+
+* Identity Function: Authenticates users and authorizes data sync to FHIR
+* Sync Event Function: Periodically runs and retrieves user ID's for data to sync
+* Publish Data Function: Pulls data from Google Fit and syncs/publishes it to FHIR server
 
 #### Key Vaults
 
@@ -42,7 +41,7 @@ The following resources are deployed by the Bicep/ARM templates contained in the
 * Infrastructure Key Vault: Stores secrets and connection strings needed for infrastructure deployment
     * Key Vault Secret: Queue Connection String for connecting the PublishData function to the queue
 
-#### Storage
+#### Storage Resources
 
 * Storage Account: Contains the following sub-resources that enable data sync with FHIR
     * Blob Service: (TODO: What is this used for?)
@@ -51,7 +50,7 @@ The following resources are deployed by the Bicep/ARM templates contained in the
     * Table Service: Contains the User Table
         * Table: Stores a list of user ID's for users that have authenticated to Google Fit and authorized their data to be synced to FHIR server
 
-#### FHIR
+#### FHIR Server
 
 * Azure FHIR Service: (TODO: Description)
     * Azure FHIR IoMT connector: (TODO: Description)
@@ -63,26 +62,11 @@ The following resources are deployed by the Bicep/ARM templates contained in the
 
 ## Infrastructure Deployment
 
-### Deployment Steps
+For prerequisites and instructions on deploying the Fit to FHIR infrastructure outlined above, [see here](./deploy/README.md).
 
-TODO: Fill out this section with sample commands for deploying via Bicep/ARM
+### Run the App
 
-Steps:
-* Set variables for input parameters
-    * `basename`: Base name that is used to name provisioned resources. Should be alphanumeric and less than 16 characters.
-* AZ CLI to run deployment group create using Bicep/ARM template
-
-TODO: Question - are we assuming an existing RG?
-
-### Test the Deployment
-
-#### Authentication + Authorization
-
-TODO: Steps for directing users to the Identity function UI for authentication and authorization of data sync
-
-#### Verifying Data Sync
-
-TODO: Steps for verifying that data sync is working correctly
+For more information on the functions in this solution, and how to run and test the app, [see here](./src/README.md).
 
 ## FAQ and Troubleshooting
 
