@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.451.19169",
-      "templateHash": "8806734243461271383"
+      "templateHash": "14789195716889037574"
     }
   },
   "parameters": {
@@ -33,8 +33,8 @@
         },
         "accessPolicies": [
           {
-            "tenantId": "[subscription().tenantId]",
-            "objectId": "[subscription().tenantId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -46,7 +46,10 @@
         "enableSoftDelete": true,
         "enablePurgeProtection": true,
         "softDeleteRetentionInDays": 30
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]"
+      ]
     },
     {
       "type": "Microsoft.KeyVault/vaults",
@@ -225,6 +228,9 @@
       "name": "[format('publish-data-{0}', parameters('basename'))]",
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "properties": {
         "httpsOnly": true,
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
