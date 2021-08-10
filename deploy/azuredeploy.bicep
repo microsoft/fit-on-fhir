@@ -21,15 +21,6 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
           ]
         }
       }
-      {
-        tenantId: publishDataFn.identity.tenantId
-        objectId: publishDataFn.identity.principalId
-        permissions: {
-          secrets: [
-            'all'
-          ]
-        }
-      }
     ]
     tenantId: subscription().tenantId
     enableSoftDelete: true
