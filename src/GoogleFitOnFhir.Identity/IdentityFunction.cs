@@ -10,7 +10,6 @@ using Google.Apis.Auth.OAuth2.Web;
 using Google.Apis.Fitness.v1;
 using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
