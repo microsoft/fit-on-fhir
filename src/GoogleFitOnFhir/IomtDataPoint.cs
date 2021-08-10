@@ -1,4 +1,4 @@
-﻿using Google.Apis.Fitness.v1.Data;
+using Google.Apis.Fitness.v1.Data;
 using Newtonsoft.Json;
 
 namespace GoogleFitOnFhir
