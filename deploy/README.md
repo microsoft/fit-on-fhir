@@ -11,8 +11,8 @@ az bicep build -f azuredeploy.bicep
 - Azure subscription
 - Resource Group
 - Azure CLI [install](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-* [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
-* [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet/3.1)
+- [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
+- [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet/3.1)
 
 Note: To verify that you have both versions of the .NET SDK installed, run the command `dotnet --list-sdks`.
 

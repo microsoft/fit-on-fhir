@@ -9,6 +9,7 @@ This repo is available to help you get started with bringing Google FIT to FHIR.
 ## Architecture
 
 ### Architecture Diagram
+
 The following is a visual representation of the architecture that gets deployed through this solution:
 
 ![Architecture Diagram](./media/original-architecture-diagram.png)
