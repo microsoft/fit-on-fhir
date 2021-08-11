@@ -3,14 +3,14 @@ parameters:
 
 stages:
   - stage: Clean
-    displayName: Cleaning
+    displayName: Cleanup
     dependsOn: [Deploy]
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     condition: always()
     jobs:
       - job: DestroyResources
-        displayName: Cleanup Resources
+        displayName: Resources
         steps:
           - task: AzureCLI@2
             displayName: Destroy $(basename)

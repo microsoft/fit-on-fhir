@@ -5,7 +5,11 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.451.19169",
+<<<<<<< HEAD
       "templateHash": "10319203682102741527"
+=======
+      "templateHash": "1848795979240339821"
+>>>>>>> 549ac2d04875e5dfcdea87ac915711aaca72fe0e
     }
   },
   "parameters": {
@@ -199,8 +203,26 @@
         },
         "accessPolicies": [
           {
-            "tenantId": "[subscription().tenantId]",
-            "objectId": "[subscription().tenantId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "all"
+              ]
+            }
+          },
+          {
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "all"
+              ]
+            }
+          },
+          {
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -212,7 +234,12 @@
         "enableSoftDelete": true,
         "enablePurgeProtection": true,
         "softDeleteRetentionInDays": 30
-      }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename')))]"
+      ]
     },
     {
       "type": "Microsoft.KeyVault/vaults",
@@ -374,6 +401,100 @@
       "dependsOn": [
         "[resourceId('Microsoft.OperationalInsights/workspaces', format('la-{0}', parameters('basename')))]"
       ]
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2020-10-01",
+      "name": "[format('app-plan-{0}', parameters('basename'))]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-06-01",
+      "name": "[format('identity-{0}', parameters('basename'))]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "httpsOnly": true,
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
+        "clientAffinityEnabled": true,
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-06-01",
+      "name": "[format('sync-event-{0}', parameters('basename'))]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "httpsOnly": true,
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
+        "clientAffinityEnabled": true,
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-06-01",
+      "name": "[format('publish-data-{0}', parameters('basename'))]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "httpsOnly": true,
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
+        "clientAffinityEnabled": true,
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
     }
   ],
   "outputs": {
@@ -384,6 +505,18 @@
     "infraKeyVaultName": {
       "type": "string",
       "value": "[format('kv-infra-{0}', parameters('basename'))]"
+    },
+    "identityAppName": {
+      "type": "string",
+      "value": "[format('identity-{0}', parameters('basename'))]"
+    },
+    "syncEventAppName": {
+      "type": "string",
+      "value": "[format('sync-event-{0}', parameters('basename'))]"
+    },
+    "publishDataAppName": {
+      "type": "string",
+      "value": "[format('publish-data-{0}', parameters('basename'))]"
     }
   }
 }

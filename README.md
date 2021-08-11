@@ -1,6 +1,6 @@
-# Google FIT on FHIR
+# Google Fit on FHIR
 
-> This repo is available to help you get started with bringing Google FIT to FHIR. The webapp will help to authenticate your patients with the Google FIT API and the Function that continously publishes patient data as it becomes available.
+> This repo is available to help you get started with bringing Google Fit to FHIR. The webapp will help to authenticate your patients with the Google Fit API and the Function that continously publishes patient data as it becomes available.
 
 ## High Level Architecture Diagram
 

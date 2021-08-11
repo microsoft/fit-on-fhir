@@ -8,9 +8,12 @@ stages:
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     jobs:
-      - job: DeployResourceGroup
-        displayName: Deploy Resource Group
+      - job: DeployResources
+        displayName: Resources
         steps:
+          - download: current
+            artifact: dotnet-release
+            displayName: Download dotnet-release artifact
           - task: AzureCLI@2
             displayName: Deploy $(basename)
             inputs:
@@ -28,3 +31,24 @@ stages:
               overrideParameters: >
                 -basename "$(basename)"
               armFile: ./deploy/azuredeploy.json
+          - template: ../steps/deploy-source-to-functionapp.yml
+            parameters:
+              azureSubscription: ${{ variables.azure_service_connection_name }}
+              resourceGroupName: $(basename)
+              appName: GoogleFitOnFhir.Identity
+              resourceName: $(identityAppName)
+              releasesDir: $(Pipeline.Workspace)/dotnet-release
+          - template: ../steps/deploy-source-to-functionapp.yml
+            parameters:
+              azureSubscription: ${{ variables.azure_service_connection_name }}
+              resourceGroupName: $(basename)
+              appName: GoogleFitOnFhir.SyncEvent
+              resourceName: $(syncEventAppName)
+              releasesDir: $(Pipeline.Workspace)/dotnet-release
+          - template: ../steps/deploy-source-to-functionapp.yml
+            parameters:
+              azureSubscription: ${{ variables.azure_service_connection_name }}
+              resourceGroupName: $(basename)
+              appName: GoogleFitOnFhir.PublishData
+              resourceName: $(publishDataAppName)
+              releasesDir: $(Pipeline.Workspace)/dotnet-release

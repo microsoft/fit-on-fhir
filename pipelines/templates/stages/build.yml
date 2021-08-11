@@ -8,8 +8,34 @@ stages:
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     jobs:
-      - job: BuildPlaceholder       # Rename to Build<Project>
-        displayName: Build Project  # Having 1 job per build means
-        steps:                      # they run in parallel
-          - bash: echo "🔨👷"
-            displayName: Build the Bob
+      - job: BuildARM
+        displayName: ARM & Verify
+        steps:
+          - bash: az bicep build -f deploy/azuredeploy.bicep --outdir /tmp
+            displayName: Compile Bicep
+          - bash: |
+              cmp --silent /tmp/azuredeploy.json deploy/azuredeploy.json
+              if [ $? -ne  0 ]; then
+                echo '🚨 Compiled ARM json does not match'
+                echo '⚠️ Compile the bicep into ARM and commit to pass'
+                exit 1
+              fi
+            displayName: Verify built bicep matches ARM in repo
+
+      - job: BuildGoogleFitOnFhir
+        displayName: Project
+        steps:
+          - task: DotNetCoreCLI@2
+            displayName: Build
+            inputs:
+              command: publish
+              publishWebProjects: false
+              projects: '**/*.csproj'
+              zipAfterPublish: true
+              arguments: >
+                --configuration Release
+                --output $(Build.ArtifactStagingDirectory)
+
+          - publish: $(Build.ArtifactStagingDirectory)
+            artifact: dotnet-release
+            displayName: Publish staged artifacts
