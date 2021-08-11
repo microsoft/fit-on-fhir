@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
@@ -8,9 +10,13 @@ using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Auth.OAuth2.Web;
 using Google.Apis.Fitness.v1;
-using Google.Apis.Util.Store;
+using Google.Apis.PeopleService.v1;
+using Google.Apis.PeopleService.v1.Data;
+using Google.Apis.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -72,32 +78,38 @@ namespace GoogleFitOnFhir.Identity
 
         public static async Task<IActionResult> Callback(HttpRequest req, ILogger log)
         {
-            FileDataStore fileStore = new FileDataStore(".");
-            IAuthorizationCodeFlow flow = GetFlow(fileStore);
-            TokenResponse tokenResponse = await fileStore.GetAsync<TokenResponse>("me");
+            IAuthorizationCodeFlow flow = GetFlow();
+            string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
+            TokenResponse tokenResponse = await flow.ExchangeCodeForTokenAsync(
+                "me",
+                req.Query["code"],
+                callback,
+                CancellationToken.None);
 
-            if (tokenResponse == null)
+            if (tokenResponse != null && tokenResponse.RefreshToken != null)
             {
-                string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
+                UserCredential userCredential = new UserCredential(flow, "me", tokenResponse);
+                PeopleServiceService peopleService = new PeopleServiceService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = GoogleCredential.FromAccessToken(tokenResponse.AccessToken),
+                });
+                PeopleResource.GetRequest peopleRequest = peopleService.People.Get("people/me");
+                peopleRequest.PersonFields = "emailAddresses";
+                Person me = peopleRequest.Execute();
 
-                // Token data does not exist for this user
-                tokenResponse = await flow.ExchangeCodeForTokenAsync(
-                    "me",
-                    req.Query["code"],
-                    callback,
-                    CancellationToken.None);
+                string md5Email = GoogleFitOnFhir.Utility.MD5String(me.EmailAddresses[0].Value);
+
+                AzureServiceTokenProvider azureServiceTokenProvider1 = new AzureServiceTokenProvider();
+                KeyVaultClient kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider1.KeyVaultTokenCallback));
+                await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), md5Email.ToString(), tokenResponse.RefreshToken);
             }
-
-            // Contains access and refresh tokens
-            UserCredential userCredential = new UserCredential(flow, "me", tokenResponse);
 
             return new OkObjectResult("auth flow successful");
         }
 
         public static async Task<IActionResult> Login(HttpRequest req, ILogger log)
         {
-            FileDataStore fileStore = new FileDataStore(".");
-            IAuthorizationCodeFlow flow = GetFlow(fileStore);
+            IAuthorizationCodeFlow flow = GetFlow();
 
             string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
             var authResult = await new AuthorizationCodeWebApp(flow, callback, string.Empty)
@@ -121,7 +133,7 @@ namespace GoogleFitOnFhir.Identity
                 new NotFoundResult();
         }
 
-        private static IAuthorizationCodeFlow GetFlow(FileDataStore fileStore)
+        private static IAuthorizationCodeFlow GetFlow()
         {
             // TODO: Customize datastore to use KeyVault
             return new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
@@ -129,8 +141,8 @@ namespace GoogleFitOnFhir.Identity
                 // TODO: Securely store and make ClientId/ClientSecret available
                 ClientSecrets = new ClientSecrets
                 {
-                    ClientId = string.Empty,
-                    ClientSecret = string.Empty,
+                    ClientId = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID"),
+                    ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET"),
                 },
 
                 // TODO: Only need write scopes for e2e tests - make this dynamic
@@ -143,7 +155,6 @@ namespace GoogleFitOnFhir.Identity
                     FitnessService.Scope.FitnessHeartRateRead,
                     FitnessService.Scope.FitnessHeartRateWrite,
                 },
-                DataStore = fileStore,
             });
         }
     }
