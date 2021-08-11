@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "7463773032097038841"
+      "templateHash": "4103049062243411608"
     }
   },
   "parameters": {
@@ -169,7 +169,7 @@
     {
       "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
       "apiVersion": "2021-04-01",
-      "name": "[format('{0}/{1}/{2}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default', 'google-fit-users')]",
+      "name": "[format('{0}/{1}/{2}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default', 'publish-data')]",
       "properties": {
         "metadata": {}
       },

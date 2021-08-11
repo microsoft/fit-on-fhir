@@ -35,21 +35,15 @@ namespace GoogleFitOnFhir.Identity
             ILogger log)
         {
             string root = context.FunctionAppDirectory;
-            string path = req.Path.Value.Substring(1);
+            string path = req.Path.Value[1..];
 
             if (path.StartsWith("api/login"))
             {
-                return await Task.Run(() =>
-                {
-                    return Login(req, context, log);
-                });
+                return await Login(req, log);
             }
             else if (path.StartsWith("api/callback"))
             {
-                return await Task.Run(() =>
-                {
-                    return Callback(req, context, log);
-                });
+                return await Callback(req, log);
             }
 
             // Flatten the user supplied path to it's absolute path on the system
@@ -76,10 +70,7 @@ namespace GoogleFitOnFhir.Identity
             return FileStreamOrNotFound(firstFilePath, firstFile[1]);
         }
 
-        public static async Task<IActionResult> Callback(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{p1?}/{p2?}/{p3?}")] HttpRequest req,
-            Microsoft.Azure.WebJobs.ExecutionContext context,
-            ILogger log)
+        public static async Task<IActionResult> Callback(HttpRequest req, ILogger log)
         {
             FileDataStore fileStore = new FileDataStore(".");
             IAuthorizationCodeFlow flow = GetFlow(fileStore);
@@ -103,10 +94,7 @@ namespace GoogleFitOnFhir.Identity
             return new OkObjectResult("auth flow successful");
         }
 
-        public static async Task<IActionResult> Login(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{p1?}/{p2?}/{p3?}")] HttpRequest req,
-            Microsoft.Azure.WebJobs.ExecutionContext context,
-            ILogger log)
+        public static async Task<IActionResult> Login(HttpRequest req, ILogger log)
         {
             FileDataStore fileStore = new FileDataStore(".");
             IAuthorizationCodeFlow flow = GetFlow(fileStore);

@@ -137,7 +137,7 @@ resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2021-04-0
 
 resource queue 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-04-01' = {
   parent: queueService
-  name: 'google-fit-users'
+  name: 'publish-data'
   properties: {
     metadata: {}
   }

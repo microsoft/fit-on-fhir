@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using Azure.Storage.Blobs;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -12,8 +13,8 @@ namespace GoogleFitOnFhir.PublishData
 {
     public static class PublishData
     {
-        [FunctionName("PublishData")]
-        public static async Task Run([QueueTrigger("myqueue-items", Connection = "")] string myQueueItem, ILogger log)
+        [FunctionName("publish-data")]
+        public static async Task Run([QueueTrigger("publish-data", Connection = "QueueConnectionString")] string myQueueItem, ILogger log)
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
@@ -56,7 +57,7 @@ namespace GoogleFitOnFhir.PublishData
                 // Push dataset to IoMT connector
                 if (!eventBatch.TryAdd(new EventData(JsonConvert.SerializeObject(dataset))))
                 {
-                    throw new Exception($"Event is too large for the batch and cannot be sent.");
+                    throw new Exception("Event is too large for the batch and cannot be sent.");
                 }
             }
 
@@ -65,11 +66,33 @@ namespace GoogleFitOnFhir.PublishData
                 // Use the producer client to send the batch of events to the event hub
                 await producerClient.SendAsync(eventBatch);
                 log.LogInformation("A batch of events has been published.");
+                UpdateUserLastSync(log);
             }
             finally
             {
                 await producerClient.DisposeAsync();
             }
+        }
+
+        private static bool UpdateUserLastSync(ILogger log)
+        {
+            string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
+
+            UserRecord user = new UserRecord("testUserId"); // TODO: Update this with the userID when we have it
+            user.LastSync = DateTime.Now;
+
+            try
+            {
+                tableClient.UpsertEntity(user);
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.Message);
+                return false;
+            }
+
+            return true;
         }
     }
 }
