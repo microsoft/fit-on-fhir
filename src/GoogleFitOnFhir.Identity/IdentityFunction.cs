@@ -96,12 +96,12 @@ namespace GoogleFitOnFhir.Identity
                 UserCredential userCredential = new UserCredential(flow, "me", tokenResponse);
                 GoogleFitData googleFitData = new GoogleFitData(tokenResponse.AccessToken);
                 Person me = googleFitData.GetMyInfo();
-                string md5Email = GoogleFitOnFhir.Utility.MD5String(me.EmailAddresses[0].Value);
+                string base64Email = GoogleFitOnFhir.Utility.Base64String(me.EmailAddresses[0].Value);
 
                 // Write refreshToken to Key Vault with md5 of email as secret name
                 AzureServiceTokenProvider azureServiceTokenProvider1 = new AzureServiceTokenProvider();
                 KeyVaultClient kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider1.KeyVaultTokenCallback));
-                await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), md5Email.ToString(), tokenResponse.RefreshToken);
+                await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), base64Email.ToString(), tokenResponse.RefreshToken);
             }
 
             return new OkObjectResult("auth flow successful");
