@@ -361,6 +361,10 @@ resource identityFn 'Microsoft.Web/sites@2020-06-01' = {
           name: 'AzureWebJobsStorage'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
         }
+        {
+          name: 'EventHubConnectionString'
+          value: listkeys(iotEventHubNamespace.id, '2020-05-01-preview').primaryConnectionString
+        }
       ]
     }
   }
