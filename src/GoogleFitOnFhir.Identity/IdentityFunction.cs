@@ -85,7 +85,7 @@ namespace GoogleFitOnFhir.Identity
             if (tokenResponse != null && tokenResponse.RefreshToken != null)
             {
                 UserCredential userCredential = new UserCredential(flow, "me", tokenResponse);
-                GoogleFitData googleFitData = new GoogleFitData(tokenResponse.RefreshToken);
+                GoogleFitData googleFitData = new GoogleFitData(tokenResponse.AccessToken);
                 Person me = googleFitData.GetMyInfo();
                 string md5Email = GoogleFitOnFhir.Utility.MD5String(me.EmailAddresses[0].Value);
 
