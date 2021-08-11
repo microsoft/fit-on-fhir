@@ -17,8 +17,7 @@ namespace GoogleFitOnFhir.PublishData
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
-            // TODO: iomtConnectingString from env var or key vault?
-            string iomtConnectionString = string.Empty;
+            string iomtConnectionString = Environment.GetEnvironmentVariable("EventHubConnectionString");
 
             // TODO: Retrieve refresh token for user
 
