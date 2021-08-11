@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "7463773032097038841"
+      "templateHash": "12562066974284888283"
     }
   },
   "parameters": {
@@ -426,6 +426,10 @@
             {
               "name": "AzureWebJobsStorage",
               "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
+            },
+            {
+              "name": "EventHubConnectionString",
+              "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename'))), '2020-05-01-preview').primaryConnectionString]"
             }
           ]
         }
@@ -433,6 +437,7 @@
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
