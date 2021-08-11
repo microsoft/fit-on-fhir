@@ -8,7 +8,7 @@ namespace GoogleFitOnFhir
     {
         public UserRecord(string userId)
         {
-            this.PartitionKey = "users-partition";
+            this.PartitionKey = userId;
             this.RowKey = userId;
             this.UserId = userId;
         }
