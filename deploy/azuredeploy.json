@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.4.613.9944",
-      "templateHash": "4103049062243411608"
+      "version": "0.4.451.19169",
+      "templateHash": "11630312246635217564"
     }
   },
   "parameters": {
@@ -324,6 +324,44 @@
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces",
+      "apiVersion": "2021-01-01-preview",
+      "name": "[format('en-{0}', parameters('basename'))]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard",
+        "capacity": 2
+      },
+      "properties": {
+        "zoneRedundant": true,
+        "isAutoInflateEnabled": true,
+        "maximumThroughputUnits": 8,
+        "kafkaEnabled": false
+      }
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs",
+      "apiVersion": "2021-01-01-preview",
+      "name": "[format('{0}/{1}', format('en-{0}', parameters('basename')), 'ingest')]",
+      "properties": {
+        "messageRetentionInDays": 1,
+        "partitionCount": 4
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+      "apiVersion": "2021-01-01-preview",
+      "name": "[format('{0}/{1}/{2}', format('en-{0}', parameters('basename')), 'ingest', '$Default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
       ]
     }
   ],
