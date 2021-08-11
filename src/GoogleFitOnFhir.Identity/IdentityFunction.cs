@@ -34,21 +34,15 @@ namespace GoogleFitOnFhir.Identity
             ILogger log)
         {
             string root = context.FunctionAppDirectory;
-            string path = req.Path.Value.Substring(1);
+            string path = req.Path.Value[1..];
 
             if (path.StartsWith("api/login"))
             {
-                return await Task.Run(() =>
-                {
-                    return Login(req, context, log);
-                });
+                return await Login(req, context, log);
             }
             else if (path.StartsWith("api/callback"))
             {
-                return await Task.Run(() =>
-                {
-                    return Callback(req, context, log);
-                });
+                return await Callback(req, context, log);
             }
 
             // Flatten the user supplied path to it's absolute path on the system

@@ -57,7 +57,7 @@ namespace GoogleFitOnFhir.PublishData
                 // Push dataset to IoMT connector
                 if (!eventBatch.TryAdd(new EventData(JsonConvert.SerializeObject(dataset))))
                 {
-                    throw new Exception($"Event is too large for the batch and cannot be sent.");
+                    throw new Exception("Event is too large for the batch and cannot be sent.");
                 }
             }
 
@@ -76,11 +76,11 @@ namespace GoogleFitOnFhir.PublishData
 
         private static bool UpdateUserLastSync(ILogger log)
         {
-            string storageAccountConnectionString = "";
+            string storageAccountConnectionString = string.Empty;
             TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
 
-            UserRecord user = new UserRecord("testUserId"); // TODO: Update this with the
-            user.LastSync = DateTime.Now;                   // userID when we have it
+            UserRecord user = new UserRecord("testUserId"); // TODO: Update this with the userID when we have it
+            user.LastSync = DateTime.Now;
 
             try
             {
