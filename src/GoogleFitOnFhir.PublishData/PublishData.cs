@@ -85,14 +85,14 @@ namespace GoogleFitOnFhir.PublishData
             try
             {
                 tableClient.UpsertEntity(user);
-                return true;
             }
             catch (Exception ex)
             {
                 log.LogError(ex.Message);
+                return false;
             }
 
-            return false;
+            return true;
         }
     }
 }
