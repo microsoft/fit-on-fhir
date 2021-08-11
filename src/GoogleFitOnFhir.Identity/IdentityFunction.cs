@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
@@ -10,9 +8,7 @@ using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Auth.OAuth2.Web;
 using Google.Apis.Fitness.v1;
-using Google.Apis.PeopleService.v1;
 using Google.Apis.PeopleService.v1.Data;
-using Google.Apis.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.KeyVault;
@@ -89,16 +85,11 @@ namespace GoogleFitOnFhir.Identity
             if (tokenResponse != null && tokenResponse.RefreshToken != null)
             {
                 UserCredential userCredential = new UserCredential(flow, "me", tokenResponse);
-                PeopleServiceService peopleService = new PeopleServiceService(new BaseClientService.Initializer()
-                {
-                    HttpClientInitializer = GoogleCredential.FromAccessToken(tokenResponse.AccessToken),
-                });
-                PeopleResource.GetRequest peopleRequest = peopleService.People.Get("people/me");
-                peopleRequest.PersonFields = "emailAddresses";
-                Person me = peopleRequest.Execute();
-
+                GoogleFitData googleFitData = new GoogleFitData(tokenResponse.RefreshToken);
+                Person me = googleFitData.GetMyInfo();
                 string md5Email = GoogleFitOnFhir.Utility.MD5String(me.EmailAddresses[0].Value);
 
+                // Write refreshToken to Key Vault with md5 of email as secret name
                 AzureServiceTokenProvider azureServiceTokenProvider1 = new AzureServiceTokenProvider();
                 KeyVaultClient kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider1.KeyVaultTokenCallback));
                 await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), md5Email.ToString(), tokenResponse.RefreshToken);
@@ -110,7 +101,6 @@ namespace GoogleFitOnFhir.Identity
         public static async Task<IActionResult> Login(HttpRequest req, ILogger log)
         {
             IAuthorizationCodeFlow flow = GetFlow();
-
             string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
             var authResult = await new AuthorizationCodeWebApp(flow, callback, string.Empty)
                 .AuthorizeAsync("user", CancellationToken.None);
