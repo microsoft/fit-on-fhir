@@ -76,7 +76,7 @@ namespace GoogleFitOnFhir.PublishData
 
         private static bool UpdateUserLastSync(ILogger log)
         {
-            string storageAccountConnectionString = string.Empty;
+            string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
             TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
 
             UserRecord user = new UserRecord("testUserId"); // TODO: Update this with the userID when we have it
