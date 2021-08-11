@@ -1,4 +1,4 @@
-# Google FIT on FHIR
+# Google Fit on FHIR
 
 ## Introduction
 

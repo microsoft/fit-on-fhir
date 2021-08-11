@@ -13,9 +13,26 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     }
     accessPolicies: [
       {
-        //TODO: this is a placeholder policy that is required for provisioning but should be removed when there is a managed identity that can be used
-        tenantId: subscription().tenantId
-        objectId: subscription().tenantId
+        tenantId: publishDataFn.identity.tenantId
+        objectId: publishDataFn.identity.principalId
+        permissions: {
+          secrets: [
+            'all'
+          ]
+        }
+      }
+      {
+        tenantId: syncEventFn.identity.tenantId
+        objectId: syncEventFn.identity.principalId
+        permissions: {
+          secrets: [
+            'all'
+          ]
+        }
+      }
+      {
+        tenantId: identityFn.identity.tenantId
+        objectId: identityFn.identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -120,7 +137,7 @@ resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2021-04-0
 
 resource queue 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-04-01' = {
   parent: queueService
-  name: 'google-fit-users'
+  name: 'publish-data'
   properties: {
     metadata: {}
   }
@@ -166,5 +183,102 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
+resource hostingPlan 'Microsoft.Web/serverfarms@2020-10-01' = {
+  name: 'app-plan-${basename}'
+  location: resourceGroup().location
+  sku: {
+    name: 'Y1'
+    tier: 'Dynamic'
+  }
+}
+
+resource identityFn 'Microsoft.Web/sites@2020-06-01' = {
+  name: 'identity-${basename}'
+  location: resourceGroup().location
+  kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    httpsOnly: true
+    serverFarmId: hostingPlan.id
+    clientAffinityEnabled: true
+    siteConfig: {
+      appSettings: [
+        {
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+        }
+      ]
+    }
+  }
+
+  dependsOn: [
+    appInsights
+    hostingPlan
+    storageAccount
+  ]
+}
+
+resource syncEventFn 'Microsoft.Web/sites@2020-06-01' = {
+  name: 'sync-event-${basename}'
+  location: resourceGroup().location
+  kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    httpsOnly: true
+    serverFarmId: hostingPlan.id
+    clientAffinityEnabled: true
+    siteConfig: {
+      appSettings: [
+        {
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+        }
+      ]
+    }
+  }
+
+  dependsOn: [
+    appInsights
+    hostingPlan
+    storageAccount
+  ]
+}
+
+resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
+  name: 'publish-data-${basename}'
+  location: resourceGroup().location
+  kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    httpsOnly: true
+    serverFarmId: hostingPlan.id
+    clientAffinityEnabled: true
+    siteConfig: {
+      appSettings: [
+        {
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+        }
+      ]
+    }
+  }
+
+  dependsOn: [
+    appInsights
+    hostingPlan
+    storageAccount
+  ]
+}
+
 output usersKeyVaultName string = usersKeyVault.name
 output infraKeyVaultName string = infraKeyVault.name
+
+output identityAppName string = identityFn.name
+output syncEventAppName string = syncEventFn.name
+output publishDataAppName string = publishDataFn.name
