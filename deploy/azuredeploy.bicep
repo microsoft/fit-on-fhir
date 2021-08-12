@@ -276,6 +276,43 @@ resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
   ]
 }
 
+resource iotEventHubNamespace 'Microsoft.EventHub/namespaces@2021-01-01-preview' = {
+  name: 'en-${basename}'
+  location: resourceGroup().location
+  sku: {
+    name: 'Standard'
+    tier: 'Standard'
+    capacity: 2
+  }
+  properties: {
+    zoneRedundant: true
+    isAutoInflateEnabled: true
+    maximumThroughputUnits: 8
+    kafkaEnabled: false
+  }
+}
+
+resource iotIngestEventHub 'Microsoft.EventHub/namespaces/eventhubs@2021-01-01-preview' = {
+  parent: iotEventHubNamespace
+  name: 'ingest'
+  dependsOn: [
+    iotEventHubNamespace
+  ]
+  properties: {
+    messageRetentionInDays: 1
+    partitionCount: 4
+  }
+}
+
+resource iotIngestDefaultEventHubConsumerGroup 'Microsoft.EventHub/namespaces/eventhubs/consumergroups@2021-01-01-preview' = {
+  parent: iotIngestEventHub
+  name: '$Default'
+  dependsOn: [
+    iotEventHubNamespace
+    iotIngestEventHub
+  ]
+}
+
 output usersKeyVaultName string = usersKeyVault.name
 output infraKeyVaultName string = infraKeyVault.name
 
