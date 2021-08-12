@@ -313,6 +313,12 @@ resource iotIngestDefaultEventHubConsumerGroup 'Microsoft.EventHub/namespaces/ev
   ]
 }
 
+resource workspace 'Microsoft.HealthcareApis/workspaces@2020-11-01-preview' = {
+  name: 'hw-${basename}'
+  location: resourceGroup().location
+  properties: {}
+}
+
 output usersKeyVaultName string = usersKeyVault.name
 output infraKeyVaultName string = infraKeyVault.name
 

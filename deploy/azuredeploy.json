@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "6912026331802724407"
+      "templateHash": "1171602475320140308"
     }
   },
   "parameters": {
@@ -363,6 +363,13 @@
         "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
       ]
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces",
+      "apiVersion": "2020-11-01-preview",
+      "name": "[format('hw-{0}', parameters('basename'))]",
+      "location": "[resourceGroup().location]",
+      "properties": {}
     }
   ],
   "outputs": {
