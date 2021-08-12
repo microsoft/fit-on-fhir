@@ -14,7 +14,7 @@ namespace GoogleFitOnFhir.PublishData
     public static class PublishData
     {
         [FunctionName("publish-data")]
-        public static async Task Run([QueueTrigger("publish-data", Connection = "QueueConnectionString")] string myQueueItem, ILogger log)
+        public static async Task Run([QueueTrigger("publish-data", Connection = "AzureWebJobsStorage")] string myQueueItem, ILogger log)
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
