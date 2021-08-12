@@ -33,7 +33,7 @@ stages:
                 -basename "$(durable-basename)"
               armFile: ./deploy/e2e-durable/azuredeploy.json
           - task: AzureCLI@2
-            displayName: Migrate RefreshToken
+            displayName: Copy refresh token to ephemeral keyvault
             inputs:
               azureSubscription: ${{ variables.azure_service_connection_name }}
               scriptType: bash
@@ -44,5 +44,5 @@ stages:
                   --name gfit-refresh-token | jq .value -r)
                 az keyvault secret set \
                   --vault-name $(infraKeyVaultName) \
-                  --name gfit-refresh-token \
+                  --name $(test_user) \
                   --value $TOKEN
