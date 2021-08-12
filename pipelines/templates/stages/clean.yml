@@ -5,7 +5,7 @@ parameters:
 stages:
   - stage: Clean
     displayName: Cleanup
-    dependsOn: [$(cleanAfter)]
+    dependsOn: ${{ parameters.cleanAfter }}
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     condition: always()
