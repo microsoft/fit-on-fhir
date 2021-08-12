@@ -13,7 +13,8 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: >
-        az webapp deployment source config-zip
-        -g ${{ parameters.resourceGroupName }}
-        -n ${{ parameters.resourceName }}
-        --src ${{ parameters.releasesDir }}/${{ parameters.appName }}.zip
+        ./deploy/scripts/wait-for-command.sh
+          "az webapp deployment source config-zip
+            -g ${{ parameters.resourceGroupName }}
+            -n ${{ parameters.resourceName }}
+            --src ${{ parameters.releasesDir }}/${{ parameters.appName }}.zip"
