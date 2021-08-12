@@ -1,0 +1,31 @@
+parameters:
+  - name: environment
+    default: ''
+
+stages:
+  - stage: DurableDeploy
+    displayName: Deploying Durable
+    dependsOn: [Build]
+    variables:
+      - template: ../variables/${{ parameters.environment }}.yml
+    jobs:
+      - job: DeployResources
+        displayName: Resources
+        steps:
+          - task: AzureCLI@2
+            displayName: Deploy gfit2fhirdurable
+            inputs:
+              azureSubscription: ${{ variables.azure_service_connection_name }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az group create --location $(location) --name gfit2fhirdurable
+          - template: ../steps/deploy-parse-arm.yml
+            parameters:
+              displayName: Deploy resources for gfit2fhirdurable
+              azureSubscription: ${{ variables.azure_service_connection_name }}
+              resourceGroupName: gfit2fhirdurable
+              location: $(location)
+              overrideParameters: >
+                -basename "gfit2fhirdurable"
+              armFile: ./deploy/e2e-durable/azuredeploy.json

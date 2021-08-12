@@ -1,5 +1,10 @@
+@description('Base name that is used to name provisioned resources. Should be alphanumeric and less than 16 characters.')
+@minLength(3)
+@maxLength(16)
+param basename string = 'gfit2fhirdurable'
+
 resource durableKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: 'gfitonfhir-durable-kv'
+  name: '${basename}-kv'
   location: resourceGroup().location
   properties: {
     sku: {
@@ -24,7 +29,7 @@ resource durableKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     tenantId: subscription().tenantId
     enableSoftDelete: true
     enablePurgeProtection: true
-    softDeleteRetentionInDays: 30
+    softDeleteRetentionInDays: 90
   }
 }
 
