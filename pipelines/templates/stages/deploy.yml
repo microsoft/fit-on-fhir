@@ -1,9 +1,10 @@
 parameters:
-  environment: ''
+  - name: environment
+    default: ''
 
 stages:
-  - stage: Deploy
-    displayName: Deploying
+  - stage: EphemeralDeploy
+    displayName: Deploying Ephemeral
     dependsOn: [Build]
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
