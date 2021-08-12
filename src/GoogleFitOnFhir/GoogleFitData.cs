@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Fitness.v1;
 using Google.Apis.Fitness.v1.Data;
