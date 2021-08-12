@@ -43,10 +43,13 @@ Note: More detail on the following functions can be found in the /src directory 
     * Table Service: Contains the User Table
         * Table: Stores a list of user ID's for users that have authenticated to Google Fit and authorized their data to be synced to FHIR server
 
-#### FHIR Server
+#### IoT Connector
 
-* Azure FHIR Service: (TODO: Description)
-    * Azure FHIR IoMT connector: (TODO: Description)
+TODO: @Justin can you fill out this section with the infra components we're provisioning for the connector?
+
+* Event Hub (namespace, hub, consumer group)
+* Other resources for the connector
+* FHIR server - do we need to include anything on this?
 
 #### Monitoring
 
