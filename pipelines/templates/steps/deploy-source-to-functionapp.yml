@@ -13,7 +13,7 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: >
-        az functionapp deployment source config-zip
+        az webapp deployment source config-zip
         -g ${{ parameters.resourceGroupName }}
         -n ${{ parameters.resourceName }}
         --src ${{ parameters.releasesDir }}/${{ parameters.appName }}.zip
