@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
@@ -93,6 +94,9 @@ namespace GoogleFitOnFhir.Identity
                 AzureServiceTokenProvider azureServiceTokenProvider1 = new AzureServiceTokenProvider();
                 KeyVaultClient kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider1.KeyVaultTokenCallback));
                 await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), md5Email.ToString(), tokenResponse.RefreshToken);
+
+                // Use md5Email as UserId and update the UsersTable
+                UpdateUserId(md5Email, log);
             }
 
             return new OkObjectResult("auth flow successful");
@@ -146,6 +150,26 @@ namespace GoogleFitOnFhir.Identity
                     FitnessService.Scope.FitnessHeartRateWrite,
                 },
             });
+        }
+
+        private static bool UpdateUserId(string userId, ILogger log)
+        {
+            string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
+
+            UserRecord user = new UserRecord(userId);
+
+            try
+            {
+                tableClient.UpsertEntity(user);
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.Message);
+                return false;
+            }
+
+            return true;
         }
     }
 }
