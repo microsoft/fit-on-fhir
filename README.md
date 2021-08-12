@@ -24,7 +24,7 @@ The following resources are deployed by the Bicep/ARM templates contained in the
 
 Note: More detail on the following functions can be found in the /src directory README [here](./src/README.md).
 
-* Identity Function: Authenticates users and authorizes data sync to FHIR
+* Identity Function: Authenticates users and authorizes retrieval of the user's data from Google Fit
 * Sync Event Function: Periodically runs and retrieves user ID's for data to sync
 * Publish Data Function: Pulls data from Google Fit and syncs/publishes it to FHIR server
 

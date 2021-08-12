@@ -9,7 +9,6 @@ The main entry point for the Fit to FHIR application, the identity function resp
 * Receives the OAuth callback
     * Stores the refresh token in the "users" key vault
     * Stores the user ID in the "users" storage table
-    * Registers the user with the FHIR server
 
 ## Sync Event Function (Timer Trigger)
 
