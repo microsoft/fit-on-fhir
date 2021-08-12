@@ -89,7 +89,7 @@ namespace GoogleFitOnFhir.Identity
                 Person me = googleFitData.GetMyInfo();
                 string base64Email = GoogleFitOnFhir.Utility.Base64String(me.EmailAddresses[0].Value);
 
-                // Write refreshToken to Key Vault with md5 of email as secret name
+                // Write refreshToken to Key Vault with base64 of email as secret name
                 AzureServiceTokenProvider azureServiceTokenProvider1 = new AzureServiceTokenProvider();
                 KeyVaultClient kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider1.KeyVaultTokenCallback));
                 await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), base64Email.ToString(), tokenResponse.RefreshToken);

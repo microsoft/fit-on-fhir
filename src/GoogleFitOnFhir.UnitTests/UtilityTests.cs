@@ -5,11 +5,11 @@ namespace GoogleFitOnFhir.UnitTests
     public class UtilityTests
     {
         [Theory]
-        [InlineData("test", "098F6BCD4621D373CADE4E832627B4F6")]
-        [InlineData("coolpersonemail@gmail.com", "D4AA96AE8E9440B5B5A2CC9811594592")]
-        public void TestMD5StringMD5sTheString(string stringToMD5, string md5d)
+        [InlineData("test", "dGVzdA")]
+        [InlineData("coolpersonemail@gmail.com", "Y29vbHBlcnNvbmVtYWlsQGdtYWlsLmNvbQ")]
+        public void TestBase64StringBase64sTheString(string stringToBase64, string base64d)
         {
-            Assert.Equal(GoogleFitOnFhir.Utility.MD5String(stringToMD5), md5d);
+            Assert.Equal(GoogleFitOnFhir.Utility.Base64String(stringToBase64), base64d);
         }
     }
 }
