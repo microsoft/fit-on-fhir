@@ -39,7 +39,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                $TOKEN=$(az keyvault secret show \
+                TOKEN=$(az keyvault secret show \
                   --vault-name $(durable-basename)-kv \
                   --name gfit-refresh-token | jq .value -r)
                 az keyvault secret set \
