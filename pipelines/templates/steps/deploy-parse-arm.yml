@@ -17,12 +17,15 @@ steps:
       azureSubscription: ${{ parameters.azureSubscription }}
       resourceGroupName: ${{ parameters.resourceGroupName }}
       location: ${{ parameters.location }}
-      overrideParameters: ${{ parameters.overrideParameters }}
+      overrideParameters: >
+        ${{ parameters.overrideParameters }}
+        -spid $servicePrincipalId
       deploymentMode: Incremental
       templateLocation: Linked artifact
       csmFile: ${{ parameters.armFile }}
       deploymentOutputs: armOutput
       deploymentName: ${{ parameters.deploymentName }}
+      addSpnToEnvironment: true
 
   - bash: |
       for key in $(echo $output | jq -r 'keys[]'); do

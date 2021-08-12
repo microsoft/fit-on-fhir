@@ -41,7 +41,9 @@ stages:
               inlineScript: |
                 TOKEN=$(az keyvault secret show \
                   --vault-name $(durable-basename)-kv \
-                  --name gfit-refresh-token | jq .value -r)
+                  --name gfit-refresh-token \
+                  --query value \
+                  --output tsv)
                 az keyvault secret set \
                   --vault-name $(infraKeyVaultName) \
                   --name $(test_user) \
