@@ -11,6 +11,8 @@ stages:
     jobs:
       - job: DeployResources
         displayName: Resources
+        variables:
+          usersKeyVaultName: uhhh
         steps:
           - download: current
             artifact: dotnet-release
