@@ -12,7 +12,7 @@ parameters:
 steps:
   - task: AzureCLI@2
     name: getObjectId
-    displayName: debug
+    displayName: Get Service PRin
     inputs:
       azureSubscription: ${{ parameters.azureSubscription }}
       scriptType: bash
@@ -38,13 +38,17 @@ steps:
       csmFile: ${{ parameters.armFile }}
       deploymentOutputs: armOutput
       deploymentName: ${{ parameters.deploymentName }}
-      # addSpnToEnvironment: true
 
   - bash: |
       for key in $(echo $output | jq -r 'keys[]'); do
         echo "Found Key: $key"
+        echo "Use in same job: \$(outputVars.$key)"
+        echo "Use in dependent job:\
+          \$[dependencies.EphemeralDeploy.outputs['outputVars.$key']"
+        echo "Use in dependent stage:\
+          \$[stageDependencies.EphemeralDeploy.outputs['outputVars.$key]"
         value=$(echo $output | jq -r ".$key.value")
-        echo "##vso[task.setvariable variable=$key;isOutput=true]$value"
+        echo "##vso[task.setvariable variable=$key;isOutput=true;isSecret=true]$value""
       done
     name: outputVars
     displayName: Parse ARM outputs
