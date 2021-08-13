@@ -17,9 +17,9 @@ stages:
         displayName: Resources
         variables:
           - name: theStage
-            value: $[ convertToJson(stageDependencies) ]
-          - name: theJob
             value: $[ convertToJson(stageDependencies.EphemeralDeploy) ]
+          - name: theJob
+            value: $[ convertToJson(stageDependencies.EphemeralDeploy.DeployResources) ]
           - name: usersKeyVaultName
             value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['deploy.usersKeyVaultName'] ]
         steps:
@@ -49,7 +49,7 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 echo "magic"
-                echo $(magic)
+                echo "${{ parameters.magic }}"
                 echo "thestage"
                 echo "$(theStage)"
                 echo "thejob"
