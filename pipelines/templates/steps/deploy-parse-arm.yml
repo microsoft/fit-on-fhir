@@ -5,13 +5,20 @@ parameters:
   - name: location
   - name: overrideParameters
   - name: armFile
-  - name: name
-    default: deploy
   - name: deploymentName
     default: ''
 
 
 steps:
+  - task: AzureCLI@2
+    displayName: debug
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az ad sp show --id $(az account show --query "user.name" -o tsv)
+
   - task: AzureResourceGroupDeployment@2
     displayName: ${{ parameters.displayName }}
     inputs:

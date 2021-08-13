@@ -10,8 +10,6 @@ stages:
       - template: ../variables/${{ parameters.environment }}.yml
       - name: durable-basename
         value: gfit2fhirdurable
-      - name: testStageVar
-        value: $[stageDependencies.EphemeralDeploy.DeployResources.outputs['outputVars.usersKeyVaultName']]
     jobs:
       - job: DeployResources
         displayName: Resources
@@ -44,10 +42,6 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                echo "testStageVar"
-                echo "$(testStageVar)"
-                echo "variable"
-                echo $(usersKeyVaultName)
                 TOKEN=$(az keyvault secret show \
                   --vault-name $(durable-basename)-kv \
                   --name gfit-refresh-token \
