@@ -10,6 +10,12 @@ stages:
       - template: ../variables/${{ parameters.environment }}.yml
       - name: durable-basename
         value: gfit2fhirdurable
+      - name: testvarfromstage
+        value: test
+      - name: testStageVar
+        value: $[stageDependencies.EphemeralDeploy.DeployResources.outputs['outputVars.usersKeyVaultName']]
+      - name: jobdep
+        value: $[convertToJson(stageDependencies.EphemeralDeploy.DeployResources)]
     jobs:
       - job: DeployResources
         displayName: Resources
