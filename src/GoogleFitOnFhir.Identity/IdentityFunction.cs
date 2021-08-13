@@ -99,7 +99,8 @@ namespace GoogleFitOnFhir.Identity
                 await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), base58Email, tokenResponse.RefreshToken);
 
                 // Use base58Email as UserId and update the UsersTable
-                UpdateUserId(base58Email, log);
+                var user = new User(base58Email);
+                usersService.Initiate(user);
             }
 
             return new OkObjectResult("auth flow successful");
