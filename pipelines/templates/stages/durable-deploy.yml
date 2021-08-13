@@ -14,6 +14,10 @@ stages:
       - job: DeployResources
         displayName: Resources
         variables:
+          - name: theStage
+            value: $[ stageDependencies ]
+          - name: theJob
+            value: $[ stageDependencies.EphemeralDeploy ]
           - name: usersKeyVaultName
             value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['deploy.usersKeyVaultName'] ]
         steps:
@@ -42,6 +46,10 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                echo "thestage"
+                echo $(theStage)
+                echo "thejob"
+                echo $(theJob)
                 echo "variable"
                 echo $(usersKeyVaultName)
                 TOKEN=$(az keyvault secret show \
@@ -50,6 +58,6 @@ stages:
                   --query value \
                   --output tsv)
                 az keyvault secret set \
-                  --vault-name $(usersKeyVaultName)
+                  --vault-name $(usersKeyVaultName) \
                   --name $(test_user) \
                   --value $TOKEN
