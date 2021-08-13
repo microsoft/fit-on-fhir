@@ -57,8 +57,17 @@ stages:
         displayName: Debug
         dependsOn: [DeployResources]
         variables:
+          dependenciesV: $[ convertToJson(dependencies) ]
+          deployResources: $[ convertToJson(dependencies.DeployResources) ]
           test: $[ dependencies.DeployResources.outputs['outputVars.userKeyVaultName'] ]
         steps:
           - bash: |
+              echo "dependencies without V:"
+              echo "$(dependencies)""
+              echo "dependencies:"
+              echo "$(dependenciesV)"
+              echo "deployResources:"
+              echo "$(deployResources)"
+              echo "test:"
               echo "$(test)"
             displayName: "Echo output"

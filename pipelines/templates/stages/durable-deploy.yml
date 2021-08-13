@@ -1,8 +1,6 @@
 parameters:
   - name: environment
     default: ''
-  - name: magic
-    default: the default
 
 stages:
   - stage: DurableDeploy
@@ -48,8 +46,6 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                echo "magic"
-                echo "${{ parameters.magic }}"
                 echo "thestage"
                 echo "$(theStage)"
                 echo "thejob"
