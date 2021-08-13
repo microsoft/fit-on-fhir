@@ -15,7 +15,6 @@ steps:
   - task: AzureResourceGroupDeployment@2
     displayName: ${{ parameters.displayName }}
     inputs:
-      name: ${{ parameters.name }}
       action: Create Or Update Resource Group
       azureSubscription: ${{ parameters.azureSubscription }}
       resourceGroupName: ${{ parameters.resourceGroupName }}
@@ -30,7 +29,8 @@ steps:
       deploymentName: ${{ parameters.deploymentName }}
       addSpnToEnvironment: true
 
-  - bash: |
+  - name: deploy
+    bash: |
       for key in $(echo $output | jq -r 'keys[]'); do
         echo "Found Key: $key"
         value=$(echo $output | jq -r ".$key.value")
