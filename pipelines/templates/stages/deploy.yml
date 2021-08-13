@@ -24,6 +24,7 @@ stages:
               inlineScript: |
                 az group create --location $(location) --name $(basename)
           - template: ../steps/deploy-parse-arm.yml
+            name: deploy
             parameters:
               displayName: Deploy resources for $(basename)
               azureSubscription: ${{ variables.azure_service_connection_name }}
