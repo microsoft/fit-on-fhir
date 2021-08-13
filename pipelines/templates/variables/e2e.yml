@@ -1,0 +1,7 @@
+variables:
+  - name: basename
+    value: gfof-e2e-$(Build.BuildId)
+  - name: location
+    value: centralus
+  - name: azure_service_connection_name
+    value: dev
