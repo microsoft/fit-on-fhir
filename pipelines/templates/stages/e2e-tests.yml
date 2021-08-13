@@ -15,4 +15,5 @@ stages:
         displayName: Placeholder
         steps:
           - task: Bash@3
+            targetType: inlineScript
             script: echo "E2E Test Placeholder"
