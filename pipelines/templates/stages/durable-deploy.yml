@@ -14,8 +14,8 @@ stages:
       - job: DeployResources
         displayName: Resources
         variables:
-          - name: infraKeyVaultName
-            value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['deploy.infraKeyVaultName'] ]
+          - name: usersKeyVaultName
+            value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['deploy.usersKeyVaultName'] ]
         steps:
           - task: AzureCLI@2
             displayName: Deploy $(durable-basename)
@@ -43,13 +43,13 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 echo "variable"
-                echo $(infraKeyVaultName)
+                echo $(usersKeyVaultName)
                 TOKEN=$(az keyvault secret show \
                   --vault-name $(durable-basename)-kv \
                   --name gfit-refresh-token \
                   --query value \
                   --output tsv)
                 az keyvault secret set \
-                  --vault-name $1
-                  --name $(infraKeyVaultName) \
+                  --vault-name $(usersKeyVaultName)
+                  --name $(test_user) \
                   --value $TOKEN
