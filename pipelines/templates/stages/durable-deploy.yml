@@ -42,6 +42,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                varSettings=isOutput=true;isSecret=true
                 TOKEN=$(az keyvault secret show \
                   --vault-name $(outputVars.durableKeyVaultName) \
                   --name $(test_user_secret_name) \
@@ -51,5 +52,4 @@ stages:
                   --vault-name $(usersKeyVaultName) \
                   --name $(test_user) \
                   --value $TOKEN > /dev/null
-                echo "##vso[task.setvariable \
-                  variable=testRefreshToken;isOutput=true;isSecret=true]$TOKEN"
+                echo "##vso[task.setvariable variable=testRefreshToken;$varSettings]$TOKEN"
