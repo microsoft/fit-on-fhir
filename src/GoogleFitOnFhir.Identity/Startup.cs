@@ -5,9 +5,9 @@ using GoogleFitOnFhir.Services;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
-[assembly: FunctionsStartup(typeof(MyNamespace.Startup))]
+[assembly: FunctionsStartup(typeof(GoogleFitOnFhir.Identity.Startup))]
 
-namespace MyNamespace
+namespace GoogleFitOnFhir.Identity
 {
     public class Startup : FunctionsStartup
     {
