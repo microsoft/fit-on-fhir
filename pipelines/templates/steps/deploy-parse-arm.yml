@@ -35,6 +35,8 @@ steps:
         value=$(echo $output | jq -r ".$key.value")
         echo "##vso[task.setvariable variable=$key; isOutput=true]$value"
       done
+    variables:
+      usersKeyVaultName: uhhh
     name: outputVars
     displayName: Parse ARM outputs
     env:

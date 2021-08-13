@@ -25,7 +25,7 @@ stages:
           - name: theJob
             value: $[ convertToJson(stageDependencies.EphemeralDeploy.DeployResources) ]
           - name: usersKeyVaultName
-            value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['outputVars.usersKeyVaultName'] ]
+            value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['DeployResources.outputVars.usersKeyVaultName'] ]
         steps:
           - task: AzureCLI@2
             displayName: Deploy $(durable-basename)
