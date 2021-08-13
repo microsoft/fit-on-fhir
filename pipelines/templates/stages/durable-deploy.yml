@@ -38,18 +38,18 @@ stages:
               azureSubscription: ${{ variables.azure_service_connection_name }}
               scriptType: bash
               scriptLocation: inlineScript
-              arguments: stageDependencies.EphemeralDeploy.DeployResources.outputs[deploy.infraKeyVaultName]
+              arguments: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['deploy.infraKeyVaultName'] ]
               inlineScript: |
                 echo "1"
                 echo "$1"
                 echo "straight"
-                echo stageDependencies.EphemeralDeploy.DeployResources.outputs[deploy.infraKeyVaultName]
+                echo $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['deploy.infraKeyVaultName'] ]
                 TOKEN=$(az keyvault secret show \
                   --vault-name $(durable-basename)-kv \
                   --name gfit-refresh-token \
                   --query value \
                   --output tsv)
                 az keyvault secret set \
-                  --vault-name stageDependencies.EphemeralDeploy.DeployResources.outputs[deploy.infraKeyVaultName] \
+                  --vault-name $1
                   --name $(test_user) \
                   --value $TOKEN
