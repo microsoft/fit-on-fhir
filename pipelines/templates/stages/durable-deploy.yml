@@ -52,4 +52,4 @@ stages:
                   --vault-name $(usersKeyVaultName) \
                   --name $(test_user) \
                   --value $TOKEN > /dev/null
-                echo "##vso[task.setvariable variable=testRefreshToken;$varSettings]$TOKEN"
+                echo "##vso[task.setvariable variable=TOKEN;$varSettings]$TOKEN"
