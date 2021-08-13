@@ -10,6 +10,8 @@ using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Auth.OAuth2.Web;
 using Google.Apis.Fitness.v1;
 using Google.Apis.PeopleService.v1.Data;
+using GoogleFitOnFhir.Models;
+using GoogleFitOnFhir.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.KeyVault;
@@ -35,6 +37,7 @@ namespace GoogleFitOnFhir.Identity
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{p1?}/{p2?}/{p3?}")] HttpRequest req,
             Microsoft.Azure.WebJobs.ExecutionContext context,
+            IUsersService usersService,
             ILogger log)
         {
             string root = context.FunctionAppDirectory;
@@ -46,7 +49,7 @@ namespace GoogleFitOnFhir.Identity
             }
             else if (path.StartsWith("api/callback"))
             {
-                return await Callback(req, log);
+                return await Callback(req, usersService, log);
             }
 
             // Flatten the user supplied path to it's absolute path on the system
@@ -73,7 +76,7 @@ namespace GoogleFitOnFhir.Identity
             return FileStreamOrNotFound(firstFilePath, firstFile[1]);
         }
 
-        public static async Task<IActionResult> Callback(HttpRequest req, ILogger log)
+        public static async Task<IActionResult> Callback(HttpRequest req, IUsersService usersService, ILogger log)
         {
             IAuthorizationCodeFlow flow = GetFlow();
             string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
@@ -96,7 +99,8 @@ namespace GoogleFitOnFhir.Identity
                 await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), md5Email.ToString(), tokenResponse.RefreshToken);
 
                 // Use md5Email as UserId and update the UsersTable
-                UpdateUserId(md5Email, log);
+                var user = new User(md5Email);
+                usersService.Initiate(user);
             }
 
             return new OkObjectResult("auth flow successful");
@@ -150,26 +154,6 @@ namespace GoogleFitOnFhir.Identity
                     FitnessService.Scope.FitnessHeartRateWrite,
                 },
             });
-        }
-
-        private static bool UpdateUserId(string userId, ILogger log)
-        {
-            string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
-
-            UserRecord user = new UserRecord(userId);
-
-            try
-            {
-                tableClient.UpsertEntity(user);
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex.Message);
-                return false;
-            }
-
-            return true;
         }
     }
 }
