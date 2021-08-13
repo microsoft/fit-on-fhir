@@ -5,6 +5,8 @@ parameters:
   - name: location
   - name: overrideParameters
   - name: armFile
+  - name: name
+    default: deploy
   - name: deploymentName
     default: ''
 
@@ -13,6 +15,7 @@ steps:
   - task: AzureResourceGroupDeployment@2
     displayName: ${{ parameters.displayName }}
     inputs:
+      name: ${{ parameters.name }}
       action: Create Or Update Resource Group
       azureSubscription: ${{ parameters.azureSubscription }}
       resourceGroupName: ${{ parameters.resourceGroupName }}
