@@ -13,6 +13,9 @@ stages:
     jobs:
       - job: DeployResources
         displayName: Resources
+        variables:
+          - name: infraKeyVaultName
+            value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['deploy.infraKeyVaultName'] ]
         steps:
           - task: AzureCLI@2
             displayName: Deploy $(durable-basename)
@@ -38,12 +41,9 @@ stages:
               azureSubscription: ${{ variables.azure_service_connection_name }}
               scriptType: bash
               scriptLocation: inlineScript
-              arguments: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['deploy.infraKeyVaultName'] ]
               inlineScript: |
-                echo "1"
-                echo "$1"
-                echo "straight"
-                echo $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['deploy.infraKeyVaultName'] ]
+                echo "variable"
+                echo $(infraKeyVaultName)
                 TOKEN=$(az keyvault secret show \
                   --vault-name $(durable-basename)-kv \
                   --name gfit-refresh-token \
@@ -51,5 +51,5 @@ stages:
                   --output tsv)
                 az keyvault secret set \
                   --vault-name $1
-                  --name $(test_user) \
+                  --name $(infraKeyVaultName) \
                   --value $TOKEN
