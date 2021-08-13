@@ -1,6 +1,7 @@
 parameters:
   - name: environment
     default: ''
+  - name: magic
 
 stages:
   - stage: DurableDeploy
@@ -46,10 +47,12 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                echo "magic"
+                echo $(magic)
                 echo "thestage"
-                echo $(theStage)
+                echo "$(theStage)"
                 echo "thejob"
-                echo $(theJob)
+                echo "$(theJob)"
                 echo "variable"
                 echo $(usersKeyVaultName)
                 TOKEN=$(az keyvault secret show \
