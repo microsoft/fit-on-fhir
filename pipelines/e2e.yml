@@ -23,6 +23,10 @@ stages:
       environment: ${{ variables.environment }}
 
   - template: ./templates/stages/durable-deploy.yml
+    variables:
+      testvarfromstage: test
+      testStageVar: $[stageDependencies.EphemeralDeploy.DeployResources.outputs['outputVars.usersKeyVaultName']]
+      jobdep: $[convertToJson(stageDependencies.EphemeralDeploy.DeployResources)]
     parameters:
       environment: ${{ variables.environment }}
 

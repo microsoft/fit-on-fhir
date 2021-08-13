@@ -46,6 +46,12 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                echo "testvarfromstage"
+                echo "$(testvarfromstage)"
+                echo "testStageVar"
+                echo "$(testStageVar)"
+                echo "jobdep"
+                echo "$(jobdep)"
                 echo "thestage"
                 echo "$(theStage)"
                 echo "thejob"
