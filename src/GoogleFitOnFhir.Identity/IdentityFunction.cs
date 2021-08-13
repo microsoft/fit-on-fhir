@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
@@ -87,12 +88,15 @@ namespace GoogleFitOnFhir.Identity
                 UserCredential userCredential = new UserCredential(flow, "me", tokenResponse);
                 GoogleFitData googleFitData = new GoogleFitData(tokenResponse.AccessToken);
                 Person me = googleFitData.GetMyInfo();
-                string md5Email = GoogleFitOnFhir.Utility.MD5String(me.EmailAddresses[0].Value);
+                string base58Email = GoogleFitOnFhir.Utility.Base58String(me.EmailAddresses[0].Value);
 
-                // Write refreshToken to Key Vault with md5 of email as secret name
+                // Write refreshToken to Key Vault with base58 of email as secret name
                 AzureServiceTokenProvider azureServiceTokenProvider1 = new AzureServiceTokenProvider();
                 KeyVaultClient kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider1.KeyVaultTokenCallback));
-                await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), md5Email.ToString(), tokenResponse.RefreshToken);
+                await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), base58Email, tokenResponse.RefreshToken);
+
+                // Use base58Email as UserId and update the UsersTable
+                UpdateUserId(base58Email, log);
             }
 
             return new OkObjectResult("auth flow successful");
@@ -146,6 +150,26 @@ namespace GoogleFitOnFhir.Identity
                     FitnessService.Scope.FitnessHeartRateWrite,
                 },
             });
+        }
+
+        private static bool UpdateUserId(string userId, ILogger log)
+        {
+            string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
+
+            UserRecord user = new UserRecord(userId);
+
+            try
+            {
+                tableClient.UpsertEntity(user);
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex.Message);
+                return false;
+            }
+
+            return true;
         }
     }
 }
