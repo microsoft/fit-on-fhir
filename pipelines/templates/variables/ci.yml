@@ -2,6 +2,6 @@ variables:
   - name: basename
     value: gfof-ci-$(Build.BuildId)
   - name: location
-    value: westus2
+    value: southcentralus
   - name: azure_service_connection_name
     value: dev
