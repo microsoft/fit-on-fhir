@@ -4,7 +4,7 @@ parameters:
 stages:
   - stage: Clean
     displayName: Cleanup
-    dependsOn: [EphemeralDeploy]
+    dependsOn: [E2ETests]
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     condition: always()
