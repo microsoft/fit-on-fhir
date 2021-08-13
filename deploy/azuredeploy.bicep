@@ -313,7 +313,7 @@ resource iotIngestDefaultEventHubConsumerGroup 'Microsoft.EventHub/namespaces/ev
   ]
 }
 
-resource workspace 'Microsoft.HealthcareApis/workspaces@2020-11-01-preview' = {
+resource workspace 'Microsoft.HealthcareApis/workspaces@2021-06-01-preview' = {
   name: replace('hw-${basename}', '-', '')
   location: resourceGroup().location
   properties: {}

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "3266285458129688623"
+      "templateHash": "10479219104777391597"
     }
   },
   "parameters": {
@@ -366,7 +366,7 @@
     },
     {
       "type": "Microsoft.HealthcareApis/workspaces",
-      "apiVersion": "2020-11-01-preview",
+      "apiVersion": "2021-06-01-preview",
       "name": "[replace(format('hw-{0}', parameters('basename')), '-', '')]",
       "location": "[resourceGroup().location]",
       "properties": {}

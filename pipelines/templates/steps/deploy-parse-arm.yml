@@ -16,6 +16,7 @@ steps:
       addSpnToEnvironment: true
       azureSubscription: ${{ parameters.azureSubscription }}
       scriptType: bash
+      scriptLocation: inlineScript
       inlineScript: |
         az provider register -n Microsoft.HealthcareApis
 
