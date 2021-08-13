@@ -10,6 +10,15 @@ parameters:
 
 
 steps:
+  - task: AzureCLI@2
+    displayName: Register resource provider
+    inputs:
+      addSpnToEnvironment: true
+      azureSubscription: ${{ parameters.azureSubscription }}
+      scriptType: bash
+      inlineScript: |
+        az provider register -n Microsoft.HealthcareApis
+
   - task: AzureResourceGroupDeployment@2
     displayName: ${{ parameters.displayName }}
     inputs:
