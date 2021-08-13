@@ -63,7 +63,7 @@ stages:
         steps:
           - bash: |
               echo "dependencies without V:"
-              echo "$(dependencies)""
+              echo "$(dependencies)"
               echo "dependencies:"
               echo "$(dependenciesV)"
               echo "deployResources:"
