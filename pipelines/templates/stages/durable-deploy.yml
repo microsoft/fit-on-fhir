@@ -10,22 +10,14 @@ stages:
       - template: ../variables/${{ parameters.environment }}.yml
       - name: durable-basename
         value: gfit2fhirdurable
-      - name: testvarfromstage
-        value: test
       - name: testStageVar
         value: $[stageDependencies.EphemeralDeploy.DeployResources.outputs['outputVars.usersKeyVaultName']]
-      - name: jobdep
-        value: $[convertToJson(stageDependencies.EphemeralDeploy.DeployResources)]
     jobs:
       - job: DeployResources
         displayName: Resources
         variables:
-          - name: theStage
-            value: $[ convertToJson(stageDependencies.EphemeralDeploy) ]
-          - name: theJob
-            value: $[ convertToJson(stageDependencies.EphemeralDeploy.DeployResources) ]
           - name: usersKeyVaultName
-            value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['DeployResources.outputVars.usersKeyVaultName'] ]
+            value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['outputVars.usersKeyVaultName'] ]
         steps:
           - task: AzureCLI@2
             displayName: Deploy $(durable-basename)
@@ -52,16 +44,8 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                echo "testvarfromstage"
-                echo "$(testvarfromstage)"
                 echo "testStageVar"
                 echo "$(testStageVar)"
-                echo "jobdep"
-                echo "$(jobdep)"
-                echo "thestage"
-                echo "$(theStage)"
-                echo "thejob"
-                echo "$(theJob)"
                 echo "variable"
                 echo $(usersKeyVaultName)
                 TOKEN=$(az keyvault secret show \
