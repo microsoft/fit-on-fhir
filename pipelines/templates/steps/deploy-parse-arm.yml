@@ -33,7 +33,7 @@ steps:
       for key in $(echo $output | jq -r 'keys[]'); do
         echo "Found Key: $key"
         value=$(echo $output | jq -r ".$key.value")
-        echo "##vso[task.setvariable variable=$key; isSecret=true; isOutput=true]$value"
+        echo "##vso[task.setvariable variable=$key; isOutput=true]$value"
       done
     name: outputVars
     displayName: Parse ARM outputs
