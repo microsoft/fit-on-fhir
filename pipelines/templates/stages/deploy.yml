@@ -39,21 +39,21 @@ stages:
               azureSubscription: ${{ variables.azure_service_connection_name }}
               resourceGroupName: $(basename)
               appName: GoogleFitOnFhir.Identity
-              resourceName: $(identityAppName)
+              resourceName: $(outputVars.identityAppName)
               releasesDir: $(Pipeline.Workspace)/dotnet-release
           - template: ../steps/deploy-source-to-functionapp.yml
             parameters:
               azureSubscription: ${{ variables.azure_service_connection_name }}
               resourceGroupName: $(basename)
               appName: GoogleFitOnFhir.SyncEvent
-              resourceName: $(syncEventAppName)
+              resourceName: $(outputVars.syncEventAppName)
               releasesDir: $(Pipeline.Workspace)/dotnet-release
           - template: ../steps/deploy-source-to-functionapp.yml
             parameters:
               azureSubscription: ${{ variables.azure_service_connection_name }}
               resourceGroupName: $(basename)
               appName: GoogleFitOnFhir.PublishData
-              resourceName: $(publishDataAppName)
+              resourceName: $(outputVars.publishDataAppName)
               releasesDir: $(Pipeline.Workspace)/dotnet-release
       - job: Debug
         displayName: Debug
