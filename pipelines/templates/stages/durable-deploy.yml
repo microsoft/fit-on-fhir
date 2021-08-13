@@ -15,9 +15,9 @@ stages:
         displayName: Resources
         variables:
           - name: theStage
-            value: $[ stageDependencies ]
+            value: $[ convertToJson(stageDependencies) ]
           - name: theJob
-            value: $[ stageDependencies.EphemeralDeploy ]
+            value: $[ convertToJson(stageDependencies.EphemeralDeploy) ]
           - name: usersKeyVaultName
             value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['deploy.usersKeyVaultName'] ]
         steps:
