@@ -1,0 +1,18 @@
+parameters:
+  - name: environment
+    default: ''
+
+stages:
+  - stage: E2ETests
+    displayName: E2ETests
+    dependsOn:
+    - EphemeralDeploy
+    - DurableDeploy
+    variables:
+      - template: ../variables/${{ parameters.environment }}.yml
+    jobs:
+      - job: Placeholder
+        displayName: Placeholder
+        steps:
+          - task: Bash@3
+            script: echo "E2E Test Placeholder"
