@@ -25,7 +25,7 @@ The following resources are deployed by the Bicep/ARM templates contained in the
 Note: More detail on the following functions can be found in the /src directory README [here](./src/README.md).
 
 * Identity Function: Authenticates users and authorizes retrieval of the user's data from Google Fit
-* Sync Event Function: Periodically runs and retrieves user ID's for data to sync
+* Sync Event Function: Periodically runs and retrieves user IDs for data to sync
 * Publish Data Function: Pulls data from Google Fit and syncs/publishes it to FHIR server
 
 #### Key Vaults
@@ -41,7 +41,7 @@ Note: More detail on the following functions can be found in the /src directory 
     * Queue Service: Contains the Sync Event queue
         * Queue: Receives messages from the Sync Event Generator function.  Each messsage contains a userId for data that needs to be retrieved from Google Fit and pushed to FHIR
     * Table Service: Contains the User Table
-        * Table: Stores a list of user ID's for users that have authenticated to Google Fit and authorized their data to be synced to FHIR server
+        * Table: Stores a list of user IDs for users that have authenticated to Google Fit and authorized their data to be synced to FHIR server
 
 #### IoT Connector
 

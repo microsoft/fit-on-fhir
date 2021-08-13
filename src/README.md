@@ -14,7 +14,7 @@ The main entry point for the Fit to FHIR application, the identity function resp
 
 The Sync Event function runs on a timer at regular intervals, and does the following:
 
-* Retrieves a list of user ID's from the "users" storage table for data that needs to be synced to FHIR
+* Retrieves a list of user IDs from the "users" storage table for data that needs to be synced to FHIR
 * Creates a queue message for each user ID in the "users" queue in storage
 
 ## Publish Data Function (Queue Trigger)
