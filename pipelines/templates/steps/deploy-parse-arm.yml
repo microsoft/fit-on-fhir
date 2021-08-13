@@ -11,13 +11,17 @@ parameters:
 
 steps:
   - task: AzureCLI@2
+    name: getObjectId
     displayName: debug
     inputs:
       azureSubscription: ${{ parameters.azureSubscription }}
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az ad sp show --id $(az account show --query "user.name" -o tsv)
+        objectId=$(az ad sp show \
+          --id $(az account show --query "user.name" -o tsv) \
+          --query "objectId" -o tsv)
+        echo "##vso[task.setvariable variable=objectId;isOutput=true]$objectId"
 
   - task: AzureResourceGroupDeployment@2
     displayName: ${{ parameters.displayName }}
@@ -28,13 +32,13 @@ steps:
       location: ${{ parameters.location }}
       overrideParameters: >
         ${{ parameters.overrideParameters }}
-        -spid $servicePrincipalId
+        -spid $(getObjectId.objectId)
       deploymentMode: Incremental
       templateLocation: Linked artifact
       csmFile: ${{ parameters.armFile }}
       deploymentOutputs: armOutput
       deploymentName: ${{ parameters.deploymentName }}
-      addSpnToEnvironment: true
+      # addSpnToEnvironment: true
 
   - bash: |
       for key in $(echo $output | jq -r 'keys[]'); do
