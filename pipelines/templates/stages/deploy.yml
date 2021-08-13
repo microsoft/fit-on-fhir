@@ -53,3 +53,12 @@ stages:
               appName: GoogleFitOnFhir.PublishData
               resourceName: $(publishDataAppName)
               releasesDir: $(Pipeline.Workspace)/dotnet-release
+      - job: Debug
+        displayName: Debug
+        dependsOn: [DeployResources]
+        variables:
+          test: $[ dependencies.DeployResources.outputs['outputVars.userKeyVaultName'] ]
+        steps:
+          - bash: |
+              echo "$(test)"
+            displayName: "Echo output"

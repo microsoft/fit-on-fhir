@@ -25,7 +25,7 @@ stages:
   - template: ./templates/stages/durable-deploy.yml
     parameters:
       environment: ${{ variables.environment }}
-      magic: $[ dependencies.EphemeralDeploy.DeployResources['deploy.usersKeyVaultName']]
+      magic: $[ dependencies.EphemeralDeploy.DeployResources.outputs['outputVars.usersKeyVaultName'] ]
 
   - template: ./templates/stages/clean.yml
     parameters:
