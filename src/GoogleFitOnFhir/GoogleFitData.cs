@@ -8,7 +8,7 @@ using Google.Apis.Services;
 
 namespace GoogleFitOnFhir
 {
-    public class GoogleFitData
+    /*public class GoogleFitData
     {
         private readonly FitnessService fitnessService;
         private readonly PeopleServiceService peopleService;
@@ -43,5 +43,5 @@ namespace GoogleFitOnFhir
             peopleRequest.PersonFields = "emailAddresses";
             return peopleRequest.Execute();
         }
-    }
+    }*/
 }

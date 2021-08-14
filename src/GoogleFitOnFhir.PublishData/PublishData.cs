@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Azure.Data.Tables;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using GoogleFitOnFhir.Clients.GoogleFit.Models;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Services;
 using Microsoft.Azure.WebJobs;
@@ -23,55 +24,14 @@ namespace GoogleFitOnFhir.PublishData
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
-            // TODO: Get access token
-            string accessToken = string.Empty;
-
-            // TODO: Retrieve refresh token for user
-            // TODO: Store new refresh token
-            GoogleFitData googleFitData = new GoogleFitData(accessToken);
-            var datasourceList = googleFitData.GetDataSourceList();
-
-            // Filter by dataType, first example using com.google.blood_glucose
-            // Datasource.Type "raw" is an original datasource
-            // Datasource.Type "derived" is a combination/merge of raw datasources
-            var glucoseDataSourcesDataStreamIds = datasourceList.DataSource
-                .Where(d => d.DataType.Name == "com.google.blood_glucose" && d.Type == "raw")
-                .Select(d => d.DataStreamId);
-
-            // Create a batch of events for IoMT eventhub
-            using EventDataBatch eventBatch = await producerClient.CreateBatchAsync();
-
-            // Get dataset for each dataSource
-            foreach (var dataStreamId in glucoseDataSourcesDataStreamIds)
-            {
-                // TODO: Generate datasetId based on event type
-                //       last 30 days to beginning of hour for first migration
-                //       previous hour for interval migration
-                var dataset = googleFitData.GetDataset(dataStreamId, "1574159699023000000-1574159699023000000");
-
-                // Add user id to payload
-                // TODO: Use userId from queue message
-                dataset.UserId = "testUserId";
-
-                // Push dataset to IoMT connector
-                if (!eventBatch.TryAdd(new EventData(JsonConvert.SerializeObject(dataset))))
-                {
-                    throw new Exception("Event is too large for the batch and cannot be sent.");
-                }
-            }
-
             try
             {
-                // Use the producer client to send the batch of events to the event hub
-                await producerClient.SendAsync(eventBatch);
-                log.LogInformation("A batch of events has been published.");
-
                 var user = new User("testUserId"); // TODO: Update this with the userID when we have it
                 usersService.ImportFitnessData(user);
             }
-            finally
+            catch (Exception e)
             {
-                await producerClient.DisposeAsync();
+                log.LogError(e.Message);
             }
         }
     }

@@ -4,7 +4,7 @@ using System.Linq;
 using Google.Apis.Fitness.v1.Data;
 using Newtonsoft.Json;
 
-namespace GoogleFitOnFhir
+namespace GoogleFitOnFhir.Clients.GoogleFit.Models
 {
     public class IomtDataset : Dataset
     {
