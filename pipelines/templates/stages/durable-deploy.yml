@@ -15,7 +15,9 @@ stages:
         displayName: Resources
         variables:
           - name: usersKeyVaultName
-            value: $[ stageDependencies.EphemeralDeploy.DeployResources.outputs['outputVars.usersKeyVaultName'] ]
+            value: >
+              $[ stageDependencies.EphemeralDeploy.DeployResources
+              .outputs['outputVars.usersKeyVaultName'] ]
         steps:
           - task: AzureCLI@2
             displayName: Deploy $(durable-basename)
