@@ -26,17 +26,48 @@ stages:
               targetType: inlineScript
               script: |
                 echo "Placeholder - Use refresh token to get and store GFit access token"
-      - job: CreateDataSource
+      - job: SeedData
         displayName: Create New DataSource in GFit
         steps:
           - task: Bash@3
-            displayName: Create DataSource for Test User"
+            displayName: Create DataSource for Test User
             inputs:
               targetType: inlineScript
               script: |
                 echo "Placeholder - Create a new DataSource for GFit test user"
-
-
-
+      - job: InitialDataMigration
+        displayName: Initial Data Migration For New User
+        steps:
+          - task: Bash@3
+            displayName: PlaceholderTest1
+            inputs:
+              targetType: inlineScript
+              script: |
+                echo "Placeholder"
+      - job: New Data Migration
+        displayName: New Data Migration Since Last Sync
+        steps:
+          - task: Bash@3
+            displayName: PlaceholderTest2
+            inputs:
+              targetType: inlineScript
+              script: |
+                echo "Placeholder"
+      - job: E2ECleanup
+        displayName: E2E Cleanup
+        steps:
+          - task: Bash@3
+            displayName: Delete Datasource for Test User
+            inputs:
+              targetType: inlineScript
+              script: |
+                echo "Placeholder - Delete DataSource for GFit test user"
+          - task: Bash@3
+            displayName: Move Updated Refresh Token to Durable KV
+            inputs:
+              targetType: inlineScript
+              script: |
+                echo "Placeholder - Move updated refresh token from PublishData " \
+                  + "back to durable key vault"                
 
 
