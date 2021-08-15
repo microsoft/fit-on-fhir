@@ -11,10 +11,32 @@ stages:
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     jobs:
-      - job: Placeholder
-        displayName: Placeholder
+      - job: AuthToGFit
+        displayName: Auth to Google Fit
         steps:
           - task: Bash@3
+            displayName: Get Refresh Token
             inputs:
               targetType: inlineScript
-              script: echo "E2E Test Placeholder"
+              script: |
+                echo "Placeholder - Retrieve the refresh token from key vault"
+          - task: Bash@3
+            displayName: Get Access Token
+            inputs:
+              targetType: inlineScript
+              script: |
+                echo "Placeholder - Use refresh token to get and store GFit access token"
+      - job: CreateDataSource
+        displayName: Create New DataSource in GFit
+        steps:
+          - task: Bash@3
+            displayName: Create DataSource for Test User"
+            inputs:
+              targetType: inlineScript
+              script: |
+                echo "Placeholder - Create a new DataSource for GFit test user"
+
+
+
+
+
