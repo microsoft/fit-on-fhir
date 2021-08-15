@@ -36,7 +36,7 @@ stages:
               script: |
                 echo "Placeholder - Create a new DataSource for GFit test user"
       - job: InitialDataMigration
-        displayName: Initial Data Migration For New User
+        displayName: Initial Data Migration  -For New User
         steps:
           - task: Bash@3
             displayName: PlaceholderTest1
@@ -44,8 +44,8 @@ stages:
               targetType: inlineScript
               script: |
                 echo "Placeholder"
-      - job: New Data Migration
-        displayName: New Data Migration Since Last Sync
+      - job: NewDataMigration
+        displayName: New Data Migration - Since Last Sync
         steps:
           - task: Bash@3
             displayName: PlaceholderTest2
