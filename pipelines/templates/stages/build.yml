@@ -30,16 +30,34 @@ stages:
             inputs:
               command: test
               arguments: >
-                --collect:"XPlat Code Coverage"
+                /p:CollectCoverage=true
+                /p:CoverletOutputformat=cobertura
               publishTestResults: true
               projects: '**/*.UnitTests.csproj'
+          
+          - displayName: Install Coverage Dependencies
+            bash: |
+              sudo apt-get -y install libxml2-utils
+              dotnet tool install dotnet-reportgenerator-globaltool
+
+          - displayName: Combine Coverage
+            bash: |
+              dotnet tool run reportgenerator
+              $REPORTDIRS
+              $TARGETDIR
+              $REPORTTYPE
+            env:
+              TARGETRDIR: -targetdir:.
+              REPORTTYPE: -reporttypes:Cobertura
+              REPORTDIRS: -reports:$(Pipeline.Workspace)/**/*cobertura.xml
+
 
           - task: PublishCodeCoverageResults@1
             displayName: Publish Code Coverage
             inputs:
               codeCoverageTool: Cobertura
               summaryFileLocation: |
-                $(Agent.TempDirectory)/**/coverage.cobertura.xml
+                $(System.DefaultWorkingDirectory)/Cobertura.xml
 
           - task: DotNetCoreCLI@2
             displayName: Build
