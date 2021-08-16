@@ -35,17 +35,17 @@ stages:
               publishTestResults: true
               projects: '**/*.UnitTests.csproj'
           
-          - displayName: Install Coverage Dependencies
-            bash: |
+          - bash: |
               sudo apt-get -y install libxml2-utils
               dotnet tool install dotnet-reportgenerator-globaltool
+            displayName: Install Coverage Dependencies
 
-          - displayName: Combine Coverage
-            bash: |
+          - bash: |
               dotnet tool run reportgenerator
               $REPORTDIRS
               $TARGETDIR
               $REPORTTYPE
+            displayName: Combine Coverage
             env:
               TARGETRDIR: -targetdir:.
               REPORTTYPE: -reporttypes:Cobertura
