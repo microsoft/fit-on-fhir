@@ -1,10 +1,11 @@
 parameters:
   environment: ''
+  cleanAfter: EphemeralDeploy
 
 stages:
   - stage: Clean
     displayName: Cleanup
-    dependsOn: [EphemeralDeploy]
+    dependsOn: ${{ parameters.cleanAfter }}
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     condition: always()

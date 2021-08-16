@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "8797920146598793266"
+      "templateHash": "2427136845352980269"
     }
   },
   "parameters": {
@@ -16,6 +16,12 @@
       "minLength": 3,
       "metadata": {
         "description": "Base name that is used to name provisioned resources. Should be alphanumeric and less than 16 characters."
+      }
+    },
+    "spid": {
+      "type": "string",
+      "metadata": {
+        "description": "Service prinicipal ID to give permissions for key vaults."
       }
     }
   },
@@ -53,6 +59,15 @@
           {
             "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
             "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "all"
+              ]
+            }
+          },
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[parameters('spid')]",
             "permissions": {
               "secrets": [
                 "all"
@@ -394,6 +409,13 @@
         "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
       ]
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[replace(format('hw-{0}', parameters('basename')), '-', '')]",
+      "location": "[resourceGroup().location]",
+      "properties": {}
     }
   ],
   "outputs": {

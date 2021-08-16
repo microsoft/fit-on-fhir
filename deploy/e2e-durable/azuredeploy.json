@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "10997044353938721307"
+      "templateHash": "13877392917493818155"
     }
   },
   "parameters": {
@@ -16,6 +16,12 @@
       "minLength": 3,
       "metadata": {
         "description": "Base name that is used to name provisioned resources. Should be alphanumeric and less than 16 characters."
+      }
+    },
+    "spid": {
+      "type": "string",
+      "metadata": {
+        "description": "Service prinicipal ID to give permissions for key vaults."
       }
     }
   },
@@ -34,11 +40,8 @@
         "accessPolicies": [
           {
             "tenantId": "[subscription().tenantId]",
-            "objectId": "[subscription().tenantId]",
+            "objectId": "[parameters('spid')]",
             "permissions": {
-              "keys": [
-                "all"
-              ],
               "secrets": [
                 "all"
               ]
