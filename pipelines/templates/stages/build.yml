@@ -26,6 +26,22 @@ stages:
         displayName: Project
         steps:
           - task: DotNetCoreCLI@2
+            displayName: Test
+            inputs:
+              command: test
+              arguments: >
+                --collect:"XPlat Code Coverage"
+              publishTestResults: true
+              projects: '**/*.UnitTests.csproj'
+
+          - task: PublishCodeCoverageResults@1
+            displayName: Publish Code Coverage
+            inputs:
+              codeCoverageTool: Cobertura
+              summaryFileLocation: |
+                $(Agent.TempDirectory)/**/coverage.cobertura.xml
+
+          - task: DotNetCoreCLI@2
             displayName: Build
             inputs:
               command: publish
