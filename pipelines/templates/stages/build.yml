@@ -48,9 +48,9 @@ stages:
               $REPORTTYPE
             displayName: Combine Coverage
             env:
-              TARGETRDIR: -targetdir:.
+              TARGETDIR: -targetdir:.
               REPORTTYPE: -reporttypes:Cobertura
-              REPORTDIRS: -reports:$(Pipeline.Workspace)/**/*cobertura.xml
+              REPORTDIRS: -reports:**/*cobertura.xml
 
 
           - task: PublishCodeCoverageResults@1
