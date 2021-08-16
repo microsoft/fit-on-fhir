@@ -2,6 +2,8 @@
 @minLength(3)
 @maxLength(16)
 param basename string = 'fitonfhir'
+param google_client_id string
+param google_client_secret string
 
 resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: 'kv-users-${basename}'
@@ -208,6 +210,14 @@ resource identityFn 'Microsoft.Web/sites@2020-06-01' = {
         {
           name: 'AzureWebJobsStorage'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+        }
+        {
+          name: 'GOOGLE_OAUTH_CLIENT_ID'
+          value: google_client_id
+        }
+        {
+          name: 'GOOGLE_OAUTH_CLIENT_SECRET'
+          value: google_client_secret
         }
       ]
     }
