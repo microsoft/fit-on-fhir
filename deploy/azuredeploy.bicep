@@ -3,6 +3,9 @@
 @maxLength(16)
 param basename string = 'fitonfhir'
 
+@description('Service prinicipal ID to give permissions for key vaults.')
+param spid string
+
 resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: 'kv-users-${basename}'
   location: resourceGroup().location
@@ -33,6 +36,15 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
       {
         tenantId: identityFn.identity.tenantId
         objectId: identityFn.identity.principalId
+        permissions: {
+          secrets: [
+            'all'
+          ]
+        }
+      }
+      {
+        tenantId: subscription().tenantId
+        objectId: spid
         permissions: {
           secrets: [
             'all'
