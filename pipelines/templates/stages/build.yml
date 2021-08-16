@@ -34,10 +34,11 @@ stages:
                 /p:CoverletOutputformat=cobertura
               publishTestResults: true
               projects: '**/*.UnitTests.csproj'
-          
+
           - bash: |
               sudo apt-get -y install libxml2-utils
-              dotnet tool install dotnet-reportgenerator-globaltool --tool-path tools
+              dotnet tool install dotnet-reportgenerator-globaltool \
+                --tool-path tools
             displayName: Install Coverage Dependencies
 
           - bash: |
