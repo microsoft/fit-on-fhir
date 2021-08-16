@@ -37,7 +37,7 @@ stages:
           
           - bash: |
               sudo apt-get -y install libxml2-utils
-              dotnet tool install dotnet-reportgenerator-globaltool
+              dotnet tool install dotnet-reportgenerator-globaltool --tool-path tools
             displayName: Install Coverage Dependencies
 
           - bash: |
