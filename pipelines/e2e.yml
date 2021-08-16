@@ -18,14 +18,15 @@ stages:
     parameters:
       environment: ${{ variables.environment }}
 
-  - template: ./templates/stages/durable-deploy.yml
+  - template: ./templates/stages/deploy.yml
     parameters:
       environment: ${{ variables.environment }}
 
-  - template: ./templates/stages/deploy.yml
+  - template: ./templates/stages/durable-deploy.yml
     parameters:
       environment: ${{ variables.environment }}
 
   - template: ./templates/stages/clean.yml
     parameters:
       environment: ${{ variables.environment }}
+      cleanAfter: DurableDeploy
