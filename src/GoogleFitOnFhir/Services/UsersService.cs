@@ -11,9 +11,9 @@ namespace GoogleFitOnFhir.Services
     /// </summary>
     public class UsersService : IUsersService
     {
-        private IUsersTableRepository usersTableRepository;
+        private readonly IUsersTableRepository usersTableRepository;
 
-        private ILogger<UsersService> logger;
+        private readonly ILogger<UsersService> logger;
 
         public UsersService(IUsersTableRepository usersTableRepository, ILogger<UsersService> logger)
         {

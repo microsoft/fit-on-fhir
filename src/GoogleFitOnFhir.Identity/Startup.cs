@@ -13,15 +13,18 @@ namespace GoogleFitOnFhir.Identity
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
+            builder.Services.AddLogging();
+
             // TODO: iomtConnectingString from env var or key vault?
             string iomtConnectionString = string.Empty;
-
             string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
 
             builder.Services.AddSingleton<EventHubContext>(sp => new EventHubContext(iomtConnectionString));
             builder.Services.AddSingleton<StorageAccountContext>(sp => new StorageAccountContext(storageAccountConnectionString));
-            builder.Services.AddSingleton<IUsersTableRepository, IUsersTableRepository>();
+            builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
+
+            // builder.Services.BuildServiceProvider(true);
         }
     }
 }
