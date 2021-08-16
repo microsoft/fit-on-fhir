@@ -3,6 +3,9 @@
 @maxLength(16)
 param basename string = 'gfit2fhirdurable'
 
+@description('Service prinicipal ID to give permissions for key vaults.')
+param spid string
+
 resource durableKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: '${basename}-kv'
   location: resourceGroup().location
@@ -13,13 +16,9 @@ resource durableKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     }
     accessPolicies: [
       {
-        //TODO: this is a placeholder policy that is required for provisioning but should be removed when there is a managed identity that can be used
         tenantId: subscription().tenantId
-        objectId: subscription().tenantId
+        objectId: spid
         permissions: {
-          keys: [
-            'all'
-          ]
           secrets: [
             'all'
           ]

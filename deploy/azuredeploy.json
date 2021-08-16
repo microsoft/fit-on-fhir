@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.451.19169",
-      "templateHash": "862821909359659579"
+      "templateHash": "9141269360463320926"
     }
   },
   "parameters": {
@@ -23,6 +23,12 @@
     },
     "google_client_secret": {
       "type": "string"
+    },
+    "spid": {
+      "type": "string",
+      "metadata": {
+        "description": "Service prinicipal ID to give permissions for key vaults."
+      }
     }
   },
   "functions": [],
@@ -59,6 +65,15 @@
           {
             "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
             "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "all"
+              ]
+            }
+          },
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[parameters('spid')]",
             "permissions": {
               "secrets": [
                 "all"

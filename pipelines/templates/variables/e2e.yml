@@ -6,3 +6,7 @@ variables:
     value: centralus
   - name: azure_service_connection_name
     value: dev
+  - name: test_user
+    value: 5FNQQLRwVY77Y5QYdF6v5RZ3S
+  - name: test_user_secret_name
+    value: gfit-e2e-refresh-token

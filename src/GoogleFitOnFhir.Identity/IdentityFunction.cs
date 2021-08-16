@@ -3,13 +3,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Data.Tables;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Auth.OAuth2.Web;
 using Google.Apis.Fitness.v1;
 using Google.Apis.PeopleService.v1.Data;
+using GoogleFitOnFhir.Models;
+using GoogleFitOnFhir.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.KeyVault;
@@ -20,10 +21,14 @@ using Microsoft.Extensions.Logging;
 
 namespace GoogleFitOnFhir.Identity
 {
-    public static class IdentityFunction
+    public class IdentityFunction
     {
+        private readonly IUsersService usersService;
+
+        private readonly ILogger log;
+
         // Whitelisted Files
-        private static readonly string[][] FileMap = new string[][]
+        private readonly string[][] fileMap = new string[][]
         {
             new[] { "api/index.html", "text/html; charset=utf-8" },
             new[] { "api/css/main.css", "text/css; charset=utf-8" },
@@ -31,29 +36,34 @@ namespace GoogleFitOnFhir.Identity
             new[] { "api/img/logo.png", "image/png" },
         };
 
+        public IdentityFunction(IUsersService usersService, ILogger<IdentityFunction> log)
+        {
+            this.usersService = usersService;
+            this.log = log;
+        }
+
         [FunctionName("api")]
-        public static async Task<IActionResult> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{p1?}/{p2?}/{p3?}")] HttpRequest req,
-            Microsoft.Azure.WebJobs.ExecutionContext context,
-            ILogger log)
+            Microsoft.Azure.WebJobs.ExecutionContext context)
         {
             string root = context.FunctionAppDirectory;
             string path = req.Path.Value[1..];
 
             if (path.StartsWith("api/login"))
             {
-                return await Login(req, log);
+                return await this.Login(req, this.log);
             }
             else if (path.StartsWith("api/callback"))
             {
-                return await Callback(req, log);
+                return await this.Callback(req, this.usersService, this.log);
             }
 
             // Flatten the user supplied path to it's absolute path on the system
             // This will remove relative bits like ../../
             var absPath = Path.GetFullPath(Path.Combine(root, path));
 
-            var matchedFile = FileMap.FirstOrDefault(allowedResources =>
+            var matchedFile = this.fileMap.FirstOrDefault(allowedResources =>
             {
                 // If the flattened path matches the whitelist exactly
                 return Path.Combine(root, allowedResources[0]) == absPath;
@@ -64,18 +74,18 @@ namespace GoogleFitOnFhir.Identity
                 // Reconstruct the absPath without using user input at all
                 // For maximum safety
                 var cleanAbsPath = Path.Combine(root, matchedFile[0]);
-                return FileStreamOrNotFound(cleanAbsPath, matchedFile[1]);
+                return this.FileStreamOrNotFound(cleanAbsPath, matchedFile[1]);
             }
 
             // Return the first item in the FileMap by default
-            var firstFile = FileMap.First();
+            var firstFile = this.fileMap.First();
             var firstFilePath = Path.Combine(root, firstFile[0]);
-            return FileStreamOrNotFound(firstFilePath, firstFile[1]);
+            return this.FileStreamOrNotFound(firstFilePath, firstFile[1]);
         }
 
-        public static async Task<IActionResult> Callback(HttpRequest req, ILogger log)
+        public async Task<IActionResult> Callback(HttpRequest req, IUsersService usersService, ILogger log)
         {
-            IAuthorizationCodeFlow flow = GetFlow();
+            IAuthorizationCodeFlow flow = this.GetFlow();
             string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
             TokenResponse tokenResponse = await flow.ExchangeCodeForTokenAsync(
                 "me",
@@ -96,15 +106,16 @@ namespace GoogleFitOnFhir.Identity
                 await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), base58Email, tokenResponse.RefreshToken);
 
                 // Use base58Email as UserId and update the UsersTable
-                UpdateUserId(base58Email, log);
+                var user = new User(base58Email);
+                usersService.Initiate(user);
             }
 
             return new OkObjectResult("auth flow successful");
         }
 
-        public static async Task<IActionResult> Login(HttpRequest req, ILogger log)
+        public async Task<IActionResult> Login(HttpRequest req, ILogger log)
         {
-            IAuthorizationCodeFlow flow = GetFlow();
+            IAuthorizationCodeFlow flow = this.GetFlow();
             string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
             var authResult = await new AuthorizationCodeWebApp(flow, callback, string.Empty)
                 .AuthorizeAsync("user", CancellationToken.None);
@@ -120,14 +131,14 @@ namespace GoogleFitOnFhir.Identity
             }
         }
 
-        private static IActionResult FileStreamOrNotFound(string filePath, string contentType)
+        private IActionResult FileStreamOrNotFound(string filePath, string contentType)
         {
             return File.Exists(filePath) ?
                 (IActionResult)new FileStreamResult(File.OpenRead(filePath), contentType) :
                 new NotFoundResult();
         }
 
-        private static IAuthorizationCodeFlow GetFlow()
+        private IAuthorizationCodeFlow GetFlow()
         {
             // TODO: Customize datastore to use KeyVault
             return new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
@@ -150,26 +161,6 @@ namespace GoogleFitOnFhir.Identity
                     FitnessService.Scope.FitnessHeartRateWrite,
                 },
             });
-        }
-
-        private static bool UpdateUserId(string userId, ILogger log)
-        {
-            string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
-
-            UserRecord user = new UserRecord(userId);
-
-            try
-            {
-                tableClient.UpsertEntity(user);
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex.Message);
-                return false;
-            }
-
-            return true;
         }
     }
 }
