@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Azure.Data.Tables;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using GoogleFitOnFhir.Models;
+using GoogleFitOnFhir.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -13,18 +15,18 @@ namespace GoogleFitOnFhir.PublishData
     public static class PublishData
     {
         [FunctionName("publish-data")]
-        public static async Task Run([QueueTrigger("publish-data", Connection = "AzureWebJobsStorage")] string myQueueItem, ILogger log)
+        public static async Task Run(
+            [QueueTrigger("publish-data", Connection = "QueueConnectionString")] string myQueueItem,
+            ILogger log,
+            IUsersService usersService,
+            EventHubProducerClient producerClient)
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
-            // TODO: iomtConnectingString from env var or key vault?
-            string iomtConnectionString = string.Empty;
-
-            // TODO: Retrieve refresh token for user
-
-            // TODO: Get access token and new refresh token from Google Identity
+            // TODO: Get access token
             string accessToken = string.Empty;
 
+            // TODO: Retrieve refresh token for user
             // TODO: Store new refresh token
             GoogleFitData googleFitData = new GoogleFitData(accessToken);
             var datasourceList = googleFitData.GetDataSourceList();
@@ -35,8 +37,6 @@ namespace GoogleFitOnFhir.PublishData
             var glucoseDataSourcesDataStreamIds = datasourceList.DataSource
                 .Where(d => d.DataType.Name == "com.google.blood_glucose" && d.Type == "raw")
                 .Select(d => d.DataStreamId);
-
-            var producerClient = new EventHubProducerClient(iomtConnectionString);
 
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await producerClient.CreateBatchAsync();
@@ -65,33 +65,14 @@ namespace GoogleFitOnFhir.PublishData
                 // Use the producer client to send the batch of events to the event hub
                 await producerClient.SendAsync(eventBatch);
                 log.LogInformation("A batch of events has been published.");
-                UpdateUserLastSync(log);
+
+                var user = new User("testUserId"); // TODO: Update this with the userID when we have it
+                usersService.ImportFitnessData(user);
             }
             finally
             {
                 await producerClient.DisposeAsync();
             }
-        }
-
-        private static bool UpdateUserLastSync(ILogger log)
-        {
-            string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
-
-            UserRecord user = new UserRecord("testUserId"); // TODO: Update this with the userID when we have it
-            user.LastSync = DateTime.Now;
-
-            try
-            {
-                tableClient.UpsertEntity(user);
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex.Message);
-                return false;
-            }
-
-            return true;
         }
     }
 }
