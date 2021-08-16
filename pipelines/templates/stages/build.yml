@@ -41,7 +41,7 @@ stages:
                 --tool-path tools
             displayName: Install Coverage Dependencies
 
-          - bash: |
+          - bash: >
               ./tools/reportgenerator
               $REPORTDIRS
               $TARGETDIR
