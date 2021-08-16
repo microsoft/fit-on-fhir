@@ -5,27 +5,53 @@ parameters:
 stages:
   - stage: DurableDeploy
     displayName: Deploying Durable
-    dependsOn: [Build]
+    dependsOn: [EphemeralDeploy]
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
+      - name: durable-basename
+        value: gfit2fhirdurable
     jobs:
       - job: DeployResources
         displayName: Resources
+        variables:
+          - name: usersKeyVaultName
+            value: >
+              $[ stageDependencies.EphemeralDeploy.DeployResources
+              .outputs['outputVars.usersKeyVaultName'] ]
         steps:
           - task: AzureCLI@2
-            displayName: Deploy gfit2fhirdurable
+            displayName: Deploy $(durable-basename)
             inputs:
               azureSubscription: ${{ variables.azure_service_connection_name }}
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                az group create --location $(location) --name gfit2fhirdurable
+                az group create --location $(location) \
+                  --name $(durable-basename)
           - template: ../steps/deploy-parse-arm.yml
             parameters:
-              displayName: Deploy resources for gfit2fhirdurable
+              displayName: Deploy resources for $(durable-basename)
               azureSubscription: ${{ variables.azure_service_connection_name }}
-              resourceGroupName: gfit2fhirdurable
+              resourceGroupName: $(durable-basename)
               location: $(location)
               overrideParameters: >
-                -basename "gfit2fhirdurable"
+                -basename "$(durable-basename)"
               armFile: ./deploy/e2e-durable/azuredeploy.json
+          - task: AzureCLI@2
+            displayName: Copy refresh token to ephemeral keyvault
+            inputs:
+              azureSubscription: ${{ variables.azure_service_connection_name }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                varSettings=isOutput=true;isSecret=true
+                TOKEN=$(az keyvault secret show \
+                  --vault-name $(outputVars.durableKeyVaultName) \
+                  --name $(test_user_secret_name) \
+                  --query value \
+                  --output tsv)
+                az keyvault secret set \
+                  --vault-name $(usersKeyVaultName) \
+                  --name $(test_user) \
+                  --value $TOKEN > /dev/null
+                echo "##vso[task.setvariable variable=TOKEN;$varSettings]$TOKEN"
