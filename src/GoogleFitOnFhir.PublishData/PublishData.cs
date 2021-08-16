@@ -13,25 +13,38 @@ using Newtonsoft.Json;
 
 namespace GoogleFitOnFhir.PublishData
 {
-    public static class PublishData
+    public class PublishData
     {
-        [FunctionName("publish-data")]
-        public static async Task Run(
-            [QueueTrigger("publish-data", Connection = "QueueConnectionString")] string myQueueItem,
-            ILogger log,
+        private readonly IUsersService usersService;
+
+        private readonly EventHubProducerClient producerClient;
+
+        private readonly ILogger<PublishData> log;
+
+        public PublishData(
             IUsersService usersService,
-            EventHubProducerClient producerClient)
+            EventHubProducerClient producerClient,
+            ILogger<PublishData> log)
         {
-            log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
+            this.usersService = usersService;
+            this.producerClient = producerClient;
+            this.log = log;
+        }
+
+        [FunctionName("publish-data")]
+        public void Run(
+            [QueueTrigger("publish-data", Connection = "QueueConnectionString")] string myQueueItem)
+        {
+            this.log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
             try
             {
                 var user = new User("testUserId"); // TODO: Update this with the userID when we have it
-                usersService.ImportFitnessData(user);
+                this.usersService.ImportFitnessData(user);
             }
             catch (Exception e)
             {
-                log.LogError(e.Message);
+                this.log.LogError(e.Message);
             }
         }
     }

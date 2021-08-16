@@ -35,7 +35,7 @@ namespace GoogleFitOnFhir.PublishData
 
             builder.Services.AddSingleton<EventHubContext>(sp => new EventHubContext(iomtConnectionString));
             builder.Services.AddSingleton<StorageAccountContext>(sp => new StorageAccountContext(storageAccountConnectionString));
-            builder.Services.AddSingleton<IUsersTableRepository, IUsersTableRepository>();
+            builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
         }
     }
