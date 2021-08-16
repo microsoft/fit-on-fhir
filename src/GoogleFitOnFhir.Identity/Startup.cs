@@ -23,8 +23,6 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddSingleton<StorageAccountContext>(sp => new StorageAccountContext(storageAccountConnectionString));
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
-
-            // builder.Services.BuildServiceProvider(true);
         }
     }
 }
