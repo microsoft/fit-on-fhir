@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "6912026331802724407"
+      "templateHash": "3563312896875908754"
     }
   },
   "parameters": {
@@ -16,6 +16,12 @@
       "minLength": 3,
       "metadata": {
         "description": "Base name that is used to name provisioned resources. Should be alphanumeric and less than 16 characters."
+      }
+    },
+    "spid": {
+      "type": "string",
+      "metadata": {
+        "description": "Service prinicipal ID to give permissions for key vaults."
       }
     }
   },
@@ -53,6 +59,15 @@
           {
             "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
             "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "all"
+              ]
+            }
+          },
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[parameters('spid')]",
             "permissions": {
               "secrets": [
                 "all"
