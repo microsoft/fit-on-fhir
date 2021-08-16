@@ -2,18 +2,18 @@ using System;
 using Azure;
 using Azure.Data.Tables;
 
-namespace GoogleFitOnFhir
+namespace GoogleFitOnFhir.Models
 {
-    public class UserRecord : ITableEntity
+    public class User : ITableEntity
     {
-        public UserRecord(string userId)
+        public User(string userId)
         {
             this.PartitionKey = userId;
             this.RowKey = userId;
-            this.UserId = userId;
+            this.Id = userId;
         }
 
-        public UserRecord()
+        public User()
         {
         }
 
@@ -25,7 +25,7 @@ namespace GoogleFitOnFhir
 
         public ETag ETag { get; set; }
 
-        public string UserId { get; set; }
+        public string Id { get; set; }
 
         public DateTimeOffset? LastSync { get; set; }
     }
