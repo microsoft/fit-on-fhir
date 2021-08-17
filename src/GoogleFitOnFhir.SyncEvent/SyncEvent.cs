@@ -14,7 +14,6 @@ namespace GoogleFitOnFhir.SyncEvent
         public static string Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ICollector<string> queueService, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-            log.LogInformation($"C# Queue trigger function processed: {queueService}");
 
             // TODO: remove once using query in PR #62 - https://github.com/microsoft/googlefit-on-fhir/pull/62
             string[] usersArray = { "A801C48320EC6E9A47EA2B844C9C7CC6", "A801C48320EC6E9A47EA2B844C9C7CC6" };
@@ -24,7 +23,7 @@ namespace GoogleFitOnFhir.SyncEvent
                 Console.WriteLine($"{user} ");
                 var message = new QueueMessage();
                 message.UserId = user;
-                queueService.Add(message + "(step 1)");
+                queueService.Add(queueService + "(step 1)");
             }
 
             return string.Empty;
