@@ -10,7 +10,7 @@ namespace GoogleFitOnFhir.SyncEvent
     public class SyncEvent
     {
         [FunctionName("SyncEvent")]
-        public static void Run([TimerTrigger("0 */1 * * *")] TimerInfo myTimer, [Queue("publish-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService, ILogger log)
+        public static void Run([TimerTrigger("0 */1 * * * *")] TimerInfo myTimer, [Queue("publish-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
@@ -18,19 +18,9 @@ namespace GoogleFitOnFhir.SyncEvent
             var users = new List<string>()
                 { "A801C48320EC6E9A47EA2B844C9C7CC6", "DSFKJ39234LASKDFJNL349SDLFKSDF" };
 
-            IEnumerable<string> Enumerable()
-            {
-                foreach (var user in users)
-                {
-                    yield return user;
-                }
+            users.ForEach(AddMessageToQueue);
 
-                yield break;
-            }
-
-            var result = Enumerable();
-
-            foreach (var userId in users)
+            void AddMessageToQueue(string userId)
             {
                 var message = new QueueMessage();
                 message.UserId = userId;
