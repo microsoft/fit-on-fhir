@@ -32,7 +32,6 @@ namespace GoogleFitOnFhir.PublishData
             #endif
 
             builder.Services.AddLogging();
-
             builder.Services.AddSingleton<GoogleFitClientContext>(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, googleFitCallbackUri));
             builder.Services.AddSingleton<GoogleFitClient>();
 
@@ -40,7 +39,9 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddSingleton<StorageAccountContext>(sp => new StorageAccountContext(storageAccountConnectionString));
             builder.Services.AddSingleton<UsersKeyvaultContext>(sp => new UsersKeyvaultContext(usersKeyvaultUri));
 
-            builder.Services.AddSingleton<IUsersKeyvaultRepository, UsersKeyvaultRepository>();
+            builder.Services.AddScoped<IUsersKeyvaultRepository, UsersKeyvaultRepository>();
+
+            // builder.Services.AddSingleton<IUsersKeyvaultRepository, UsersKeyvaultRepository>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
         }

@@ -2,8 +2,10 @@ using System;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Repositories;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -69,18 +71,23 @@ namespace GoogleFitOnFhir.Services
 
         public async void ImportFitnessData(User user)
         {
-            // TODO: Retrieve the accessToken from KV using user.Id
-            string accessToken = string.Empty;
+            SecretBundle secret = await this.usersKeyvaultRepository.Get(user.Id);
 
-            // TODO: Retrieve refresh token for user
+            if (secret == null || secret.Value == null)
+            {
+                return;
+            }
+
+            AuthTokensResponse tokensResponse = await this.googleFitClient.RefreshTokensRequest(secret.Value);
+
             // TODO: Store new refresh token
-            var dataSourcesList = await this.googleFitClient.DatasourcesListRequest(accessToken);
+            var dataSourcesList = await this.googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken);
 
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await this.eventHubProducerClient.CreateBatchAsync();
 
             // Get dataset for each dataSource
-            foreach (var datasourceId in dataSourcesList.DatasourceIds)
+            /*foreach (var datasourceId in dataSourcesList.DatasourceIds)
             {
                 // TODO: Generate datasetId based on event type
                 //       last 30 days to beginning of hour for first migration
@@ -114,7 +121,7 @@ namespace GoogleFitOnFhir.Services
             finally
             {
                 await this.eventHubProducerClient.DisposeAsync();
-            }
+            }*/
         }
 
         public void QueueFitnessImport(User user)
