@@ -42,20 +42,16 @@ stages:
                 --tool-path tools
             displayName: Install Coverage Dependencies
 
-          - bash: |
-              ls -lahRp $(Agent.TempDirectory)
-            displayName: Dir List
-
           - bash: >
               ./tools/reportgenerator
-              $REPORTDIRS
+              $REPORTDR
               $TARGETDIR
               $REPORTTYPE
             displayName: Combine Coverage
             env:
               TARGETDIR: -targetdir:.
               REPORTTYPE: -reporttypes:Cobertura
-              REPORTDIRS: -reports:$(System.DefaultWorkingDirectory)/Cobertura.xml
+              REPORTDR: -reports:$(System.DefaultWorkingDirectory)/Cobertura.xml
 
 
           - task: PublishCodeCoverageResults@1
