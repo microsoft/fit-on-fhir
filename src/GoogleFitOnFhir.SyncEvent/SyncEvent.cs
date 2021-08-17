@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using GoogleFitOnFhir.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -9,23 +10,32 @@ namespace GoogleFitOnFhir.SyncEvent
     public class SyncEvent
     {
         [FunctionName("SyncEvent")]
-        public static void Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, [Queue("publish-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService, ILogger log)
+        public static void Run([TimerTrigger("0 */1 * * * *")] TimerInfo myTimer, [Queue("publish-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            // TODO: remove once using query in PR #62 - https://github.com/microsoft/googlefit-on-fhir/pull/62
-            string[] usersArray = { "A801C48320EC6E9A47EA2B844C9C7CC6", "A801C48320EC6E9A47EA2B844C9C7CC6" };
+            // TODO: Use GetAll() instead of hardcoded array (https://github.com/microsoft/googlefit-on-fhir/pull/62/files#diff-12ef371094ae0c16b4de28ded773034d72e48b3e54c11409ad9be5dbda4aa873R28)
+            var users = new List<string>()
+                { "A801C48320EC6E9A47EA2B844C9C7CC6", "DSFKJ39234LASKDFJNL349SDLFKSDF" };
 
-            // foreach (string userId in usersArray)
-            // {
-            //     Console.WriteLine($"{userId} ");
-            var message = new QueueMessage();
-            message.UserId = usersArray[0];
-            queueService.Add(message + "(step 1)");
-            Console.WriteLine(message.UserId);
+            IEnumerable<string> Enumerable()
+            {
+                foreach (var user in users)
+                {
+                    yield return user;
+                }
 
-            // }
-            // return string.Empty;
+                yield break;
+            }
+
+            var result = Enumerable();
+
+            foreach (var userId in users)
+            {
+                var message = new QueueMessage();
+                message.UserId = userId;
+                queueService.Add(message + "(step 1)");
+            }
         }
     }
 }
