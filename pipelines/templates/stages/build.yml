@@ -41,8 +41,8 @@ stages:
                 --tool-path tools
             displayName: Install Coverage Dependencies
 
-          - bash: >
-            ls -lahRp
+          - bash: |
+              ls -lahRp
             displayName: dir list
 
           - bash: >
