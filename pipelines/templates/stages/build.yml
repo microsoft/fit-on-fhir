@@ -33,7 +33,7 @@ stages:
                 /p:CollectCoverage=true
                 /p:CoverletOutputformat=cobertura
                 /p:CoverletOutput=$(System.DefaultWorkingDirectory)/Cobertura.xml
-              publishTestResults: true
+              publishTestResults: false
               projects: '**/*.UnitTests.csproj'
 
           - bash: |
