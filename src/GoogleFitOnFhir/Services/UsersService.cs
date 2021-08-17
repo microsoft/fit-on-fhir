@@ -26,13 +26,13 @@ namespace GoogleFitOnFhir.Services
 
         private readonly ILogger<UsersService> logger;
 
-        private readonly UsersKeyvaultRepository usersKeyvaultRepository;
+        private readonly IUsersKeyvaultRepository usersKeyvaultRepository;
 
         public UsersService(
             IUsersTableRepository usersTableRepository,
             GoogleFitClient googleFitClient,
             EventHubProducerClient eventHubProducerClient,
-            UsersKeyvaultRepository usersKeyvaultRepository,
+            IUsersKeyvaultRepository usersKeyvaultRepository,
             ILogger<UsersService> logger)
         {
             this.usersTableRepository = usersTableRepository;
@@ -87,13 +87,13 @@ namespace GoogleFitOnFhir.Services
             using EventDataBatch eventBatch = await this.eventHubProducerClient.CreateBatchAsync();
 
             // Get dataset for each dataSource
-            /*foreach (var datasourceId in dataSourcesList.DatasourceIds)
+            foreach (var datasourceId in dataSourcesList.DatasourceIds)
             {
                 // TODO: Generate datasetId based on event type
                 //       last 30 days to beginning of hour for first migration
                 //       previous hour for interval migration
                 var dataset = await this.googleFitClient.DatasetRequest(
-                    accessToken,
+                    tokensResponse.AccessToken,
                     datasourceId,
                     "1574159699023000000-1574159699023000000");
 
@@ -121,7 +121,7 @@ namespace GoogleFitOnFhir.Services
             finally
             {
                 await this.eventHubProducerClient.DisposeAsync();
-            }*/
+            }
         }
 
         public void QueueFitnessImport(User user)
