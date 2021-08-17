@@ -22,10 +22,20 @@ stages:
                 echo "Placeholder - Retrieve the refresh token from key vault"
           - task: Bash@3
             displayName: Get Access Token
+            env:
+              GFIT_REFRESH_TOKEN: $(GFIT_REFRESH_TOKEN)
+              GFIT_CLIENT_ID: $(GFIT_CLIENT_ID)
+              GFIT_CLIENT_SECRET: $(GFIT_CLIENT_SECRET)
             inputs:
               targetType: inlineScript
               script: |
-                echo "Placeholder - Use refresh token to get and store GFit access token"
+                echo "Attempting to retrieve access token using refresh token"
+                GFIT_ACCESS_TOKEN=$(curl -X POST -H "Content-type: application/x-www-form-urlencoded" \
+                https://oauth2.googleapis.com/token -d \
+                "grant_type=refresh_token \
+                &refresh_token=$GFIT_REFRESH_TOKEN \
+                &client_id=$GFIT_CLIENT_ID \
+                &client_secret=$GFIT_CLIENT_SECRET")
       - job: SeedData
         displayName: Create New DataSource in GFit
         steps:
@@ -36,7 +46,7 @@ stages:
               script: |
                 echo "Placeholder - Create a new DataSource for GFit test user"
       - job: InitialDataMigration
-        displayName: Initial Data Migration  -For New User
+        displayName: Initial Data Migration - For New User
         steps:
           - task: Bash@3
             displayName: PlaceholderTest1

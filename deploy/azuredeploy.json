@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "6912026331802724407"
+      "templateHash": "2427136845352980269"
     }
   },
   "parameters": {
@@ -16,6 +16,12 @@
       "minLength": 3,
       "metadata": {
         "description": "Base name that is used to name provisioned resources. Should be alphanumeric and less than 16 characters."
+      }
+    },
+    "spid": {
+      "type": "string",
+      "metadata": {
+        "description": "Service prinicipal ID to give permissions for key vaults."
       }
     }
   },
@@ -53,6 +59,15 @@
           {
             "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
             "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "all"
+              ]
+            }
+          },
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[parameters('spid')]",
             "permissions": {
               "secrets": [
                 "all"
@@ -208,6 +223,18 @@
       ]
     },
     {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2019-09-01",
+      "name": "[format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename')))]",
+      "properties": {
+        "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender'), '2021-01-01-preview').primaryConnectionString]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]"
+      ]
+    },
+    {
       "type": "Microsoft.OperationalInsights/workspaces",
       "apiVersion": "2021-06-01",
       "name": "[format('la-{0}', parameters('basename'))]",
@@ -316,12 +343,17 @@
             {
               "name": "AzureWebJobsStorage",
               "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
+            },
+            {
+              "name": "EventHubConnectionString",
+              "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[0], split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[1])).secretUriWithVersion)]"
             }
           ]
         }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[0], split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[1])]",
         "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
@@ -363,6 +395,27 @@
         "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
       ]
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+      "apiVersion": "2021-01-01-preview",
+      "name": "[format('{0}/{1}/{2}', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]",
+      "properties": {
+        "rights": [
+          "Send"
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
+      ]
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[replace(format('hw-{0}', parameters('basename')), '-', '')]",
+      "location": "[resourceGroup().location]",
+      "properties": {}
     }
   ],
   "outputs": {
