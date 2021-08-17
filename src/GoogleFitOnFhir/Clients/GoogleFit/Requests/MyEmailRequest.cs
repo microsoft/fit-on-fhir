@@ -9,7 +9,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class MyEmailRequest
     {
-        private PeopleServiceService peopleService;
+        private readonly PeopleServiceService peopleService;
 
         public MyEmailRequest(string accessToken)
         {

@@ -31,6 +31,8 @@ namespace GoogleFitOnFhir.Identity
             string googleFitCallbackUri = "https://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
             #endif
 
+            builder.Services.AddLogging();
+
             builder.Services.AddSingleton<GoogleFitClientContext>(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, googleFitCallbackUri));
             builder.Services.AddSingleton<GoogleFitClient>();
 
