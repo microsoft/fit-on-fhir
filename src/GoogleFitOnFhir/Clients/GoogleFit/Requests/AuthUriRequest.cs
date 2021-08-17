@@ -8,9 +8,9 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class AuthUriRequest
     {
-        private ClientContext clientContext;
+        private readonly ClientContext clientContext;
 
-        private IAuthorizationCodeFlow authFlow;
+        private readonly IAuthorizationCodeFlow authFlow;
 
         public AuthUriRequest(ClientContext clientContext, IAuthorizationCodeFlow authFlow)
         {
