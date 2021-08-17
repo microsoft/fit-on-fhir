@@ -32,6 +32,7 @@ stages:
               arguments: >
                 /p:CollectCoverage=true
                 /p:CoverletOutputformat=cobertura
+                /p:CoverletOutput=$(System.DefaultWorkingDirectory)/Cobertura.xml
               publishTestResults: true
               projects: '**/*.UnitTests.csproj'
 
@@ -40,10 +41,6 @@ stages:
               dotnet tool install dotnet-reportgenerator-globaltool \
                 --tool-path tools
             displayName: Install Coverage Dependencies
-
-          - bash: |
-              ls -lahRp
-            displayName: dir list
 
           - bash: >
               ./tools/reportgenerator
@@ -54,7 +51,7 @@ stages:
             env:
               TARGETDIR: -targetdir:.
               REPORTTYPE: -reporttypes:Cobertura
-              REPORTDIRS: -reports:**/*cobertura.xml
+              REPORTDIRS: -reports:$(Pipeline.Workspace)/*/*Cobertura.xml
 
 
           - task: PublishCodeCoverageResults@1
