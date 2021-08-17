@@ -10,7 +10,7 @@ namespace GoogleFitOnFhir.SyncEvent
     public class SyncEvent
     {
         [FunctionName("SyncEvent")]
-        public static void Run([TimerTrigger("0 */1 * * * *")] TimerInfo myTimer, [Queue("publish-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService, ILogger log)
+        public static void Run([TimerTrigger("0 */1 * * *")] TimerInfo myTimer, [Queue("publish-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
