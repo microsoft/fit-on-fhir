@@ -51,7 +51,7 @@ stages:
             env:
               TARGETDIR: -targetdir:.
               REPORTTYPE: -reporttypes:Cobertura
-              REPORTDIRS: -reports:$(Pipeline.Workspace)/*/*Cobertura.xml
+              REPORTDIRS: -reports:$(System.DefaultWorkingDirectory)/Cobertura.xml
 
 
           - task: PublishCodeCoverageResults@1
