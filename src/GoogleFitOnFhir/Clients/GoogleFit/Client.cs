@@ -17,34 +17,33 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
             this.clientContext = clientContext;
         }
 
-        public async Task<AuthUriResponse> AuthUriRequest()
+        public Task<AuthUriResponse> AuthUriRequest()
         {
-            var request = new AuthUriRequest(this.clientContext, this.GetAuthFlow());
-            return await request.ExecuteAsync();
+            return new AuthUriRequest(this.clientContext, this.GetAuthFlow())
+                .ExecuteAsync();
         }
 
-        public async Task<AuthTokensResponse> AuthTokensRequest(string authCode)
+        public Task<AuthTokensResponse> AuthTokensRequest(string authCode)
         {
-            var request = new AuthTokensRequest(this.clientContext, authCode, this.GetAuthFlow());
-            return await request.ExecuteAsync();
+            return new AuthTokensRequest(this.clientContext, authCode, this.GetAuthFlow())
+                .ExecuteAsync();
         }
 
-        public async Task<MyEmailResponse> MyEmailRequest(string accessToken)
+        public Task<MyEmailResponse> MyEmailRequest(string accessToken)
         {
-            var request = new MyEmailRequest(accessToken);
-            return await request.ExecuteAsync();
+            return new MyEmailRequest(accessToken).ExecuteAsync();
         }
 
-        public async Task<DatasourcesListResponse> DatasourcesListRequest(string accessToken)
+        public Task<DatasourcesListResponse> DatasourcesListRequest(string accessToken)
         {
-            var request = new DatasourcesListRequest(accessToken);
-            return await request.ExecuteAsync();
+            return new DatasourcesListRequest(accessToken)
+                .ExecuteAsync();
         }
 
-        public async Task<IomtDataset> DatasetRequest(string accessToken, string dataStreamId, string dataSetId)
+        public Task<IomtDataset> DatasetRequest(string accessToken, string dataStreamId, string dataSetId)
         {
-            var request = new DatasetRequest(accessToken, dataStreamId, dataSetId);
-            return await request.ExecuteAsync();
+            return new DatasetRequest(accessToken, dataStreamId, dataSetId)
+                .ExecuteAsync();
         }
 
         private IAuthorizationCodeFlow GetAuthFlow()
