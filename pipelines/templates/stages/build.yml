@@ -42,6 +42,10 @@ stages:
                 --tool-path tools
             displayName: Install Coverage Dependencies
 
+          - bash: |
+              ls -lahRp
+            displayName: Dir List
+
           - bash: >
               ./tools/reportgenerator
               $REPORTDIRS
