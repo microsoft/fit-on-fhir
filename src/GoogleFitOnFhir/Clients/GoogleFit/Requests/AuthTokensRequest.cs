@@ -10,11 +10,11 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class AuthTokensRequest
     {
-        private ClientContext clientContext;
+        private readonly ClientContext clientContext;
 
-        private string authCode;
+        private readonly string authCode;
 
-        private IAuthorizationCodeFlow authFlow;
+        private readonly IAuthorizationCodeFlow authFlow;
 
         public AuthTokensRequest(ClientContext clientContext, string authCode, IAuthorizationCodeFlow authFlow)
         {
