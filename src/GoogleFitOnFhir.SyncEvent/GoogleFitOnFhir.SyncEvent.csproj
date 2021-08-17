@@ -28,4 +28,7 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GoogleFitOnFhir\GoogleFitOnFhir.csproj" />
+  </ItemGroup>
 </Project>
