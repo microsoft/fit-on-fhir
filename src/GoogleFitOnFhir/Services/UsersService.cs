@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using GoogleFitOnFhir.Models;
@@ -16,29 +16,55 @@ namespace GoogleFitOnFhir.Services
     /// </summary>
     public class UsersService : IUsersService
     {
-        private IUsersTableRepository usersTableRepository;
+        private readonly IUsersTableRepository usersTableRepository;
 
-        private GoogleFitClient googleFitClient;
+        private readonly GoogleFitClient googleFitClient;
 
-        private EventHubProducerClient eventHubProducerClient;
+        private readonly EventHubProducerClient eventHubProducerClient;
 
-        private ILogger<UsersService> logger;
+        private readonly ILogger<UsersService> logger;
+
+        private readonly UsersKeyvaultRepository usersKeyvaultRepository;
 
         public UsersService(
             IUsersTableRepository usersTableRepository,
             GoogleFitClient googleFitClient,
             EventHubProducerClient eventHubProducerClient,
+            UsersKeyvaultRepository usersKeyvaultRepository,
             ILogger<UsersService> logger)
         {
             this.usersTableRepository = usersTableRepository;
             this.googleFitClient = googleFitClient;
             this.eventHubProducerClient = eventHubProducerClient;
+            this.usersKeyvaultRepository = usersKeyvaultRepository;
             this.logger = logger;
         }
 
-        public void Initiate(User user)
+        public async Task<User> Initiate(string authCode)
         {
+            var tokenResponse = await this.googleFitClient.AuthTokensRequest(authCode);
+            if (tokenResponse == null)
+            {
+                throw new Exception("Token response empty");
+            }
+
+            var emailResponse = await this.googleFitClient.MyEmailRequest(tokenResponse.AccessToken);
+            if (emailResponse == null)
+            {
+                throw new Exception("Email response empty");
+            }
+
+            // Hash email to reduce characterset for KV secret name compatability
+            var userId = Utility.Base58String(emailResponse.EmailAddress);
+            var user = new User(userId);
+
+            // Insert user into UsersTable
             this.usersTableRepository.Upsert(user);
+
+            // Insert refresh token into users KV by userId
+            this.usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken);
+
+            return user;
         }
 
         public async void ImportFitnessData(User user)

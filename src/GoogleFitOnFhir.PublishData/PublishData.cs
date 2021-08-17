@@ -1,15 +1,9 @@
 using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Azure.Data.Tables;
-using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
-using GoogleFitOnFhir.Clients.GoogleFit.Models;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace GoogleFitOnFhir.PublishData
 {

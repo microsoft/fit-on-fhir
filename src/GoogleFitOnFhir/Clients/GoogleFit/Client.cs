@@ -17,7 +17,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
             this.clientContext = clientContext;
         }
 
-        public async Task<AuthUriResponse> AuthUriRequest(string authCode)
+        public async Task<AuthUriResponse> AuthUriRequest()
         {
             var request = new AuthUriRequest(this.clientContext, this.GetAuthFlow());
             return await request.ExecuteAsync();
