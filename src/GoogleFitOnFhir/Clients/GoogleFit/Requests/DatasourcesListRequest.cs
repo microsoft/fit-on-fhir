@@ -26,9 +26,10 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
                 .Where(d => d.DataType.Name == "com.google.blood_glucose" && d.Type == "raw")
                 .Select(d => d.DataStreamId);
 
-            var response = new DatasourcesListResponse();
-            response.DatasourceIds = dataStreamIds;
-            return response;
+            return new DatasourcesListResponse()
+            {
+                DatasourceIds = dataStreamIds,
+            };
         }
     }
 }
