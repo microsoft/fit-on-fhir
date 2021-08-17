@@ -43,7 +43,7 @@ stages:
             displayName: Install Coverage Dependencies
 
           - bash: |
-              ls -lahRp
+              ls -lahRp $(System.DefaultWorkingDirectory)
             displayName: Dir List
 
           - bash: >
