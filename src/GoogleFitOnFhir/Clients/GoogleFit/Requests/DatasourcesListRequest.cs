@@ -16,7 +16,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 
         public async Task<DatasourcesListResponse> ExecuteAsync()
         {
-            var listRequest = new UsersResource.DataSourcesResource.ListRequest(this.fitnessService, "me");
+            var listRequest = new UsersResource.DataSourcesResource.ListRequest(this.FitnessService, "me");
             var datasourceList = await listRequest.ExecuteAsync();
 
             // Filter by dataType, first example using com.google.blood_glucose

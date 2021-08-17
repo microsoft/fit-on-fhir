@@ -20,7 +20,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
         public async Task<IomtDataset> ExecuteAsync()
         {
             var datasourceRequest = new UsersResource.DataSourcesResource.DatasetsResource.GetRequest(
-                this.fitnessService,
+                this.FitnessService,
                 "me",
                 this.dataStreamId,
                 this.datasetId);
