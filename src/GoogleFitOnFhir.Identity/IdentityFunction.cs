@@ -138,8 +138,7 @@ namespace GoogleFitOnFhir.Identity
 
         private string BuildCallbackUrl(HttpRequest req)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder = new StringBuilder("http")
+            StringBuilder stringBuilder = new StringBuilder("http")
                 .Append(req.IsHttps ? "s" : string.Empty)
                 .Append("://")
                 .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
