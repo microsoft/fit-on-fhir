@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Google.Apis.Fitness.v1.Data;
+using GoogleFitOnFhir.Clients.GoogleFit.Models;
 using Xunit;
 
 namespace GoogleFitOnFhir.UnitTests
