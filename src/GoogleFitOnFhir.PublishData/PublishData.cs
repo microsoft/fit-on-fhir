@@ -23,7 +23,11 @@ namespace GoogleFitOnFhir.PublishData
         {
             log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
-            // TODO: Get access token
+            string iomtConnectionString = Environment.GetEnvironmentVariable("EventHubConnectionString");
+
+            // TODO: Retrieve refresh token for user
+
+            // TODO: Get access token and new refresh token from Google Identity
             string accessToken = string.Empty;
 
             // TODO: Retrieve refresh token for user
