@@ -33,9 +33,10 @@ stages:
                 GFIT_ACCESS_TOKEN=$(curl -X POST -H "Content-type: application/x-www-form-urlencoded" \
                 "https://oauth2.googleapis.com/token" \
                 -d "grant_type=refresh_token \
-                &refresh_token=$GFIT_REFRESH_TOKEN \
-                &client_id=$GFIT_CLIENT_ID \
-                &client_secret=$GFIT_CLIENT_SECRET")
+                &refresh_token=$(GFIT_REFRESH_TOKEN) \
+                &client_id=$(GFIT_CLIENT_ID) \
+                &client_secret=$(GFIT_CLIENT_SECRET)" \
+                | jq -r '.access_token')
       - job: SeedData
         displayName: Create New DataSource in GFit
         steps:
