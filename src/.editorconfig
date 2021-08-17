@@ -1,5 +1,0 @@
-root = true
-
-[*.cs]
-  dotnet_analyzer_diagnostic.category-style.severity = none
-  dotnet_analyzer_diagnostic.category-performance.severity = none
