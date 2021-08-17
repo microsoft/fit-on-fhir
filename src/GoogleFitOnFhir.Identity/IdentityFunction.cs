@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
@@ -19,11 +20,10 @@ namespace GoogleFitOnFhir.Identity
     public class IdentityFunction
     {
         private readonly IUsersService usersService;
-
         private readonly ILogger log;
 
-        // Whitelisted Files
-        private readonly string[][] fileMap = new string[][]
+        // Allow-listed Files
+        private readonly string[][] fileArray = new string[][]
         {
             new[] { "api/index.html", "text/html; charset=utf-8" },
             new[] { "api/css/main.css", "text/css; charset=utf-8" },
@@ -60,7 +60,7 @@ namespace GoogleFitOnFhir.Identity
             // This will remove relative bits like ../../
             var absPath = Path.GetFullPath(Path.Combine(root, path));
 
-            var matchedFile = this.fileMap.FirstOrDefault(allowedResources =>
+            var matchedFile = this.fileArray.FirstOrDefault(allowedResources =>
             {
                 // If the flattened path matches the whitelist exactly
                 return Path.Combine(root, allowedResources[0]) == absPath;
@@ -75,7 +75,7 @@ namespace GoogleFitOnFhir.Identity
             }
 
             // Return the first item in the FileMap by default
-            var firstFile = this.fileMap.First();
+            var firstFile = this.fileArray.First();
             var firstFilePath = Path.Combine(root, firstFile[0]);
             return this.FileStreamOrNotFound(firstFilePath, firstFile[1]);
         }
@@ -89,8 +89,8 @@ namespace GoogleFitOnFhir.Identity
         public async Task<IActionResult> Login(HttpRequest req)
         {
             IAuthorizationCodeFlow flow = this.GetFlow();
-            string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
-            var authResult = await new AuthorizationCodeWebApp(flow, callback, string.Empty)
+
+            var authResult = await new AuthorizationCodeWebApp(flow, this.BuildCallbackUrl(req), string.Empty)
                 .AuthorizeAsync("user", CancellationToken.None);
 
             if (authResult.Credential == null)
@@ -134,6 +134,17 @@ namespace GoogleFitOnFhir.Identity
                     FitnessService.Scope.FitnessHeartRateWrite,
                 },
             });
+        }
+
+        private string BuildCallbackUrl(HttpRequest req)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder = new StringBuilder("http")
+                .Append(req.IsHttps ? "s" : string.Empty)
+                .Append("://")
+                .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
+                .Append("/api/callback");
+            return stringBuilder.ToString();
         }
     }
 }
