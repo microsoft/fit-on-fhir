@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "13531150371464621823"
+      "templateHash": "6734540942076033607"
     }
   },
   "parameters": {
@@ -422,12 +422,13 @@
       "apiVersion": "2021-06-01-preview",
       "name": "[format('{0}/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
       "location": "[resourceGroup().location]",
+      "kind": "fhir-R4",
       "identity": {
         "type": "SystemAssigned"
       },
       "properties": {
         "authenticationConfiguration": {
-          "authority": "[format('https://{0}/{1}', environment().authentication.loginEndpoint, subscription().tenantId)]",
+          "authority": "[format('{0}{1}', environment().authentication.loginEndpoint, subscription().tenantId)]",
           "audience": "[format('https://{0}-fs-{1}.fhir.azurehealthcareapis.com', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
           "smartProxyEnabled": false
         }

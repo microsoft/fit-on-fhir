@@ -349,12 +349,13 @@ resource fhirservice 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-06-0
   parent: workspace
   name: 'fs-${basename}'
   location: resourceGroup().location
+  kind: 'fhir-R4'
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
     authenticationConfiguration: {
-      authority: 'https://${environment().authentication.loginEndpoint}/${subscription().tenantId}'
+      authority: '${environment().authentication.loginEndpoint}${subscription().tenantId}'
       audience: 'https://${workspace.name}-fs-${basename}.fhir.azurehealthcareapis.com'
       smartProxyEnabled: false
     }
