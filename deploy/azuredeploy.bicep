@@ -353,7 +353,7 @@ resource fhirservice 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-06-0
   }
   properties: {
     authenticationConfiguration: {
-      authority: 'https://login.microsoftonline.com/${subscription().tenantId}'
+      authority: 'https://${environment().authentication.loginEndpoint}/${subscription().tenantId}'
       audience: 'https://${workspace.name}-fs-${basename}.fhir.azurehealthcareapis.com'
       smartProxyEnabled: false
     }

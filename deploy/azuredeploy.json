@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "8170654462442544760"
+      "templateHash": "14685139431773390670"
     }
   },
   "parameters": {
@@ -426,7 +426,7 @@
       },
       "properties": {
         "authenticationConfiguration": {
-          "authority": "[format('https://login.microsoftonline.com/{0}', subscription().tenantId)]",
+          "authority": "[format('https://{0}/{1}', environment().authentication.loginEndpoint, subscription().tenantId)]",
           "audience": "[format('https://{0}-fs-{1}.fhir.azurehealthcareapis.com', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
           "smartProxyEnabled": false
         }
