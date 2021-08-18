@@ -18,14 +18,14 @@ namespace GoogleFitOnFhir.SyncEvent
             var users = new List<string>()
                 { "A801C48320EC6E9A47EA2B844C9C7CC6", "DSFKJ39234LASKDFJNL349SDLFKSDF" };
 
-            users.ForEach(AddMessageToQueue);
-
-            void AddMessageToQueue(string userId)
+            users.ForEach(userId =>
             {
-                var message = new QueueMessage();
-                message.UserId = userId;
-                queueService.Add(message + "(step 1)");
-            }
+                var message = new QueueMessage
+                {
+                    UserId = userId,
+                };
+                queueService.Add(message.ToString());
+            });
         }
     }
 }
