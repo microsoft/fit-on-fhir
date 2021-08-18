@@ -32,7 +32,6 @@ namespace GoogleFitOnFhir.PublishData
             #endif
 
             builder.Services.AddLogging();
-
             builder.Services.AddSingleton<GoogleFitClientContext>(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, googleFitCallbackUri));
             builder.Services.AddSingleton<GoogleFitClient>();
 
