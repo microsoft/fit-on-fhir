@@ -34,7 +34,10 @@ stages:
                 GFIT_ACCESS_TOKEN=$(curl -X POST https://oauth2.googleapis.com/token \
                  -H "Content-type: application/x-www-form-urlencoded" -d "$FORM_DATA" \
                  | jq -r '.access_token')
-                if [ -z "$GFIT_ACCESS_TOKEN" ]; then echo "Debug: access token is null"; else echo "Debug: access token is not null"; fi
+                if [ -z "$GFIT_ACCESS_TOKEN" ] || [ "$GFIT_ACCESS_TOKEN" == "null"];
+                 then echo "Debug: access token is null";
+                 else echo "Debug: access token is not null";
+                fi
                 varSettings=isOutput=true;isSecret=true
                 echo "##vso[task.setvariable variable=GFIT_ACCESS_TOKEN;$varSettings]$GFIT_ACCESS_TOKEN"
       - job: SeedData
@@ -48,7 +51,10 @@ stages:
             inputs:
               targetType: inlineScript
               script: |
-                if [ -z "$GFIT_ACCESS_TOKEN" ]; then echo "Debug: access token is null"; else echo "Debug: access token is not null"; fi
+                if [ -z "$GFIT_ACCESS_TOKEN" ] || [ "$GFIT_ACCESS_TOKEN" == "null"];
+                 then echo "Debug: access token is null";
+                 else echo "Debug: access token is not null";
+                fi
                 curl --request POST 'https://www.googleapis.com/fitness/v1/users/me/dataSources' \
                 --header 'Authorization: Bearer $GFIT_ACCESS_TOKEN' \
                 --header 'Content-Type: application/json' \
