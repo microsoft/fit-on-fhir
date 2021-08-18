@@ -2,7 +2,7 @@ variables:
   - name: basename
     value: gfof-e2e-$(Build.BuildId)
   - name: location
-    value: centralus
+    value: eastus
   - name: azure_service_connection_name
     value: dev
   - name: test_user
