@@ -40,6 +40,7 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddSingleton<EventHubProducerClient>(sp => new EventHubProducerClient(iomtConnectionString));
 
             builder.Services.AddSingleton<IUsersKeyvaultRepository, UsersKeyvaultRepository>();
+            builder.Services.AddSingleton<IAuthService, AuthService>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
         }
