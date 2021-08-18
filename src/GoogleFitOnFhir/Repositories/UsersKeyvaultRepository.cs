@@ -37,11 +37,20 @@ namespace GoogleFitOnFhir.Repositories
                 value);
         }
 
-        public async Task<SecretBundle> Get(string secretName)
+        public async Task<string> GetByName(string secretName)
         {
-            return await this.keyVaultClient.GetSecretAsync(
-                this.keyvaultContext.Uri,
-                secretName);
+            try
+            {
+                SecretBundle secret = await this.keyVaultClient.GetSecretAsync(
+                    this.keyvaultContext.Uri,
+                    secretName);
+                return secret.Value;
+            }
+            catch (KeyVaultErrorException ex)
+            {
+                this.logger.LogError(ex.Message);
+                throw;
+            }
         }
     }
 }

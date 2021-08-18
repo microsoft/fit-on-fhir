@@ -7,6 +7,6 @@ namespace GoogleFitOnFhir.Repositories
     {
         void Upsert(string secretName, string value);
 
-        Task<SecretBundle> Get(string secretName);
+        Task<string> GetByName(string secretName);
     }
 }

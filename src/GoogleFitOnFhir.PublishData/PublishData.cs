@@ -40,7 +40,7 @@ namespace GoogleFitOnFhir.PublishData
         {
             this.log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
-            QueueMessageContext message = JsonConvert.DeserializeObject<QueueMessageContext>(myQueueItem);
+            QueueMessage message = JsonConvert.DeserializeObject<QueueMessage>(myQueueItem);
 
             try
             {

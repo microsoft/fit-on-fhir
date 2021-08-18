@@ -71,14 +71,19 @@ namespace GoogleFitOnFhir.Services
 
         public async void ImportFitnessData(User user)
         {
-            SecretBundle secret = await this.usersKeyvaultRepository.Get(user.Id);
+            string refreshToken;
 
-            if (secret == null || secret.Value == null)
+            try
             {
+                refreshToken = await this.usersKeyvaultRepository.GetByName(user.Id);
+            }
+            catch (AggregateException ex)
+            {
+                this.logger.LogError(ex.Message);
                 return;
             }
 
-            AuthTokensResponse tokensResponse = await this.googleFitClient.RefreshTokensRequest(secret.Value);
+            AuthTokensResponse tokensResponse = await this.googleFitClient.RefreshTokensRequest(refreshToken);
 
             // TODO: Store new refresh token
             var dataSourcesList = await this.googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken);
