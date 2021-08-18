@@ -26,14 +26,14 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                az group create --location $(location) \
+                az group create --location centralus \
                   --name $(durable-basename)
           - template: ../steps/deploy-parse-arm.yml
             parameters:
               displayName: Deploy resources for $(durable-basename)
               azureSubscription: ${{ variables.azure_service_connection_name }}
               resourceGroupName: $(durable-basename)
-              location: $(location)
+              location: centralus
               overrideParameters: >
                 -basename "$(durable-basename)"
               armFile: ./deploy/e2e-durable/azuredeploy.json
