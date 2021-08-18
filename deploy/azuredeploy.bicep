@@ -8,8 +8,11 @@ param google_client_secret string
 @description('Service prinicipal ID to give permissions for key vaults.')
 param spid string
 
+param usersKvName string = 'kv-users-${basename}'
+
+
 resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: 'kv-users-${basename}'
+  name: usersKvName
   location: resourceGroup().location
   properties: {
     sku: {
@@ -237,6 +240,10 @@ resource identityFn 'Microsoft.Web/sites@2020-06-01' = {
         {
           name: 'GOOGLE_OAUTH_CLIENT_SECRET'
           value: google_client_secret
+        }
+        {
+          name: 'USERS_KEY_VAULT_URI'
+          value: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
         }
       ]
     }
