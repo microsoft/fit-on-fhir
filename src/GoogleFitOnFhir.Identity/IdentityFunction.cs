@@ -6,16 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Auth.OAuth2.Web;
 using Google.Apis.Fitness.v1;
-using Google.Apis.PeopleService.v1.Data;
-using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -36,7 +31,9 @@ namespace GoogleFitOnFhir.Identity
             new[] { "api/img/logo.png", "image/png" },
         };
 
-        public IdentityFunction(IUsersService usersService, ILogger<IdentityFunction> log)
+        public IdentityFunction(
+            IUsersService usersService,
+            ILogger<IdentityFunction> log)
         {
             this.usersService = usersService;
             this.log = log;
@@ -52,11 +49,11 @@ namespace GoogleFitOnFhir.Identity
 
             if (path.StartsWith("api/login"))
             {
-                return await this.Login(req, this.log);
+                return await this.Login(req);
             }
             else if (path.StartsWith("api/callback"))
             {
-                return await this.Callback(req, this.usersService, this.log);
+                return await this.Callback(req);
             }
 
             // Flatten the user supplied path to it's absolute path on the system
@@ -83,37 +80,13 @@ namespace GoogleFitOnFhir.Identity
             return this.FileStreamOrNotFound(firstFilePath, firstFile[1]);
         }
 
-        public async Task<IActionResult> Callback(HttpRequest req, IUsersService usersService, ILogger log)
+        public async Task<IActionResult> Callback(HttpRequest req)
         {
-            IAuthorizationCodeFlow flow = this.GetFlow();
-
-            TokenResponse tokenResponse = await flow.ExchangeCodeForTokenAsync(
-                "me",
-                req.Query["code"],
-                this.BuildCallbackUrl(req),
-                CancellationToken.None);
-
-            if (tokenResponse != null && tokenResponse.RefreshToken != null)
-            {
-                UserCredential userCredential = new UserCredential(flow, "me", tokenResponse);
-                GoogleFitData googleFitData = new GoogleFitData(tokenResponse.AccessToken);
-                Person me = googleFitData.GetMyInfo();
-                string base58Email = GoogleFitOnFhir.Utility.Base58String(me.EmailAddresses[0].Value);
-
-                // Write refreshToken to Key Vault with base58 of email as secret name
-                AzureServiceTokenProvider azureServiceTokenProvider1 = new AzureServiceTokenProvider();
-                KeyVaultClient kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider1.KeyVaultTokenCallback));
-                await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), base58Email, tokenResponse.RefreshToken);
-
-                // Use base58Email as UserId and update the UsersTable
-                var user = new User(base58Email);
-                usersService.Initiate(user);
-            }
-
+            await this.usersService.Initiate(req.Query["code"]);
             return new OkObjectResult("auth flow successful");
         }
 
-        public async Task<IActionResult> Login(HttpRequest req, ILogger log)
+        public async Task<IActionResult> Login(HttpRequest req)
         {
             IAuthorizationCodeFlow flow = this.GetFlow();
 
@@ -165,8 +138,7 @@ namespace GoogleFitOnFhir.Identity
 
         private string BuildCallbackUrl(HttpRequest req)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder = new StringBuilder("http")
+            StringBuilder stringBuilder = new StringBuilder("http")
                 .Append(req.IsHttps ? "s" : string.Empty)
                 .Append("://")
                 .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))

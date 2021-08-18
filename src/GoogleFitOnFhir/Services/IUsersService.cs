@@ -1,10 +1,11 @@
+using System.Threading.Tasks;
 using GoogleFitOnFhir.Models;
 
 namespace GoogleFitOnFhir.Services
 {
     public interface IUsersService
     {
-        void Initiate(User user);
+        Task<User> Initiate(string accessCode);
 
         void ImportFitnessData(User user);
 
