@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "14748449161920745219"
+      "templateHash": "4643772837158090686"
     }
   },
   "parameters": {
@@ -430,6 +430,26 @@
       "name": "[replace(format('hw-{0}', parameters('basename')), '-', '')]",
       "location": "[resourceGroup().location]",
       "properties": {}
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces/fhirservices",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+      "location": "[resourceGroup().location]",
+      "kind": "fhir-R4",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "authenticationConfiguration": {
+          "authority": "[format('{0}{1}', environment().authentication.loginEndpoint, subscription().tenantId)]",
+          "audience": "[format('https://{0}-fs-{1}.fhir.azurehealthcareapis.com', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
+          "smartProxyEnabled": false
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]"
+      ]
     }
   ],
   "outputs": {
