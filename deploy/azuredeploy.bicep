@@ -8,6 +8,9 @@ param google_client_secret string
 @description('Service prinicipal ID to give permissions for key vaults.')
 param spid string
 
+var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
+var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
+
 resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: 'kv-users-${basename}'
   location: resourceGroup().location
@@ -368,6 +371,95 @@ resource fhirservice 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-06-0
       authority: '${environment().authentication.loginEndpoint}${subscription().tenantId}'
       audience: 'https://${workspace.name}-fs-${basename}.fhir.azurehealthcareapis.com'
       smartProxyEnabled: false
+    }
+  }
+}
+
+resource iotconnector 'Microsoft.HealthcareApis/workspaces/iotconnectors@2021-06-01-preview' = {
+  parent: workspace
+  name: 'hi-${basename}'
+  location: resourceGroup().location
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    ingestionEndpointConfiguration: {
+      eventHubName: iotIngestEventHub.name
+      consumerGroup: iotIngestDefaultEventHubConsumerGroup.name
+      fullyQualifiedEventHubNamespace: '${iotEventHubNamespace.name}.servicebus.windows.net'
+    }
+    deviceMapping: {
+      content: {
+        templateType: 'CollectionContent'
+        template: [
+          {
+            templateType: 'JsonPathContent'
+            template: {
+              typeName: 'bloodglucose'
+              typeMatchExpression: '$..[?(@.point[0].value[0].fpVal)]'
+              timestampExpression: '$.point[0].endTimeISO8601'
+              deviceIdExpression: '$.dataSourceId'
+              patientIdExpression: '$.userId'
+              values: [
+                {
+                  valueName: 'Blood Glucose'
+                  valueExpression: '$.point[0].value[0].fpVal'
+                  required: true
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+resource iotFhirWriterRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+  name: guid('${resourceGroup().id}-FhirWriter')
+  scope: fhirservice
+  properties: {
+    roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${fhirWriterRoleId}'
+    principalId: iotconnector.identity.principalId
+  }
+}
+
+resource eventHubReceiverRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+  name: guid('${resourceGroup().id}-EventHubDataReceiver')
+  scope: iotIngestEventHub
+  properties: {
+    roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${eventHubReceiverRoleId}'
+    principalId: iotconnector.identity.principalId
+  }
+}
+
+resource iotdestination 'Microsoft.HealthcareApis/workspaces/iotconnectors/fhirdestinations@2021-06-01-preview' = {
+  parent: iotconnector
+  name: 'hd-${basename}'
+  location: resourceGroup().location
+  properties: {
+    resourceIdentityResolutionType: 'Create'
+    fhirServiceResourceId: fhirservice.id
+    fhirMapping: {
+      content: {
+        templateType: 'CollectionFhir'
+        template: [
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              typeName: 'bloodglucose'
+              value: {
+                valueName: 'Blood Glucose'
+                valueType: 'Quantity'
+                defaultPeriod: '5000'
+                unit: 'mmol/L'
+                system: 'http://loinc.org'
+              }
+              codes: []
+            }
+          }
+        ]
+      }
     }
   }
 }
