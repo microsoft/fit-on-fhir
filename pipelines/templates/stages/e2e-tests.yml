@@ -5,9 +5,7 @@ parameters:
 stages:
   - stage: E2ETests
     displayName: E2ETests
-    dependsOn:
-    - EphemeralDeploy
-    - DurableDeploy
+    dependsOn: [DurableDeploy]
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     jobs:
