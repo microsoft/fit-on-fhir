@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "14685139431773390670"
+      "templateHash": "13531150371464621823"
     }
   },
   "parameters": {
@@ -421,6 +421,7 @@
       "type": "Microsoft.HealthcareApis/workspaces/fhirservices",
       "apiVersion": "2021-06-01-preview",
       "name": "[format('{0}/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+      "location": "[resourceGroup().location]",
       "identity": {
         "type": "SystemAssigned"
       },

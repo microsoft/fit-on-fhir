@@ -348,6 +348,7 @@ resource workspace 'Microsoft.HealthcareApis/workspaces@2021-06-01-preview' = {
 resource fhirservice 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-06-01-preview' = {
   parent: workspace
   name: 'fs-${basename}'
+  location: resourceGroup().location
   identity: {
     type: 'SystemAssigned'
   }
