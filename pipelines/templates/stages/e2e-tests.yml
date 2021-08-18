@@ -25,9 +25,6 @@ stages:
         steps:
           - task: Bash@3
             displayName: Get Access Token
-            env:
-              GFIT_CLIENT_ID: $(GFIT_CLIENT_ID)
-              GFIT_CLIENT_SECRET: $(GFIT_CLIENT_SECRET)
             inputs:
               targetType: inlineScript
               script: |
