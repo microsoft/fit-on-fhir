@@ -433,6 +433,37 @@ resource eventHubReceiverRoleAssignment 'Microsoft.Authorization/roleAssignments
   }
 }
 
+resource iotdestination 'Microsoft.HealthcareApis/workspaces/iotconnectors/fhirdestinations@2021-06-01-preview' = {
+  parent: iotconnector
+  name: 'hd-${basename}'
+  location: resourceGroup().location
+  properties: {
+    resourceIdentityResolutionType: 'Create'
+    fhirServiceResourceId: fhirservice.id
+    fhirMapping: {
+      content: {
+        templateType: 'CollectionFhir'
+        template: [
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              typeName: 'bloodglucose'
+              value: {
+                valueName: 'Blood Glucose'
+                valueType: 'Quantity'
+                defaultPeriod: '5000'
+                unit: 'mmol/L'
+                system: 'http://loinc.org'
+              }
+              codes: []
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
 output usersKeyVaultName string = usersKeyVault.name
 output infraKeyVaultName string = infraKeyVault.name
 
