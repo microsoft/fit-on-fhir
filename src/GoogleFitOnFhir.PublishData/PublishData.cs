@@ -12,27 +12,13 @@ namespace GoogleFitOnFhir.PublishData
     public class PublishData
     {
         private readonly IUsersService usersService;
-
-        private readonly EventHubProducerClient producerClient;
-
-        private readonly EventHubContext eventHubContext;
-
         private readonly ILogger<PublishData> log;
 
         public PublishData(
             IUsersService usersService,
-            EventHubProducerClient producerClient,
             ILogger<PublishData> log)
         {
             this.usersService = usersService;
-
-            this.producerClient = producerClient;
-
-            // this.producerClient = new EventHubProducerClient(eventHubContext.ConnectionString);
-
-            // this.producerClient = new EventHubProducerClient(Environment.GetEnvironmentVariable("iomtConnectionString"));
-
-            // this.eventHubContext = eventHubContext;
             this.log = log;
         }
 
