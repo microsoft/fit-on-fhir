@@ -26,6 +26,42 @@ stages:
         displayName: Project
         steps:
           - task: DotNetCoreCLI@2
+            displayName: Test
+            inputs:
+              command: test
+              arguments: >
+                /p:CollectCoverage=true
+                /p:CoverletOutputformat=cobertura
+                /p:CoverletOutput=$(System.DefaultWorkingDirectory)/Cobertura.xml
+              publishTestResults: false
+              projects: '**/*.UnitTests.csproj'
+
+          - bash: |
+              sudo apt-get -y install libxml2-utils
+              dotnet tool install dotnet-reportgenerator-globaltool \
+                --tool-path tools
+            displayName: Install Coverage Dependencies
+
+          - bash: >
+              ./tools/reportgenerator
+              $REPORTDR
+              $TARGETDIR
+              $REPORTTYPE
+            displayName: Combine Coverage
+            env:
+              TARGETDIR: -targetdir:.
+              REPORTTYPE: -reporttypes:Cobertura
+              REPORTDR: -reports:$(System.DefaultWorkingDirectory)/Cobertura.xml
+
+
+          - task: PublishCodeCoverageResults@1
+            displayName: Publish Code Coverage
+            inputs:
+              codeCoverageTool: Cobertura
+              summaryFileLocation: |
+                $(System.DefaultWorkingDirectory)/Cobertura.xml
+
+          - task: DotNetCoreCLI@2
             displayName: Build
             inputs:
               command: publish

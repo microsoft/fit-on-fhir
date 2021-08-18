@@ -8,28 +8,27 @@ using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
-    public class AuthTokensRequest
+    public class RefreshTokensRequest
     {
-        private readonly ClientContext clientContext;
+        private ClientContext clientContext;
 
-        private readonly string authCode;
+        private string refreshToken;
 
-        private readonly IAuthorizationCodeFlow authFlow;
+        private IAuthorizationCodeFlow authFlow;
 
-        public AuthTokensRequest(ClientContext clientContext, string authCode, IAuthorizationCodeFlow authFlow)
+        public RefreshTokensRequest(ClientContext clientContext, string refreshToken, IAuthorizationCodeFlow authFlow)
         {
             this.clientContext = clientContext;
-            this.authCode = authCode;
+            this.refreshToken = refreshToken;
             this.authFlow = authFlow;
         }
 
         public async Task<AuthTokensResponse> ExecuteAsync()
         {
             TokenResponse tokenResponse = await this.authFlow
-                .ExchangeCodeForTokenAsync(
+                .RefreshTokenAsync(
                     "me",
-                    this.authCode,
-                    this.clientContext.CallbackUri,
+                    this.refreshToken,
                     CancellationToken.None);
 
             if (tokenResponse != null && tokenResponse.RefreshToken != null)

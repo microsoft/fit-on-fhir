@@ -355,6 +355,23 @@ resource workspace 'Microsoft.HealthcareApis/workspaces@2021-06-01-preview' = {
   properties: {}
 }
 
+resource fhirservice 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-06-01-preview' = {
+  parent: workspace
+  name: 'fs-${basename}'
+  location: resourceGroup().location
+  kind: 'fhir-R4'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    authenticationConfiguration: {
+      authority: '${environment().authentication.loginEndpoint}${subscription().tenantId}'
+      audience: 'https://${workspace.name}-fs-${basename}.fhir.azurehealthcareapis.com'
+      smartProxyEnabled: false
+    }
+  }
+}
+
 output usersKeyVaultName string = usersKeyVault.name
 output infraKeyVaultName string = infraKeyVault.name
 

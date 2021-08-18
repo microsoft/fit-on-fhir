@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Extensions.Logging;
@@ -24,13 +25,13 @@ namespace GoogleFitOnFhir.Services
 
         private readonly ILogger<UsersService> logger;
 
-        private readonly UsersKeyvaultRepository usersKeyvaultRepository;
+        private readonly IUsersKeyvaultRepository usersKeyvaultRepository;
 
         public UsersService(
             IUsersTableRepository usersTableRepository,
             GoogleFitClient googleFitClient,
             EventHubProducerClient eventHubProducerClient,
-            UsersKeyvaultRepository usersKeyvaultRepository,
+            IUsersKeyvaultRepository usersKeyvaultRepository,
             ILogger<UsersService> logger)
         {
             this.usersTableRepository = usersTableRepository;
@@ -69,12 +70,22 @@ namespace GoogleFitOnFhir.Services
 
         public async void ImportFitnessData(User user)
         {
-            // TODO: Retrieve the accessToken from KV using user.Id
-            string accessToken = string.Empty;
+            string refreshToken;
 
-            // TODO: Retrieve refresh token for user
+            try
+            {
+                refreshToken = await this.usersKeyvaultRepository.GetByName(user.Id);
+            }
+            catch (AggregateException ex)
+            {
+                this.logger.LogError(ex.Message);
+                return;
+            }
+
+            AuthTokensResponse tokensResponse = await this.googleFitClient.RefreshTokensRequest(refreshToken);
+
             // TODO: Store new refresh token
-            var dataSourcesList = await this.googleFitClient.DatasourcesListRequest(accessToken);
+            var dataSourcesList = await this.googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken);
 
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await this.eventHubProducerClient.CreateBatchAsync();
@@ -86,7 +97,7 @@ namespace GoogleFitOnFhir.Services
                 //       last 30 days to beginning of hour for first migration
                 //       previous hour for interval migration
                 var dataset = await this.googleFitClient.DatasetRequest(
-                    accessToken,
+                    tokensResponse.AccessToken,
                     datasourceId,
                     "1574159699023000000-1574159699023000000");
 
