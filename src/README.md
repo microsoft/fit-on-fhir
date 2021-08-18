@@ -27,15 +27,3 @@ The Publish Data function is triggered by new messages added to the users queue 
 * TODO: Assuming we transform the data to some FHIR-compatible format?
 * Pushes the data to the IoT connector for FHIR server
 * Updates the user's refresh token and stores the new token in key vault
-
-## Post-Deployment Test
-
-After deploying the infrastructure located [here](../deploy/README.md), users can test the app using the following instructions.
-
-### Authenticate and Authorize Fit to FHIR
-
-TODO: Instructions for running the webapp and authenticating/authorizing data sync
-
-### Verify Data Sync
-
-TODO: Instructions for verifying that the sync event/publish data functions ran correctly
