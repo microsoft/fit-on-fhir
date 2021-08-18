@@ -34,7 +34,7 @@ stages:
                 GFIT_ACCESS_TOKEN=$(curl -X POST https://oauth2.googleapis.com/token \
                  -H "Content-type: application/x-www-form-urlencoded" -d "$FORM_DATA" \
                  | jq -r '.access_token')
-                if [ -z "$GFIT_ACCESS_TOKEN" ] || [ "$GFIT_ACCESS_TOKEN" == "null"];
+                if [ -z "$GFIT_ACCESS_TOKEN" ] || [ "$GFIT_ACCESS_TOKEN" = "null"];
                  then echo "Debug: access token is null";
                  else echo "Debug: access token is not null";
                 fi
@@ -51,7 +51,7 @@ stages:
             inputs:
               targetType: inlineScript
               script: |
-                if [ -z "$GFIT_ACCESS_TOKEN" ] || [ "$GFIT_ACCESS_TOKEN" == "null"];
+                if [ -z "$GFIT_ACCESS_TOKEN" ] || [ "$GFIT_ACCESS_TOKEN" = "null"];
                  then echo "Debug: access token is null";
                  else echo "Debug: access token is not null";
                 fi
