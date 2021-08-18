@@ -1,5 +1,7 @@
+using System.Threading.Tasks;
 using GoogleFitOnFhir.Persistence;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Logging;
 
@@ -32,6 +34,22 @@ namespace GoogleFitOnFhir.Repositories
                 this.keyvaultContext.Uri,
                 secretName,
                 value);
+        }
+
+        public async Task<string> GetByName(string secretName)
+        {
+            try
+            {
+                SecretBundle secret = await this.keyVaultClient.GetSecretAsync(
+                    this.keyvaultContext.Uri,
+                    secretName);
+                return secret.Value;
+            }
+            catch (KeyVaultErrorException ex)
+            {
+                this.logger.LogError(ex.Message);
+                throw;
+            }
         }
     }
 }
