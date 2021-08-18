@@ -31,8 +31,8 @@ stages:
               location: $(location)
               overrideParameters: >
                 -basename "$(basename)"
-                -google_client_id "${{ variables.gfit_google_client_id }}"
-                -google_client_secret "${{ variables.gfit_google_client_secret }}"
+                -google_client_id "${{ variables.gfit-google-client-id }}"
+                -google_client_secret "${{ variables.gfit-google-client-secret }}"
               armFile: ./deploy/azuredeploy.json
           - template: ../steps/deploy-source-to-functionapp.yml
             parameters:
