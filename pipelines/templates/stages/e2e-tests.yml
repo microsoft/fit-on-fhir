@@ -20,13 +20,6 @@ stages:
               .outputs['copyRefreshToken.TOKEN'] ]
         steps:
           - task: Bash@3
-            displayName: Get Refresh Token
-            inputs:
-              targetType: inlineScript
-              script: |
-                echo "Placeholder - Retrieve the refresh token from key vault"
-                echo "TODO: Get rid of this step - previous stage already sets variable"
-          - task: Bash@3
             displayName: Get Access Token
             env:
               GFIT_CLIENT_ID: $(GFIT_CLIENT_ID)
