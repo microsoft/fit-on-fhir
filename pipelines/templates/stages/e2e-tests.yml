@@ -28,12 +28,12 @@ stages:
               targetType: inlineScript
               script: |
                 FORM_DATA="grant_type=refresh_token"
-                FORM_DATA+="&refresh_token=$GFIT_REFRESH_TOKEN"
-                FORM_DATA+="&client_id=$GFIT_CLIENT_ID"
-                FORM_DATA+="&client_secret=$GFIT_CLIENT_SECRET"
-                GFIT_ACCESS_TOKEN=$(curl -X POST https://oauth2.googleapis.com/token \
-                 -H "Content-type: application/x-www-form-urlencoded" -d "$FORM_DATA" \
-                 | jq -r '.access_token')
+                FORM_DATA+="&refresh_token=$(GFIT_REFRESH_TOKEN)"
+                FORM_DATA+="&client_id=$(GFIT_CLIENT_ID)"
+                FORM_DATA+="&client_secret=$(GFIT_CLIENT_SECRET)"
+                CURL_RESPONSE=$(curl -X POST https://oauth2.googleapis.com/token \
+                 -H "Content-type: application/x-www-form-urlencoded" -d "$FORM_DATA")
+                GFIT_ACCESS_TOKEN=$(echo $CURL_RESPONSE | jq -r '.access_token')
                 if [ -z "$GFIT_ACCESS_TOKEN" ] || [ "$GFIT_ACCESS_TOKEN" = "null" ];
                  then echo "Debug: access token is null";
                  else echo "Debug: access token is not null";
