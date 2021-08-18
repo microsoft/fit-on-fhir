@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "2427136845352980269"
+      "templateHash": "14748449161920745219"
     }
   },
   "parameters": {
@@ -17,6 +17,12 @@
       "metadata": {
         "description": "Base name that is used to name provisioned resources. Should be alphanumeric and less than 16 characters."
       }
+    },
+    "google_client_id": {
+      "type": "string"
+    },
+    "google_client_secret": {
+      "type": "string"
     },
     "spid": {
       "type": "string",
@@ -287,6 +293,14 @@
             {
               "name": "AzureWebJobsStorage",
               "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
+            },
+            {
+              "name": "GOOGLE_OAUTH_CLIENT_ID",
+              "value": "[parameters('google_client_id')]"
+            },
+            {
+              "name": "GOOGLE_OAUTH_CLIENT_SECRET",
+              "value": "[parameters('google_client_secret')]"
             }
           ]
         }
