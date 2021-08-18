@@ -13,6 +13,11 @@ stages:
     jobs:
       - job: AuthToGFit
         displayName: Auth to Google Fit
+        variables:
+          - name: GFIT_REFRESH_TOKEN
+            value: >
+              $[ stageDependencies.DurableDeploy.DeployResources
+              .outputs['copyRefreshToken.TOKEN'] ]
         steps:
           - task: Bash@3
             displayName: Get Refresh Token
@@ -24,7 +29,6 @@ stages:
           - task: Bash@3
             displayName: Get Access Token
             env:
-              GFIT_REFRESH_TOKEN: $(GFIT_REFRESH_TOKEN)
               GFIT_CLIENT_ID: $(GFIT_CLIENT_ID)
               GFIT_CLIENT_SECRET: $(GFIT_CLIENT_SECRET)
             inputs:

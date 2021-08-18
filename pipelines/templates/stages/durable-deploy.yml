@@ -38,6 +38,7 @@ stages:
                 -basename "$(durable-basename)"
               armFile: ./deploy/e2e-durable/azuredeploy.json
           - task: AzureCLI@2
+            name: copyRefreshToken
             displayName: Copy refresh token to ephemeral keyvault
             inputs:
               azureSubscription: ${{ variables.azure_service_connection_name }}
