@@ -1,29 +1,29 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Data.Tables;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Auth.OAuth2.Web;
 using Google.Apis.Fitness.v1;
-using Google.Apis.PeopleService.v1.Data;
+using GoogleFitOnFhir.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
 namespace GoogleFitOnFhir.Identity
 {
-    public static class IdentityFunction
+    public class IdentityFunction
     {
-        // Whitelisted Files
-        private static readonly string[][] FileMap = new string[][]
+        private readonly IUsersService usersService;
+        private readonly ILogger log;
+
+        // Allow-listed Files
+        private readonly string[][] fileArray = new string[][]
         {
             new[] { "api/index.html", "text/html; charset=utf-8" },
             new[] { "api/css/main.css", "text/css; charset=utf-8" },
@@ -31,29 +31,36 @@ namespace GoogleFitOnFhir.Identity
             new[] { "api/img/logo.png", "image/png" },
         };
 
+        public IdentityFunction(
+            IUsersService usersService,
+            ILogger<IdentityFunction> log)
+        {
+            this.usersService = usersService;
+            this.log = log;
+        }
+
         [FunctionName("api")]
-        public static async Task<IActionResult> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{p1?}/{p2?}/{p3?}")] HttpRequest req,
-            Microsoft.Azure.WebJobs.ExecutionContext context,
-            ILogger log)
+            Microsoft.Azure.WebJobs.ExecutionContext context)
         {
             string root = context.FunctionAppDirectory;
             string path = req.Path.Value[1..];
 
             if (path.StartsWith("api/login"))
             {
-                return await Login(req, log);
+                return await this.Login(req);
             }
             else if (path.StartsWith("api/callback"))
             {
-                return await Callback(req, log);
+                return await this.Callback(req);
             }
 
             // Flatten the user supplied path to it's absolute path on the system
             // This will remove relative bits like ../../
             var absPath = Path.GetFullPath(Path.Combine(root, path));
 
-            var matchedFile = FileMap.FirstOrDefault(allowedResources =>
+            var matchedFile = this.fileArray.FirstOrDefault(allowedResources =>
             {
                 // If the flattened path matches the whitelist exactly
                 return Path.Combine(root, allowedResources[0]) == absPath;
@@ -64,49 +71,26 @@ namespace GoogleFitOnFhir.Identity
                 // Reconstruct the absPath without using user input at all
                 // For maximum safety
                 var cleanAbsPath = Path.Combine(root, matchedFile[0]);
-                return FileStreamOrNotFound(cleanAbsPath, matchedFile[1]);
+                return this.FileStreamOrNotFound(cleanAbsPath, matchedFile[1]);
             }
 
             // Return the first item in the FileMap by default
-            var firstFile = FileMap.First();
+            var firstFile = this.fileArray.First();
             var firstFilePath = Path.Combine(root, firstFile[0]);
-            return FileStreamOrNotFound(firstFilePath, firstFile[1]);
+            return this.FileStreamOrNotFound(firstFilePath, firstFile[1]);
         }
 
-        public static async Task<IActionResult> Callback(HttpRequest req, ILogger log)
+        public async Task<IActionResult> Callback(HttpRequest req)
         {
-            IAuthorizationCodeFlow flow = GetFlow();
-            string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
-            TokenResponse tokenResponse = await flow.ExchangeCodeForTokenAsync(
-                "me",
-                req.Query["code"],
-                callback,
-                CancellationToken.None);
-
-            if (tokenResponse != null && tokenResponse.RefreshToken != null)
-            {
-                UserCredential userCredential = new UserCredential(flow, "me", tokenResponse);
-                GoogleFitData googleFitData = new GoogleFitData(tokenResponse.AccessToken);
-                Person me = googleFitData.GetMyInfo();
-                string md5Email = GoogleFitOnFhir.Utility.MD5String(me.EmailAddresses[0].Value);
-
-                // Write refreshToken to Key Vault with md5 of email as secret name
-                AzureServiceTokenProvider azureServiceTokenProvider1 = new AzureServiceTokenProvider();
-                KeyVaultClient kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider1.KeyVaultTokenCallback));
-                await kvClient.SetSecretAsync(Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI"), md5Email.ToString(), tokenResponse.RefreshToken);
-
-                // Use md5Email as UserId and update the UsersTable
-                UpdateUserId(md5Email, log);
-            }
-
+            await this.usersService.Initiate(req.Query["code"]);
             return new OkObjectResult("auth flow successful");
         }
 
-        public static async Task<IActionResult> Login(HttpRequest req, ILogger log)
+        public async Task<IActionResult> Login(HttpRequest req)
         {
-            IAuthorizationCodeFlow flow = GetFlow();
-            string callback = "http" + (req.IsHttps ? "s" : string.Empty) + "://" + Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME") + "/api/callback";
-            var authResult = await new AuthorizationCodeWebApp(flow, callback, string.Empty)
+            IAuthorizationCodeFlow flow = this.GetFlow();
+
+            var authResult = await new AuthorizationCodeWebApp(flow, this.BuildCallbackUrl(req), string.Empty)
                 .AuthorizeAsync("user", CancellationToken.None);
 
             if (authResult.Credential == null)
@@ -120,14 +104,14 @@ namespace GoogleFitOnFhir.Identity
             }
         }
 
-        private static IActionResult FileStreamOrNotFound(string filePath, string contentType)
+        private IActionResult FileStreamOrNotFound(string filePath, string contentType)
         {
             return File.Exists(filePath) ?
                 (IActionResult)new FileStreamResult(File.OpenRead(filePath), contentType) :
                 new NotFoundResult();
         }
 
-        private static IAuthorizationCodeFlow GetFlow()
+        private IAuthorizationCodeFlow GetFlow()
         {
             // TODO: Customize datastore to use KeyVault
             return new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
@@ -152,24 +136,14 @@ namespace GoogleFitOnFhir.Identity
             });
         }
 
-        private static bool UpdateUserId(string userId, ILogger log)
+        private string BuildCallbackUrl(HttpRequest req)
         {
-            string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            TableClient tableClient = new TableClient(storageAccountConnectionString, "users");
-
-            UserRecord user = new UserRecord(userId);
-
-            try
-            {
-                tableClient.UpsertEntity(user);
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex.Message);
-                return false;
-            }
-
-            return true;
+            StringBuilder stringBuilder = new StringBuilder("http")
+                .Append(req.IsHttps ? "s" : string.Empty)
+                .Append("://")
+                .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
+                .Append("/api/callback");
+            return stringBuilder.ToString();
         }
     }
 }
