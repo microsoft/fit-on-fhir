@@ -24,6 +24,6 @@ The Publish Data function is triggered by new messages added to the users queue 
 * Dequeues the message (TODO: Verify that it does this)
 * Reads the user ID from the message
 * Retrieves the user's refresh token from key vault and uses it to pull the user's data from the Google Fit API
-* TODO: Assuming we transform the data to some FHIR-compatible format?
+* Transforms data to be compatible with IoT connector
 * Pushes the data to the IoT connector for FHIR server
 * Updates the user's refresh token and stores the new token in key vault
