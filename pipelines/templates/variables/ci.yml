@@ -1,4 +1,5 @@
 variables:
+  - group: gfit-dev-deploy-vg
   - name: basename
     value: gfof-ci-$(Build.BuildId)
   - name: location
