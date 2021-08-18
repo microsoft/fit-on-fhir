@@ -48,6 +48,7 @@ stages:
             inputs:
               targetType: inlineScript
               script: |
+                if [ -z "$GFIT_ACCESS_TOKEN" ]; then echo "Debug: access token is null"; else echo "Debug: access token is not null"; fi
                 curl --request POST 'https://www.googleapis.com/fitness/v1/users/me/dataSources' \
                 --header 'Authorization: Bearer $GFIT_ACCESS_TOKEN' \
                 --header 'Content-Type: application/json' \
