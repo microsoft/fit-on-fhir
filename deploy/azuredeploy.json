@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "2253832238177172495"
+      "templateHash": "2568457718220841393"
     }
   },
   "parameters": {
@@ -527,6 +527,42 @@
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
+      ]
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces/iotconnectors/fhirdestinations",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}/{2}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')), format('hd-{0}', parameters('basename')))]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "resourceIdentityResolutionType": "Create",
+        "fhirServiceResourceId": "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+        "fhirMapping": {
+          "content": {
+            "templateType": "CollectionFhir",
+            "template": [
+              {
+                "templateType": "CodeValueFhir",
+                "template": {
+                  "typeName": "bloodglucose",
+                  "value": {
+                    "valueName": "Blood Glucose",
+                    "valueType": "Quantity",
+                    "defaultPeriod": "5000",
+                    "unit": "mmol/L",
+                    "system": "http://loinc.org"
+                  },
+                  "codes": []
+                }
+              }
+            ]
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]"
       ]
     }
   ],
