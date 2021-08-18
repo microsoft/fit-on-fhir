@@ -29,6 +29,12 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
                 .ExecuteAsync();
         }
 
+        public Task<AuthTokensResponse> RefreshTokensRequest(string refreshToken)
+        {
+            return new RefreshTokensRequest(this.clientContext, refreshToken, this.GetAuthFlow())
+                .ExecuteAsync();
+        }
+
         public Task<MyEmailResponse> MyEmailRequest(string accessToken)
         {
             return new MyEmailRequest(accessToken).ExecuteAsync();
