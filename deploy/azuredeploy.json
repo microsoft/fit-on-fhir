@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "4643772837158090686"
+      "templateHash": "2253832238177172495"
     }
   },
   "parameters": {
@@ -32,6 +32,10 @@
     }
   },
   "functions": [],
+  "variables": {
+    "fhirWriterRoleId": "3f88fce4-5892-4214-ae73-ba5294559913",
+    "eventHubReceiverRoleId": "a638d3c7-ab3a-418d-83e6-5f17a39d4fde"
+  },
   "resources": [
     {
       "type": "Microsoft.KeyVault/vaults",
@@ -449,6 +453,80 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces/iotconnectors",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]",
+      "location": "[resourceGroup().location]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "ingestionEndpointConfiguration": {
+          "eventHubName": "ingest",
+          "consumerGroup": "$Default",
+          "fullyQualifiedEventHubNamespace": "[format('{0}.servicebus.windows.net', format('en-{0}', parameters('basename')))]"
+        },
+        "deviceMapping": {
+          "content": {
+            "templateType": "CollectionContent",
+            "template": [
+              {
+                "templateType": "JsonPathContent",
+                "template": {
+                  "typeName": "bloodglucose",
+                  "typeMatchExpression": "$..[?(@.point[0].value[0].fpVal)]",
+                  "timestampExpression": "$.point[0].endTimeISO8601",
+                  "deviceIdExpression": "$.dataSourceId",
+                  "patientIdExpression": "$.userId",
+                  "values": [
+                    {
+                      "valueName": "Blood Glucose",
+                      "valueExpression": "$.point[0].value[0].fpVal",
+                      "required": true
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', format('en-{0}', parameters('basename')), 'ingest', '$Default')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-08-01-preview",
+      "scope": "[format('Microsoft.HealthcareApis/workspaces/{0}/fhirservices/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+      "name": "[guid(format('{0}-FhirWriter', resourceGroup().id))]",
+      "properties": {
+        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('fhirWriterRoleId'))]",
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2021-06-01-preview', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-08-01-preview",
+      "scope": "[format('Microsoft.EventHub/namespaces/{0}/eventhubs/{1}', format('en-{0}', parameters('basename')), 'ingest')]",
+      "name": "[guid(format('{0}-EventHubDataReceiver', resourceGroup().id))]",
+      "properties": {
+        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('eventHubReceiverRoleId'))]",
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2021-06-01-preview', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
       ]
     }
   ],
