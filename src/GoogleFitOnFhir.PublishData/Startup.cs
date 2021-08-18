@@ -17,7 +17,7 @@ namespace GoogleFitOnFhir.PublishData
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            string iomtConnectionString = Environment.GetEnvironmentVariable("iomtConnectionString");
+            string iomtConnectionString = Environment.GetEnvironmentVariable("EventHubConnectionString");
 
             string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
             string usersKeyvaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
