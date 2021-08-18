@@ -18,6 +18,10 @@ stages:
             value: >
               $[ stageDependencies.DurableDeploy.DeployResources
               .outputs['copyRefreshToken.TOKEN'] ]
+          - name: GFIT_CLIENT_ID
+            value: $(variables.gfit-google-client-id)
+          - name: GFIT_CLIENT_SECRET
+            value: $(variables.gfit-google-client-secret)
         steps:
           - task: Bash@3
             displayName: Get Access Token
