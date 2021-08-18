@@ -3,6 +3,6 @@ variables:
   - name: basename
     value: gfof-ci-$(Build.BuildId)
   - name: location
-    value: centralus
+    value: eastus
   - name: azure_service_connection_name
     value: dev

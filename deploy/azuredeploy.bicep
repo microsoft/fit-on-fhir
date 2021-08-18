@@ -170,10 +170,17 @@ resource tableUsersTable 'Microsoft.Storage/storageAccounts/tableServices/tables
   name: 'users'
 }
 
-resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+resource queueConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
   name: '${infraKeyVault.name}/queue-connection-string'
   properties: {
     value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+  }
+}
+
+resource eventHubConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+  name: '${infraKeyVault.name}/eventhub-connection-string'
+  properties: {
+    value: listkeys(iotIngestAuthorizationRule.id, iotIngestAuthorizationRule.apiVersion).primaryConnectionString
   }
 }
 
@@ -287,6 +294,10 @@ resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
           name: 'AzureWebJobsStorage'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
         }
+        {
+          name: 'EventHubConnectionString'
+          value: '@Microsoft.KeyVault(SecretUri=${reference(eventHubConnectionStringSecret.id).secretUriWithVersion})'
+        }
       ]
     }
   }
@@ -317,9 +328,6 @@ resource iotEventHubNamespace 'Microsoft.EventHub/namespaces@2021-01-01-preview'
 resource iotIngestEventHub 'Microsoft.EventHub/namespaces/eventhubs@2021-01-01-preview' = {
   parent: iotEventHubNamespace
   name: 'ingest'
-  dependsOn: [
-    iotEventHubNamespace
-  ]
   properties: {
     messageRetentionInDays: 1
     partitionCount: 4
@@ -329,10 +337,22 @@ resource iotIngestEventHub 'Microsoft.EventHub/namespaces/eventhubs@2021-01-01-p
 resource iotIngestDefaultEventHubConsumerGroup 'Microsoft.EventHub/namespaces/eventhubs/consumergroups@2021-01-01-preview' = {
   parent: iotIngestEventHub
   name: '$Default'
-  dependsOn: [
-    iotEventHubNamespace
-    iotIngestEventHub
-  ]
+}
+
+resource iotIngestAuthorizationRule 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-01-01-preview' = {
+  parent: iotIngestEventHub
+  name: 'FunctionSender'
+  properties: {
+    rights: [
+      'Send'
+    ]
+  }
+}
+
+resource workspace 'Microsoft.HealthcareApis/workspaces@2021-06-01-preview' = {
+  name: replace('hw-${basename}', '-', '')
+  location: resourceGroup().location
+  properties: {}
 }
 
 output usersKeyVaultName string = usersKeyVault.name
