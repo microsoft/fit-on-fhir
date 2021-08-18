@@ -24,7 +24,7 @@ namespace GoogleFitOnFhir.PublishData
 
         [FunctionName("publish-data")]
         public void Run(
-            [QueueTrigger("publish-data", Connection = "")] string myQueueItem)
+            [QueueTrigger("publish-data")] string myQueueItem)
         {
             this.log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
 
