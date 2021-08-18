@@ -56,7 +56,7 @@ stages:
                  else echo "Debug: access token is not null";
                 fi
                 curl --request POST 'https://www.googleapis.com/fitness/v1/users/me/dataSources' \
-                --header 'Authorization: Bearer $GFIT_ACCESS_TOKEN' \
+                --header 'Authorization: Bearer "$GFIT_ACCESS_TOKEN"' \
                 --header 'Content-Type: application/json' \
                 --data-raw '{
                     "dataStreamName": "BloodGlucose",
