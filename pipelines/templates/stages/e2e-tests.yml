@@ -52,7 +52,7 @@ stages:
                 --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
                 --header 'Content-Type: application/json' \
                 --data-raw '{
-                    "dataStreamName": "BloodGlucose3",
+                    "dataStreamName": "BloodGlucose",
                     "type": "raw",
                     "application": {
                       "detailsUrl": "https://example.com",
