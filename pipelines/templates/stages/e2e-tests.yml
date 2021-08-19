@@ -48,7 +48,7 @@ stages:
             inputs:
               targetType: inlineScript
               script: |
-                CURL_RESPONSE=(curl --request POST 'https://www.googleapis.com/fitness/v1/users/me/dataSources' \
+                CURL_RESPONSE=$(curl --request POST 'https://www.googleapis.com/fitness/v1/users/me/dataSources' \
                   --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
                   --header 'Content-Type: application/json' \
                   --data-raw '{
