@@ -52,7 +52,7 @@ stages:
                   --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
                   --header 'Content-Type: application/json' \
                   --data-raw '{
-                    "dataStreamName": "BloodGlucose5",
+                    "dataStreamName": "BloodGlucose6",
                     "type": "raw",
                     "application": {
                       "detailsUrl": "https://example.com",
@@ -64,6 +64,7 @@ stages:
                     }
                   }')
                 DATA_STREAM_ID=$(echo $CURL_RESPONSE | jq -r '.dataStreamId')
+                echo $DATA_STREAM_ID
                 varSettings=isOutput=true;isSecret=true
                 echo "##vso[task.setvariable variable=DATA_STREAM_ID;$varSettings]$DATA_STREAM_ID"
           - task: Bash@3
