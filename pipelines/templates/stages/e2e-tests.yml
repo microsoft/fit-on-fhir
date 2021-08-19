@@ -79,8 +79,8 @@ stages:
                 GAPI_URL="https://www.googleapis.com/fitness/v1/users/me/"
                 GAPI_URL+="dataSources/$DATA_STREAM_ID"
                 GAPI_URL+="datasets/$START_DATE-$END_DATE"
+                echo $GAPI_URL
 
-                echo "dataset time: $START_DATE-$END_DATE"
                 jq -n \
                   --argjson startDate "$START_DATE" \
                   --argjson endDate "$END_DATE" \
