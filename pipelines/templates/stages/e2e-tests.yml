@@ -73,7 +73,24 @@ stages:
             inputs:
               targetType: inlineScript
               script: |
-                echo "Placeholder - Upload some data points from the past month to the newly created datasource"
+                START_DATE=$(date +%s%N -d '-30 day')
+                END_DATE=$(date +%s%N)
+                DATA_STREAM_ID=$(CreateGFitDataSource.DATA_STREAM_ID)
+                GAPI_URL="https://www.googleapis.com/fitness/v1/users/me/"
+                GAPI_URL+="dataSources/$DATA_STREAM_ID"
+                GAPI_URL+="datasets/$START_DATE-$END_DATE"
+
+                echo "dataset time: $START_DATE-$END_DATE"
+                jq -n \
+                  --argjson startDate "$START_DATE" \
+                  --argjson endDate "$END_DATE" \
+                  --argjson datasourceId "$DATA_STREAM_ID" \
+                  -f ./deploy/scripts/e2e-data-month.json > data.json
+                CURL_RESPONSE=$(curl --request PATCH $GAPI_URL \
+                  --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
+                  --header 'Content-Type: application/json' \
+                  -d @"data.json")
+                echo $CURL_RESPONSE
 
       - job: InitialDataMigrationCheck
         displayName: Initial Data Migration Check (Prior Month)
