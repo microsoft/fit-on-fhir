@@ -94,16 +94,24 @@ namespace GoogleFitOnFhir.Services
             var userInfo = this.usersTableRepository.GetById(user.Id);
 
             // Generating datasetId based on event type
+            var startDate = DateTime.UnixEpoch;
             if (userInfo.LastSync != null)
             {
                 // previous hour for interval migration
                 Console.WriteLine("hour");
+                startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour - 1, DateTime.Now.Minute, DateTime.Now.Second);
             }
             else
             {
                 // last 30 days to beginning of hour for first migration
                 Console.WriteLine("initial");
+                startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month - 1, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
+
+                // Console.WriteLine(new DateTimeOffset(nowMinusMonth).ToUnixTimeMilliseconds() * 1000000);
+                // Console.WriteLine(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
             }
+
+            Console.WriteLine(startDate);
 
             // Get dataset for each dataSource
             foreach (var datasourceId in dataSourcesList.DatasourceIds)
