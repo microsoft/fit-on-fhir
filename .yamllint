@@ -8,3 +8,4 @@ rules:
   document-start: disable
   quoted-strings:
     required: only-when-needed
+  line-length: disable
