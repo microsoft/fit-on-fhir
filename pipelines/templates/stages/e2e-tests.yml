@@ -49,10 +49,10 @@ stages:
               targetType: inlineScript
               script: |
                 CURL_RESPONSE=(curl --request POST 'https://www.googleapis.com/fitness/v1/users/me/dataSources' \
-                --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
-                --header 'Content-Type: application/json' \
-                --data-raw '{
-                    "dataStreamName": "BloodGlucose",
+                  --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
+                  --header 'Content-Type: application/json' \
+                  --data-raw '{
+                    "dataStreamName": "BloodGlucose5",
                     "type": "raw",
                     "application": {
                       "detailsUrl": "https://example.com",
