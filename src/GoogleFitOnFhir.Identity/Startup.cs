@@ -22,6 +22,7 @@ namespace GoogleFitOnFhir.Identity
             string iomtConnectionString = string.Empty;
 
             string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            string usersKeyvaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
 
             string googleFitClientId = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID");
             string googleFitClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET");
@@ -37,10 +38,12 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddLogging();
 
             builder.Services.AddSingleton<GoogleFitClientContext>(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, stringBuilder.ToString()));
+            builder.Services.AddSingleton<UsersKeyvaultContext>(sp => new UsersKeyvaultContext(usersKeyvaultUri));
             builder.Services.AddSingleton<GoogleFitClient>();
 
             builder.Services.AddSingleton<EventHubContext>(sp => new EventHubContext(iomtConnectionString));
             builder.Services.AddSingleton<StorageAccountContext>(sp => new StorageAccountContext(storageAccountConnectionString));
+            builder.Services.AddSingleton<IUsersKeyvaultRepository, UsersKeyvaultRepository>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IAuthService, AuthService>();
