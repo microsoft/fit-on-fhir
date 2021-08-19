@@ -90,12 +90,25 @@ namespace GoogleFitOnFhir.Services
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await this.eventHubProducerClient.CreateBatchAsync();
 
+            // Get user's info for LastSync date
+            var userInfo = this.usersTableRepository.GetById(user.Id);
+
+            // Generating datasetId based on event type
+            //      last 30 days to beginning of hour for first migration
+            //      (if date is 1/1/1969 - Azure storage tables don't allow null date times)
+            //      previous hour for interval migration
+            if (userInfo.LastSync.ToString() != "1/1/1969 12:00:00 AM +00:00")
+            {
+                Console.WriteLine("hour");
+            }
+            else
+            {
+                Console.WriteLine("initial");
+            }
+
             // Get dataset for each dataSource
             foreach (var datasourceId in dataSourcesList.DatasourceIds)
             {
-                // TODO: Generate datasetId based on event type
-                //       last 30 days to beginning of hour for first migration
-                //       previous hour for interval migration
                 var dataset = await this.googleFitClient.DatasetRequest(
                     tokensResponse.AccessToken,
                     datasourceId,
