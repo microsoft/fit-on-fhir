@@ -60,7 +60,7 @@ stages:
                       "version": "1"
                     },
                     "dataType": {
-                    "name": "com.google.blood_glucose" 
+                    "name": "com.google.blood_glucose"
                     }
                   }')
                 echo $CURL_RESPONSE
