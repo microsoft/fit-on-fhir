@@ -25,4 +25,3 @@ stages:
   - template: ./templates/stages/clean.yml
     parameters:
       environment: ${{ variables.environment }}
-      cleanAfter: EphemeralDeploy

@@ -1,6 +1,6 @@
 parameters:
   environment: ''
-  cleanAfter: ''
+  cleanAfter: EphemeralDeploy
 
 stages:
   - stage: Clean
