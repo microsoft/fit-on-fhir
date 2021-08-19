@@ -140,7 +140,8 @@ stages:
             inputs:
               targetType: inlineScript
               script: |
-                CURL_RESPONSE=$(curl --request DELETE 'https://www.googleapis.com/fitness/v1/users/me/dataSources/$(DATA_STREAM_ID)' \
+                CURL_RESPONSE=$(curl --request DELETE \
+                  'https://www.googleapis.com/fitness/v1/users/me/dataSources/$(DATA_STREAM_ID)' \
                   --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
                   --header 'Content-Type: application/json')
                 echo $CURL_RESPONSE
