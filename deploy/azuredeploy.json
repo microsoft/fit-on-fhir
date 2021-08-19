@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "6912026331802724407"
+      "templateHash": "10142132277341012548"
     }
   },
   "parameters": {
@@ -17,14 +17,34 @@
       "metadata": {
         "description": "Base name that is used to name provisioned resources. Should be alphanumeric and less than 16 characters."
       }
+    },
+    "google_client_id": {
+      "type": "string"
+    },
+    "google_client_secret": {
+      "type": "string"
+    },
+    "spid": {
+      "type": "string",
+      "metadata": {
+        "description": "Service prinicipal ID to give permissions for key vaults."
+      }
+    },
+    "usersKvName": {
+      "type": "string",
+      "defaultValue": "[format('kv-users-{0}', parameters('basename'))]"
     }
   },
   "functions": [],
+  "variables": {
+    "fhirWriterRoleId": "3f88fce4-5892-4214-ae73-ba5294559913",
+    "eventHubReceiverRoleId": "a638d3c7-ab3a-418d-83e6-5f17a39d4fde"
+  },
   "resources": [
     {
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2019-09-01",
-      "name": "[format('kv-users-{0}', parameters('basename'))]",
+      "name": "[parameters('usersKvName')]",
       "location": "[resourceGroup().location]",
       "properties": {
         "sku": {
@@ -53,6 +73,15 @@
           {
             "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
             "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "all"
+              ]
+            }
+          },
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[parameters('spid')]",
             "permissions": {
               "secrets": [
                 "all"
@@ -208,6 +237,18 @@
       ]
     },
     {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2019-09-01",
+      "name": "[format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename')))]",
+      "properties": {
+        "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender'), '2021-01-01-preview').primaryConnectionString]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]"
+      ]
+    },
+    {
       "type": "Microsoft.OperationalInsights/workspaces",
       "apiVersion": "2021-06-01",
       "name": "[format('la-{0}', parameters('basename'))]",
@@ -260,6 +301,18 @@
             {
               "name": "AzureWebJobsStorage",
               "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
+            },
+            {
+              "name": "GOOGLE_OAUTH_CLIENT_ID",
+              "value": "[parameters('google_client_id')]"
+            },
+            {
+              "name": "GOOGLE_OAUTH_CLIENT_SECRET",
+              "value": "[parameters('google_client_secret')]"
+            },
+            {
+              "name": "USERS_KEY_VAULT_URI",
+              "value": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
             }
           ]
         }
@@ -316,12 +369,17 @@
             {
               "name": "AzureWebJobsStorage",
               "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
+            },
+            {
+              "name": "EventHubConnectionString",
+              "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[0], split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[1])).secretUriWithVersion)]"
             }
           ]
         }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[0], split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[1])]",
         "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
@@ -363,12 +421,163 @@
         "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
       ]
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
+      "apiVersion": "2021-01-01-preview",
+      "name": "[format('{0}/{1}/{2}', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]",
+      "properties": {
+        "rights": [
+          "Send"
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
+      ]
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[replace(format('hw-{0}', parameters('basename')), '-', '')]",
+      "location": "[resourceGroup().location]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces/fhirservices",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+      "location": "[resourceGroup().location]",
+      "kind": "fhir-R4",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "authenticationConfiguration": {
+          "authority": "[format('{0}{1}', environment().authentication.loginEndpoint, subscription().tenantId)]",
+          "audience": "[format('https://{0}-fs-{1}.fhir.azurehealthcareapis.com', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
+          "smartProxyEnabled": false
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces/iotconnectors",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]",
+      "location": "[resourceGroup().location]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "ingestionEndpointConfiguration": {
+          "eventHubName": "ingest",
+          "consumerGroup": "$Default",
+          "fullyQualifiedEventHubNamespace": "[format('{0}.servicebus.windows.net', format('en-{0}', parameters('basename')))]"
+        },
+        "deviceMapping": {
+          "content": {
+            "templateType": "CollectionContent",
+            "template": [
+              {
+                "templateType": "JsonPathContent",
+                "template": {
+                  "typeName": "bloodglucose",
+                  "typeMatchExpression": "$..[?(@.point[0].value[0].fpVal)]",
+                  "timestampExpression": "$.point[0].endTimeISO8601",
+                  "deviceIdExpression": "$.dataSourceId",
+                  "patientIdExpression": "$.userId",
+                  "values": [
+                    {
+                      "valueName": "Blood Glucose",
+                      "valueExpression": "$.point[0].value[0].fpVal",
+                      "required": true
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', format('en-{0}', parameters('basename')), 'ingest', '$Default')]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-08-01-preview",
+      "scope": "[format('Microsoft.HealthcareApis/workspaces/{0}/fhirservices/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+      "name": "[guid(format('{0}-FhirWriter', resourceGroup().id))]",
+      "properties": {
+        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('fhirWriterRoleId'))]",
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2021-06-01-preview', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-08-01-preview",
+      "scope": "[format('Microsoft.EventHub/namespaces/{0}/eventhubs/{1}', format('en-{0}', parameters('basename')), 'ingest')]",
+      "name": "[guid(format('{0}-EventHubDataReceiver', resourceGroup().id))]",
+      "properties": {
+        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('eventHubReceiverRoleId'))]",
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2021-06-01-preview', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
+      ]
+    },
+    {
+      "type": "Microsoft.HealthcareApis/workspaces/iotconnectors/fhirdestinations",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}/{2}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')), format('hd-{0}', parameters('basename')))]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "resourceIdentityResolutionType": "Create",
+        "fhirServiceResourceId": "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+        "fhirMapping": {
+          "content": {
+            "templateType": "CollectionFhir",
+            "template": [
+              {
+                "templateType": "CodeValueFhir",
+                "template": {
+                  "typeName": "bloodglucose",
+                  "value": {
+                    "valueName": "Blood Glucose",
+                    "valueType": "Quantity",
+                    "defaultPeriod": "5000",
+                    "unit": "mmol/L",
+                    "system": "http://loinc.org"
+                  },
+                  "codes": []
+                }
+              }
+            ]
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]"
+      ]
     }
   ],
   "outputs": {
     "usersKeyVaultName": {
       "type": "string",
-      "value": "[format('kv-users-{0}', parameters('basename'))]"
+      "value": "[parameters('usersKvName')]"
     },
     "infraKeyVaultName": {
       "type": "string",
