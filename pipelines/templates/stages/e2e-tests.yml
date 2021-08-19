@@ -34,15 +34,15 @@ stages:
                 GFIT_ACCESS_TOKEN=$(echo $CURL_RESPONSE | jq -r '.access_token')
                 varSettings=isOutput=true;isSecret=true
                 echo "##vso[task.setvariable variable=GFIT_ACCESS_TOKEN;$varSettings]$GFIT_ACCESS_TOKEN"
-      - job: SeedData
-        displayName: Create New DataSource in GFit
+      - job: SeedNewUserData
+        displayName: Seed New User Data
         dependsOn: AuthToGFit
         variables:
           - name: GFIT_ACCESS_TOKEN
             value: $[ dependencies.AuthToGFit.outputs['GetAccessToken.GFIT_ACCESS_TOKEN'] ]
         steps:
           - task: Bash@3
-            displayName: Create DataSource for Test User
+            displayName: Create GFit DataSource
             inputs:
               targetType: inlineScript
               script: |
@@ -50,7 +50,7 @@ stages:
                 --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
                 --header 'Content-Type: application/json' \
                 --data-raw '{
-                    "dataStreamName": "BloodGlucose",
+                    "dataStreamName": "BloodGlucose2",
                     "type": "raw",
                     "application": {
                       "detailsUrl": "https://example.com",
@@ -61,29 +61,53 @@ stages:
                     "name": "com.google.blood_glucose" 
                     }
                   }'
-      - job: InitialDataMigration
-        displayName: Initial Data Migration - For New User
-        dependsOn: SeedData
-        steps:
           - task: Bash@3
-            displayName: PlaceholderTest1
+            displayName: Upload Initial Test Data
             inputs:
               targetType: inlineScript
               script: |
-                echo "Placeholder"
-      - job: NewDataMigration
-        displayName: New Data Migration - Since Last Sync
-        dependsOn: InitialDataMigration
+                echo "Placeholder - Upload some data points from the past month to the newly created datasource"
+      - job: InitialDataMigrationTest
+        displayName: Initial Data Migration Test (Prior Month)
+        dependsOn: SeedNewUserData
         steps:
           - task: Bash@3
-            displayName: PlaceholderTest2
+            displayName: Wait For PublishData
             inputs:
               targetType: inlineScript
               script: |
-                echo "Placeholder"
+                echo "Placeholder - Wait for sync + publish function to run"
+          - task: Bash@3
+            displayName: Verify Initial Data Migration
+            inputs:
+              targetType: inlineScript
+              script: |
+                echo "Placeholder - Verify that the initial data was synced to FHIR server"
+      - job: NewDataMigrationTest
+        displayName: New Data Migration Test (Interval Since Last Sync)
+        dependsOn: InitialDataMigrationTest
+        steps:
+          - task: Bash@3
+            displayName: Upload Interval Test Data
+            inputs:
+              targetType: inlineScript
+              script: |
+                echo "Placeholder - Upload additional data points with current timestamp to datasource"
+          - task: Bash@3
+            displayName: Wait For PublishData
+            inputs:
+              targetType: inlineScript
+              script: |
+                echo "Placeholder - Wait for sync + publish function to run"
+          - task: Bash@3
+            displayName: Verify Interval Data Migration
+            inputs:
+              targetType: inlineScript
+              script: |
+                echo "Placeholder - Verify that the new interval data was synced to FHIR server"
       - job: E2ECleanup
         displayName: E2E Cleanup
-        dependsOn: NewDataMigration
+        dependsOn: NewDataMigrationTest
         steps:
           - task: Bash@3
             displayName: Delete Datasource for Test User
@@ -96,7 +120,4 @@ stages:
             inputs:
               targetType: inlineScript
               script: |
-                echo "Placeholder - Move updated refresh token from PublishData " \
-                  + "back to durable key vault"                
-
-
+                echo "Placeholder - Move updated refresh token from PublishData back to durable kv"
