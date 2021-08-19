@@ -41,11 +41,14 @@ stages:
       - job: SeedData
         displayName: Create New DataSource in GFit
         dependsOn: AuthToGFit
+        variables:
+          - name: GFIT_ACCESS_TOKEN
+            value: $[ dependencies.AuthToGFit.outputs['GetAccessToken.GFIT_ACCESS_TOKEN'] ]
         steps:
           - task: Bash@3
             displayName: Create DataSource for Test User
-            env:
-              GFIT_ACCESS_TOKEN: $[ dependencies.AuthToGFit.outputs['GetAccessToken.GFIT_ACCESS_TOKEN'] ]
+            #env:
+              #GFIT_ACCESS_TOKEN: $[ dependencies.AuthToGFit.outputs['GetAccessToken.GFIT_ACCESS_TOKEN'] ]
             inputs:
               targetType: inlineScript
               script: |
