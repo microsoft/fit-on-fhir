@@ -63,9 +63,8 @@ stages:
                     "name": "com.google.blood_glucose" 
                     }
                   }')
-                echo $CURL_RESPONSE
                 DATA_STREAM_ID=$(echo $CURL_RESPONSE | jq -r '.dataStreamId')
-                echo $DATA_STREAM_ID
+                echo "DataSource created: " + $DATA_STREAM_ID
                 varSettings=isOutput=true;isSecret=true
                 echo "##vso[task.setvariable variable=DATA_STREAM_ID;$varSettings]$DATA_STREAM_ID"
           - task: Bash@3
@@ -75,7 +74,7 @@ stages:
               script: |
                 echo "Placeholder - Upload some data points from the past month to the newly created datasource"
 
-      - job: InitialDataMigrationTest
+      - job: InitialDataMigrationCheck
         displayName: Initial Data Migration Test (Prior Month)
         dependsOn: SeedNewUserData
         steps:
@@ -92,9 +91,12 @@ stages:
               script: |
                 echo "Placeholder - Verify that the initial data was synced to FHIR server"
 
-      - job: NewDataMigrationTest
-        displayName: New Data Migration Test (Interval Since Last Sync)
-        dependsOn: InitialDataMigrationTest
+      - job: SeedIntervalData
+        displayName: Seed Interval User Data
+        dependsOn: InitialDataMigrationCheck
+        variables:
+          - name: GFIT_ACCESS_TOKEN
+            value: $[ dependencies.AuthToGFit.outputs['GetAccessToken.GFIT_ACCESS_TOKEN'] ]
         steps:
           - task: Bash@3
             displayName: Upload Interval Test Data
@@ -102,6 +104,11 @@ stages:
               targetType: inlineScript
               script: |
                 echo "Placeholder - Upload additional data points with current timestamp to datasource"
+
+      - job: NewDataMigrationCheck
+        displayName: New Data Migration Test (Interval Since Last Sync)
+        dependsOn: SeedIntervalData
+        steps:
           - task: Bash@3
             displayName: Wait For PublishData
             inputs:
@@ -120,7 +127,7 @@ stages:
         dependsOn:
           - AuthToGFit
           - SeedNewUserData
-          - NewDataMigrationTest
+          - NewDataMigrationCheck
         variables:
           - name: GFIT_ACCESS_TOKEN
             value: $[ dependencies.AuthToGFit.outputs['GetAccessToken.GFIT_ACCESS_TOKEN'] ]
@@ -132,7 +139,6 @@ stages:
             inputs:
               targetType: inlineScript
               script: |
-                echo $DATA_STREAM_ID
                 curl --request DELETE 'https://www.googleapis.com/fitness/v1/users/me/dataSources/$(DATA_STREAM_ID)' \
                   --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
                   --header 'Content-Type: application/json'
