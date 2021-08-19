@@ -94,15 +94,14 @@ namespace GoogleFitOnFhir.Services
             var userInfo = this.usersTableRepository.GetById(user.Id);
 
             // Generating datasetId based on event type
-            //      last 30 days to beginning of hour for first migration
-            //      (if date is 1/1/1969 - Azure storage tables don't allow null date times)
-            //      previous hour for interval migration
-            if (userInfo.LastSync.ToString() != "1/1/1969 12:00:00 AM +00:00")
+            if (userInfo.LastSync != null)
             {
+                // previous hour for interval migration
                 Console.WriteLine("hour");
             }
             else
             {
+                // last 30 days to beginning of hour for first migration
                 Console.WriteLine("initial");
             }
 
