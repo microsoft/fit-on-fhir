@@ -63,6 +63,7 @@ stages:
                     "name": "com.google.blood_glucose" 
                     }
                   }')
+                echo $CURL_RESPONSE
                 DATA_STREAM_ID=$(echo $CURL_RESPONSE | jq -r '.dataStreamId')
                 echo "DataSource created: " + $DATA_STREAM_ID
                 varSettings=isOutput=true;isSecret=true
@@ -139,9 +140,12 @@ stages:
             inputs:
               targetType: inlineScript
               script: |
-                curl --request DELETE 'https://www.googleapis.com/fitness/v1/users/me/dataSources/$(DATA_STREAM_ID)' \
+                CURL_RESPONSE=$(curl --request DELETE 'https://www.googleapis.com/fitness/v1/users/me/dataSources/$(DATA_STREAM_ID)' \
                   --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
-                  --header 'Content-Type: application/json'
+                  --header 'Content-Type: application/json')
+                echo $CURL_RESPONSE
+                DELETED_DATA_STREAM=$(echo $CURL_RESPONSE | jq -r '.dataStreamId')
+                echo "DataSource deleted: " + $DELETED_DATA_STREAM
           - task: Bash@3
             displayName: Move Updated Refresh Token to Durable KV
             inputs:
