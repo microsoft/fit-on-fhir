@@ -13,9 +13,7 @@ stages:
         displayName: Auth to Google Fit
         variables:
           - name: GFIT_REFRESH_TOKEN
-            value: >
-              $[ stageDependencies.DurableDeploy.DeployResources
-              .outputs['copyRefreshToken.TOKEN'] ]
+            value: $[ stageDependencies.DurableDeploy.DeployResources.outputs['copyRefreshToken.TOKEN'] ]
           - name: GFIT_CLIENT_ID
             value: $(gfit-google-client-id)
           - name: GFIT_CLIENT_SECRET
