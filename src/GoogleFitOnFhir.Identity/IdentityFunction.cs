@@ -8,6 +8,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Web;
 using Google.Apis.Fitness.v1;
+using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +21,7 @@ namespace GoogleFitOnFhir.Identity
     public class IdentityFunction
     {
         private readonly IUsersService usersService;
+        private readonly IAuthService authService;
         private readonly ILogger log;
 
         // Allow-listed Files
@@ -33,9 +35,11 @@ namespace GoogleFitOnFhir.Identity
 
         public IdentityFunction(
             IUsersService usersService,
+            IAuthService authService,
             ILogger<IdentityFunction> log)
         {
             this.usersService = usersService;
+            this.authService = authService;
             this.log = log;
         }
 
@@ -88,20 +92,8 @@ namespace GoogleFitOnFhir.Identity
 
         public async Task<IActionResult> Login(HttpRequest req)
         {
-            IAuthorizationCodeFlow flow = this.GetFlow();
-
-            var authResult = await new AuthorizationCodeWebApp(flow, this.BuildCallbackUrl(req), string.Empty)
-                .AuthorizeAsync("user", CancellationToken.None);
-
-            if (authResult.Credential == null)
-            {
-                return new RedirectResult(authResult.RedirectUri);
-            }
-            else
-            {
-                // Not sure when this would happen
-                return new OkObjectResult("already authed");
-            }
+            AuthUriResponse response = await this.authService.AuthUriRequest();
+            return new RedirectResult(response.Uri);
         }
 
         private IActionResult FileStreamOrNotFound(string filePath, string contentType)
@@ -109,41 +101,6 @@ namespace GoogleFitOnFhir.Identity
             return File.Exists(filePath) ?
                 (IActionResult)new FileStreamResult(File.OpenRead(filePath), contentType) :
                 new NotFoundResult();
-        }
-
-        private IAuthorizationCodeFlow GetFlow()
-        {
-            // TODO: Customize datastore to use KeyVault
-            return new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-            {
-                // TODO: Securely store and make ClientId/ClientSecret available
-                ClientSecrets = new ClientSecrets
-                {
-                    ClientId = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID"),
-                    ClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET"),
-                },
-
-                // TODO: Only need write scopes for e2e tests - make this dynamic
-                Scopes = new[]
-                {
-                    "https://www.googleapis.com/auth/userinfo.email",
-                    "https://www.googleapis.com/auth/userinfo.profile",
-                    FitnessService.Scope.FitnessBloodGlucoseRead,
-                    FitnessService.Scope.FitnessBloodGlucoseWrite,
-                    FitnessService.Scope.FitnessHeartRateRead,
-                    FitnessService.Scope.FitnessHeartRateWrite,
-                },
-            });
-        }
-
-        private string BuildCallbackUrl(HttpRequest req)
-        {
-            StringBuilder stringBuilder = new StringBuilder("http")
-                .Append(req.IsHttps ? "s" : string.Empty)
-                .Append("://")
-                .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
-                .Append("/api/callback");
-            return stringBuilder.ToString();
         }
     }
 }
