@@ -76,7 +76,7 @@ stages:
                 echo "Placeholder - Upload some data points from the past month to the newly created datasource"
 
       - job: InitialDataMigrationCheck
-        displayName: Initial Data Migration Test (Prior Month)
+        displayName: Initial Data Migration Check (Prior Month)
         dependsOn: SeedNewUserData
         steps:
           - task: Bash@3
@@ -107,7 +107,7 @@ stages:
                 echo "Placeholder - Upload additional data points with current timestamp to datasource"
 
       - job: NewDataMigrationCheck
-        displayName: New Data Migration Test (Interval Since Last Sync)
+        displayName: New Data Migration Check (Interval Since Last Sync)
         dependsOn: SeedIntervalData
         steps:
           - task: Bash@3

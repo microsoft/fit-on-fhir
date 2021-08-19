@@ -1,11 +1,11 @@
 parameters:
   environment: ''
-  cleanAfter: EphemeralDeploy
+  cleanAfter: ''
 
 stages:
   - stage: Clean
     displayName: Cleanup
-    dependsOn: [E2ETests]
+    dependsOn: ${{ parameters.cleanAfter }}
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
     condition: always()
