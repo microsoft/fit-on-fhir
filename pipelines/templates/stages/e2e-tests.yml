@@ -52,7 +52,7 @@ stages:
                   --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
                   --header 'Content-Type: application/json' \
                   --data-raw '{
-                    "dataStreamName": "BloodGlucose6",
+                    "dataStreamName": "BloodGlucose9",
                     "type": "raw",
                     "application": {
                       "detailsUrl": "https://example.com",
@@ -63,6 +63,7 @@ stages:
                     "name": "com.google.blood_glucose" 
                     }
                   }')
+                echo $CURL_RESPONSE
                 DATA_STREAM_ID=$(echo $CURL_RESPONSE | jq -r '.dataStreamId')
                 echo $DATA_STREAM_ID
                 varSettings=isOutput=true;isSecret=true
