@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "10142132277341012548"
+      "templateHash": "283845477772513315"
     }
   },
   "parameters": {
@@ -33,6 +33,10 @@
     "usersKvName": {
       "type": "string",
       "defaultValue": "[format('kv-users-{0}', parameters('basename'))]"
+    },
+    "infraKvName": {
+      "type": "string",
+      "defaultValue": "[format('kv-infra-{0}', parameters('basename'))]"
     }
   },
   "functions": [],
@@ -103,14 +107,35 @@
     {
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2019-09-01",
-      "name": "[format('kv-infra-{0}', parameters('basename'))]",
+      "name": "[parameters('infraKvName')]",
       "location": "[resourceGroup().location]",
       "properties": {
+        "accessPolicies": [],
         "sku": {
           "family": "A",
           "name": "standard"
         },
+        "tenantId": "[subscription().tenantId]",
+        "enableSoftDelete": true,
+        "enablePurgeProtection": true,
+        "softDeleteRetentionInDays": 30
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/accessPolicies",
+      "apiVersion": "2019-09-01",
+      "name": "[format('{0}/{1}', parameters('infraKvName'), 'add')]",
+      "properties": {
         "accessPolicies": [
+          {
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "get"
+              ]
+            }
+          },
           {
             "tenantId": "[subscription().tenantId]",
             "objectId": "[subscription().tenantId]",
@@ -120,12 +145,12 @@
               ]
             }
           }
-        ],
-        "tenantId": "[subscription().tenantId]",
-        "enableSoftDelete": true,
-        "enablePurgeProtection": true,
-        "softDeleteRetentionInDays": 30
-      }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
+        "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]"
+      ]
     },
     {
       "type": "Microsoft.Storage/storageAccounts",
@@ -227,24 +252,24 @@
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2019-09-01",
-      "name": "[format('{0}/queue-connection-string', format('kv-infra-{0}', parameters('basename')))]",
+      "name": "[format('{0}/queue-connection-string', parameters('infraKvName'))]",
       "properties": {
         "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2019-09-01",
-      "name": "[format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename')))]",
+      "name": "[format('{0}/eventhub-connection-string', parameters('infraKvName'))]",
       "properties": {
         "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender'), '2021-01-01-preview').primaryConnectionString]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]"
       ]
     },
@@ -372,14 +397,14 @@
             },
             {
               "name": "EventHubConnectionString",
-              "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[0], split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[1])).secretUriWithVersion)]"
+              "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[0], split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[1])).secretUriWithVersion)]"
             }
           ]
         }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[0], split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[1])]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[0], split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[1])]",
         "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
@@ -581,7 +606,7 @@
     },
     "infraKeyVaultName": {
       "type": "string",
-      "value": "[format('kv-infra-{0}', parameters('basename'))]"
+      "value": "[parameters('infraKvName')]"
     },
     "identityAppName": {
       "type": "string",
