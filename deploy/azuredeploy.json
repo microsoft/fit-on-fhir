@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "4727054654806811919"
+      "templateHash": "283845477772513315"
     }
   },
   "parameters": {
@@ -110,6 +110,7 @@
       "name": "[parameters('infraKvName')]",
       "location": "[resourceGroup().location]",
       "properties": {
+        "accessPolicies": [],
         "sku": {
           "family": "A",
           "name": "standard"

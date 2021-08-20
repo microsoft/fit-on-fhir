@@ -71,6 +71,7 @@ resource infraKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: infraKvName
   location: resourceGroup().location
   properties: {
+    accessPolicies: []
     sku: {
       family: 'A'
       name: 'standard'
