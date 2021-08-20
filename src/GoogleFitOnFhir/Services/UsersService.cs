@@ -27,23 +27,27 @@ namespace GoogleFitOnFhir.Services
 
         private readonly IUsersKeyvaultRepository usersKeyvaultRepository;
 
+        private readonly IAuthService authService;
+
         public UsersService(
             IUsersTableRepository usersTableRepository,
             GoogleFitClient googleFitClient,
             EventHubProducerClient eventHubProducerClient,
             IUsersKeyvaultRepository usersKeyvaultRepository,
+            IAuthService authService,
             ILogger<UsersService> logger)
         {
             this.usersTableRepository = usersTableRepository;
             this.googleFitClient = googleFitClient;
             this.eventHubProducerClient = eventHubProducerClient;
             this.usersKeyvaultRepository = usersKeyvaultRepository;
+            this.authService = authService;
             this.logger = logger;
         }
 
         public async Task<User> Initiate(string authCode)
         {
-            var tokenResponse = await this.googleFitClient.AuthTokensRequest(authCode);
+            var tokenResponse = await this.authService.AuthTokensRequest(authCode);
             if (tokenResponse == null)
             {
                 throw new Exception("Token response empty");
@@ -82,7 +86,7 @@ namespace GoogleFitOnFhir.Services
                 return;
             }
 
-            AuthTokensResponse tokensResponse = await this.googleFitClient.RefreshTokensRequest(refreshToken);
+            AuthTokensResponse tokensResponse = await this.authService.RefreshTokensRequest(refreshToken);
 
             // TODO: Store new refresh token
             var dataSourcesList = await this.googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken);
