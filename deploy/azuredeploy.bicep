@@ -13,6 +13,34 @@ param usersKvName string = 'kv-users-${basename}'
 var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
 var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
 
+var storageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+var commonAppSettings = [
+  {
+    name: 'FUNCTIONS_EXTENSION_VERSION'
+    value: '~3'
+  }
+  {
+    name: 'FUNCTIONS_WORKER_RUNTIME'
+    value: 'dotnet'
+  }
+  {
+    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+    value: reference(appInsights.id).InstrumentationKey
+  }
+  {
+    name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+    value: reference(appInsights.id).ConnectionString
+  }
+  {
+    name: 'AzureWebJobsStorage'
+    value: storageAccountConnectionString
+  }
+  {
+    name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+    value: storageAccountConnectionString
+  }
+]
+
 resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: usersKvName
   location: resourceGroup().location
@@ -23,8 +51,8 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     }
     accessPolicies: [
       {
-        tenantId: publishDataFn.identity.tenantId
-        objectId: publishDataFn.identity.principalId
+        tenantId: reference(publishDataFn.id).identity.tenantId
+        objectId: reference(publishDataFn.id).identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -32,8 +60,8 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
         }
       }
       {
-        tenantId: syncEventFn.identity.tenantId
-        objectId: syncEventFn.identity.principalId
+        tenantId: reference(syncEventFn.id).identity.tenantId
+        objectId: reference(syncEventFn.id).identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -41,8 +69,8 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
         }
       }
       {
-        tenantId: identityFn.identity.tenantId
-        objectId: identityFn.identity.principalId
+        tenantId: reference(identityFn.id).identity.tenantId
+        objectId: reference(identityFn.id).identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -230,10 +258,10 @@ resource identityFn 'Microsoft.Web/sites@2020-06-01' = {
     serverFarmId: hostingPlan.id
     clientAffinityEnabled: true
     siteConfig: {
-      appSettings: [
+      appSettings: union(commonAppSettings, [
         {
-          name: 'AzureWebJobsStorage'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+          name: 'WEBSITE_CONTENTSHARE'
+          value: 'identity-${basename}-${take(uniqueString('identity-', basename), 4)}'
         }
         {
           name: 'GOOGLE_OAUTH_CLIENT_ID'
@@ -247,7 +275,7 @@ resource identityFn 'Microsoft.Web/sites@2020-06-01' = {
           name: 'USERS_KEY_VAULT_URI'
           value: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
         }
-      ]
+      ])
     }
   }
 
@@ -270,12 +298,12 @@ resource syncEventFn 'Microsoft.Web/sites@2020-06-01' = {
     serverFarmId: hostingPlan.id
     clientAffinityEnabled: true
     siteConfig: {
-      appSettings: [
+      appSettings: union(commonAppSettings, [
         {
-          name: 'AzureWebJobsStorage'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+          name: 'WEBSITE_CONTENTSHARE'
+          value: 'sync-event-${basename}-${take(uniqueString('sync-event-', basename), 4)}'
         }
-      ]
+      ])
     }
   }
 
@@ -298,16 +326,16 @@ resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
     serverFarmId: hostingPlan.id
     clientAffinityEnabled: true
     siteConfig: {
-      appSettings: [
+      appSettings: union(commonAppSettings, [
         {
-          name: 'AzureWebJobsStorage'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
+          name: 'WEBSITE_CONTENTSHARE'
+          value: 'publish-data-${basename}-${take(uniqueString('sync-event-', basename), 4)}'
         }
         {
           name: 'EventHubConnectionString'
           value: '@Microsoft.KeyVault(SecretUri=${reference(eventHubConnectionStringSecret.id).secretUriWithVersion})'
         }
-      ]
+      ])
     }
   }
 
@@ -426,7 +454,7 @@ resource iotFhirWriterRoleAssignment 'Microsoft.Authorization/roleAssignments@20
   scope: fhirservice
   properties: {
     roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${fhirWriterRoleId}'
-    principalId: iotconnector.identity.principalId
+    principalId: reference(iotconnector.id).identity.principalId
   }
 }
 
@@ -435,7 +463,7 @@ resource eventHubReceiverRoleAssignment 'Microsoft.Authorization/roleAssignments
   scope: iotIngestEventHub
   properties: {
     roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${eventHubReceiverRoleId}'
-    principalId: iotconnector.identity.principalId
+    principalId: reference(iotconnector.id).identity.principalId
   }
 }
 
