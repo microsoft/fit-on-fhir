@@ -9,6 +9,7 @@ param google_client_secret string
 param spid string
 
 param usersKvName string = 'kv-users-${basename}'
+param infraKvName string = 'kv-infra-${basename}'
 
 var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
 var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
@@ -67,7 +68,7 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
 }
 
 resource infraKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: 'kv-infra-${basename}'
+  name: infraKvName
   location: resourceGroup().location
   properties: {
     sku: {
@@ -75,6 +76,15 @@ resource infraKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
       name: 'standard'
     }
     accessPolicies: [
+      {
+        tenantId: publishDataFn.identity.tenantId
+        objectId: publishDataFn.identity.principalId
+        permissions: {
+          secrets: [
+            'all'
+          ]
+        }
+      }
       {
         //TODO: this is a placeholder policy that is required for provisioning but should be removed when there is a managed identity that can be used
         tenantId: subscription().tenantId
@@ -176,14 +186,14 @@ resource tableUsersTable 'Microsoft.Storage/storageAccounts/tableServices/tables
 }
 
 resource queueConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-  name: '${infraKeyVault.name}/queue-connection-string'
+  name: '${infraKvName}/queue-connection-string'
   properties: {
     value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
   }
 }
 
 resource eventHubConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-  name: '${infraKeyVault.name}/eventhub-connection-string'
+  name: '${infraKvName}/eventhub-connection-string'
   properties: {
     value: listkeys(iotIngestAuthorizationRule.id, iotIngestAuthorizationRule.apiVersion).primaryConnectionString
   }
