@@ -145,6 +145,10 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' = {
           keyType: 'Account'
           enabled: true
         }
+        file: {
+          keyType: 'Account'
+          enabled: true
+        }
       }
       keySource: 'Microsoft.Storage'
     }
@@ -177,6 +181,23 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-04-01'
   }
 }
 
+resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2021-04-01' = {
+  parent: storageAccount
+  name: 'default'
+  properties: {
+    protocolSettings: {
+      smb: {}
+    }
+    cors: {
+      corsRules: []
+    }
+    shareDeleteRetentionPolicy: {
+      enabled: true
+      days: 7
+    }
+  }
+}
+
 resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2021-04-01' = {
   parent: storageAccount
   name: 'default'
@@ -188,9 +209,6 @@ resource queue 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-04-0
   properties: {
     metadata: {}
   }
-  dependsOn: [
-    storageAccount
-  ]
 }
 
 resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2021-02-01' = {
