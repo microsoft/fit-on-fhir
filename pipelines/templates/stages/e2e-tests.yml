@@ -73,8 +73,8 @@ stages:
             inputs:
               targetType: inlineScript
               script: |
-                START_DATE=$(date +%s%N -d '-30 day')
-                END_DATE=$(date +%s%N)
+                START_DATE=$(date +%s%N -d '-25 day')
+                END_DATE=$(date +%s%N -d '-25 day')
                 DATA_STREAM_ID=$(CreateGFitDataSource.DATA_STREAM_ID)
                 GAPI_URL="https://www.googleapis.com/fitness/v1/users/me/"
                 GAPI_URL+="dataSources/$DATA_STREAM_ID/"
