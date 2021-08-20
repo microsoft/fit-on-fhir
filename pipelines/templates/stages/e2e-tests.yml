@@ -152,18 +152,18 @@ stages:
           - name: DATA_STREAM_ID
             value: $[ dependencies.SeedNewUserData.outputs['CreateGFitDataSource.DATA_STREAM_ID'] ]
         steps:
-          - task: Bash@3
-            displayName: Delete GFit DataSource
-            inputs:
-              targetType: inlineScript
-              script: |
-                CURL_RESPONSE=$(curl --request DELETE \
-                  'https://www.googleapis.com/fitness/v1/users/me/dataSources/$(DATA_STREAM_ID)' \
-                  --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
-                  --header 'Content-Type: application/json')
-                echo $CURL_RESPONSE
-                DELETED_DATA_STREAM=$(echo $CURL_RESPONSE | jq -r '.dataStreamId')
-                echo "DataSource deleted: " + $DELETED_DATA_STREAM
+          # - task: Bash@3
+          #   displayName: Delete GFit DataSource
+          #   inputs:
+          #     targetType: inlineScript
+          #     script: |
+          #       CURL_RESPONSE=$(curl --request DELETE \
+          #         'https://www.googleapis.com/fitness/v1/users/me/dataSources/$(DATA_STREAM_ID)' \
+          #         --header 'Authorization: Bearer "$(GFIT_ACCESS_TOKEN)"' \
+          #         --header 'Content-Type: application/json')
+          #       echo $CURL_RESPONSE
+          #       DELETED_DATA_STREAM=$(echo $CURL_RESPONSE | jq -r '.dataStreamId')
+          #       echo "DataSource deleted: " + $DELETED_DATA_STREAM
           - task: Bash@3
             displayName: Move Updated Refresh Token to Durable KV
             inputs:
