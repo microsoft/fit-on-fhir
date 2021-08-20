@@ -94,24 +94,26 @@ namespace GoogleFitOnFhir.Services
             var userInfo = this.usersTableRepository.GetById(user.Id);
 
             // Generating datasetId based on event type
-            var startDate = DateTime.UnixEpoch;
+            DateTime startDateDt = DateTime.UnixEpoch;
             if (userInfo.LastSync != null)
             {
                 // previous hour for interval migration
-                Console.WriteLine("hour");
-                startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour - 1, DateTime.Now.Minute, DateTime.Now.Second);
+                startDateDt = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour - 1, DateTime.Now.Minute, DateTime.Now.Second);
             }
             else
             {
                 // last 30 days to beginning of hour for first migration
-                Console.WriteLine("initial");
-                startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month - 1, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
-
-                // Console.WriteLine(new DateTimeOffset(nowMinusMonth).ToUnixTimeMilliseconds() * 1000000);
-                // Console.WriteLine(DateTimeOffset.Now.ToUnixTimeMilliseconds() * 1000000);
+                startDateDt = new DateTime(DateTime.Now.Year, DateTime.Now.Month - 1, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
             }
 
-            Console.WriteLine(startDate);
+            // Convert to DateTimeOffset to so .NET unix conversion is usable
+            DateTimeOffset startDateDto = new DateTimeOffset(startDateDt);
+            DateTimeOffset endDateDto = new DateTimeOffset(DateTime.Now);
+
+            // .NET unix conversion only goes as small as milliseconds, multiplying to get nanoseconds
+            var startDate = startDateDto.ToUnixTimeMilliseconds() * 1000000;
+            var endDate = endDateDto.ToUnixTimeMilliseconds() * 1000000;
+            var datasetId = startDate + "-" + endDate;
 
             // Get dataset for each dataSource
             foreach (var datasourceId in dataSourcesList.DatasourceIds)
@@ -119,7 +121,7 @@ namespace GoogleFitOnFhir.Services
                 var dataset = await this.googleFitClient.DatasetRequest(
                     tokensResponse.AccessToken,
                     datasourceId,
-                    "1574159699023000000-1574159699023000000");
+                    datasetId);
 
                 // Add user id to payload
                 // TODO: Use userId from queue message
