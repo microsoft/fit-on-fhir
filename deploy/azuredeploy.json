@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "15001109501127021530"
+      "templateHash": "10377812181386878627"
     }
   },
   "parameters": {
@@ -53,8 +53,8 @@
         },
         "accessPolicies": [
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))).identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))).identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -62,8 +62,8 @@
             }
           },
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename')))).identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename')))).identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -71,8 +71,8 @@
             }
           },
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename')))).identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename')))).identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -509,7 +509,7 @@
       "name": "[guid(format('{0}-FhirWriter', resourceGroup().id))]",
       "properties": {
         "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('fhirWriterRoleId'))]",
-        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))).identity.principalId]"
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2021-06-01-preview', 'Full').identity.principalId]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
@@ -523,7 +523,7 @@
       "name": "[guid(format('{0}-EventHubDataReceiver', resourceGroup().id))]",
       "properties": {
         "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('eventHubReceiverRoleId'))]",
-        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))).identity.principalId]"
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2021-06-01-preview', 'Full').identity.principalId]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]",

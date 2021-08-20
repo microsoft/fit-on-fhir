@@ -51,8 +51,8 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     }
     accessPolicies: [
       {
-        tenantId: reference(publishDataFn.id).identity.tenantId
-        objectId: reference(publishDataFn.id).identity.principalId
+        tenantId: reference(publishDataFn.id, publishDataFn.apiVersion, 'Full').identity.tenantId
+        objectId: reference(publishDataFn.id, publishDataFn.apiVersion, 'Full').identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -60,8 +60,8 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
         }
       }
       {
-        tenantId: reference(syncEventFn.id).identity.tenantId
-        objectId: reference(syncEventFn.id).identity.principalId
+        tenantId: reference(syncEventFn.id, syncEventFn.apiVersion, 'Full').identity.tenantId
+        objectId: reference(syncEventFn.id, syncEventFn.apiVersion, 'Full').identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -69,8 +69,8 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
         }
       }
       {
-        tenantId: reference(identityFn.id).identity.tenantId
-        objectId: reference(identityFn.id).identity.principalId
+        tenantId: reference(identityFn.id, identityFn.apiVersion, 'Full').identity.tenantId
+        objectId: reference(identityFn.id, identityFn.apiVersion, 'Full').identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -472,7 +472,7 @@ resource iotFhirWriterRoleAssignment 'Microsoft.Authorization/roleAssignments@20
   scope: fhirservice
   properties: {
     roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${fhirWriterRoleId}'
-    principalId: reference(iotconnector.id).identity.principalId
+    principalId: reference(iotconnector.id, iotconnector.apiVersion, 'Full').identity.principalId
   }
 }
 
@@ -481,7 +481,7 @@ resource eventHubReceiverRoleAssignment 'Microsoft.Authorization/roleAssignments
   scope: iotIngestEventHub
   properties: {
     roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${eventHubReceiverRoleId}'
-    principalId: reference(iotconnector.id).identity.principalId
+    principalId: reference(iotconnector.id, iotconnector.apiVersion, 'Full').identity.principalId
   }
 }
 
