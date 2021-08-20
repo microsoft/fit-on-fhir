@@ -98,20 +98,14 @@ namespace GoogleFitOnFhir.Services
             var userInfo = this.usersTableRepository.GetById(user.Id);
 
             // Generating datasetId based on event type
-            DateTime startDateDt = DateTime.UnixEpoch;
+            DateTime startDateDt = DateTime.Now.AddDays(-30);
+            DateTimeOffset startDateDto = new DateTimeOffset(startDateDt);
             if (userInfo.LastSync != null)
             {
-                // previous hour for interval migration
-                startDateDt = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour - 1, DateTime.Now.Minute, DateTime.Now.Second);
-            }
-            else
-            {
-                // last 30 days to beginning of hour for first migration
-                startDateDt = new DateTime(DateTime.Now.Year, DateTime.Now.Month - 1, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
+                startDateDto = userInfo.LastSync.Value;
             }
 
             // Convert to DateTimeOffset to so .NET unix conversion is usable
-            DateTimeOffset startDateDto = new DateTimeOffset(startDateDt);
             DateTimeOffset endDateDto = new DateTimeOffset(DateTime.Now);
 
             // .NET unix conversion only goes as small as milliseconds, multiplying to get nanoseconds
@@ -128,8 +122,7 @@ namespace GoogleFitOnFhir.Services
                     datasetId);
 
                 // Add user id to payload
-                // TODO: Use userId from queue message
-                dataset.UserId = "testUserId";
+                dataset.UserId = user.Id;
 
                 // Push dataset to IoMT connector
                 if (!eventBatch.TryAdd(new EventData(JsonConvert.SerializeObject(dataset))))
@@ -145,7 +138,7 @@ namespace GoogleFitOnFhir.Services
                 this.logger.LogInformation("A batch of events has been published.");
 
                 // Update LastSync column
-                user.LastSync = DateTime.Now;
+                user.LastSync = endDateDto;
                 this.usersTableRepository.Update(user);
             }
             finally
