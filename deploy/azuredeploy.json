@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "1174457948263400931"
+      "templateHash": "17850900409574711062"
     }
   },
   "parameters": {
@@ -220,18 +220,7 @@
       "type": "Microsoft.Storage/storageAccounts/fileServices",
       "apiVersion": "2021-04-01",
       "name": "[format('{0}/{1}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]",
-      "properties": {
-        "protocolSettings": {
-          "smb": {}
-        },
-        "cors": {
-          "corsRules": []
-        },
-        "shareDeleteRetentionPolicy": {
-          "enabled": true,
-          "days": 7
-        }
-      },
+      "properties": {},
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]

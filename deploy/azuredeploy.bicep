@@ -202,18 +202,7 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-04-01'
 resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2021-04-01' = {
   parent: storageAccount
   name: 'default'
-  properties: {
-    protocolSettings: {
-      smb: {}
-    }
-    cors: {
-      corsRules: []
-    }
-    shareDeleteRetentionPolicy: {
-      enabled: true
-      days: 7
-    }
-  }
+  properties: {}
 }
 
 resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2021-04-01' = {
