@@ -26,7 +26,11 @@ stages:
     parameters:
       environment: ${{ variables.environment }}
 
+  - template: ./templates/stages/e2e-tests.yml
+    parameters:
+      environment: ${{ variables.environment }}
+
   - template: ./templates/stages/clean.yml
     parameters:
       environment: ${{ variables.environment }}
-      cleanAfter: DurableDeploy
+      cleanAfter: E2ETests
