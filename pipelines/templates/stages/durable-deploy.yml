@@ -9,7 +9,7 @@ stages:
     variables:
       - template: ../variables/${{ parameters.environment }}.yml
       - name: durable-basename
-        value: gfit2fhirdurable
+        value: fit2fhirdurable
     jobs:
       - job: DeployResources
         displayName: Resources
@@ -38,6 +38,7 @@ stages:
                 -basename "$(durable-basename)"
               armFile: ./deploy/e2e-durable/azuredeploy.json
           - task: AzureCLI@2
+            name: copyRefreshToken
             displayName: Copy refresh token to ephemeral keyvault
             inputs:
               azureSubscription: ${{ variables.azure_service_connection_name }}
