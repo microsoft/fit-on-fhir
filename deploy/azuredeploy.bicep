@@ -75,13 +75,24 @@ resource infraKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
       family: 'A'
       name: 'standard'
     }
+    tenantId: subscription().tenantId
+    enableSoftDelete: true
+    enablePurgeProtection: true
+    softDeleteRetentionInDays: 30
+  }
+}
+
+resource infraKeyVaultAccessPolicies 'Microsoft.KeyVault/vaults/accessPolicies@2019-09-01' = {
+  parent: infraKeyVault
+  name: 'add'
+  properties: {
     accessPolicies: [
       {
         tenantId: publishDataFn.identity.tenantId
         objectId: publishDataFn.identity.principalId
         permissions: {
           secrets: [
-            'all'
+            'get'
           ]
         }
       }
@@ -96,10 +107,6 @@ resource infraKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
         }
       }
     ]
-    tenantId: subscription().tenantId
-    enableSoftDelete: true
-    enablePurgeProtection: true
-    softDeleteRetentionInDays: 30
   }
 }
 
@@ -190,6 +197,9 @@ resource queueConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-
   properties: {
     value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
   }
+  dependsOn: [
+    infraKeyVault
+  ]
 }
 
 resource eventHubConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
@@ -197,6 +207,9 @@ resource eventHubConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2019-
   properties: {
     value: listkeys(iotIngestAuthorizationRule.id, iotIngestAuthorizationRule.apiVersion).primaryConnectionString
   }
+  dependsOn: [
+    infraKeyVault
+  ]
 }
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {

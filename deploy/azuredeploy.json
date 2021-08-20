@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "4864867391765382241"
+      "templateHash": "4727054654806811919"
     }
   },
   "parameters": {
@@ -114,13 +114,24 @@
           "family": "A",
           "name": "standard"
         },
+        "tenantId": "[subscription().tenantId]",
+        "enableSoftDelete": true,
+        "enablePurgeProtection": true,
+        "softDeleteRetentionInDays": 30
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/accessPolicies",
+      "apiVersion": "2019-09-01",
+      "name": "[format('{0}/{1}', parameters('infraKvName'), 'add')]",
+      "properties": {
         "accessPolicies": [
           {
             "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
             "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
             "permissions": {
               "secrets": [
-                "all"
+                "get"
               ]
             }
           },
@@ -133,13 +144,10 @@
               ]
             }
           }
-        ],
-        "tenantId": "[subscription().tenantId]",
-        "enableSoftDelete": true,
-        "enablePurgeProtection": true,
-        "softDeleteRetentionInDays": 30
+        ]
       },
       "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
         "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]"
       ]
     },
@@ -248,6 +256,7 @@
         "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
       },
       "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
@@ -259,6 +268,7 @@
         "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender'), '2021-01-01-preview').primaryConnectionString]"
       },
       "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]"
       ]
     },
