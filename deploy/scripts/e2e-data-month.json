@@ -1,0 +1,29 @@
+{
+    "minStartTimeNs": $startDate,
+    "maxEndTimeNs": $endDate,
+    "dataSourceId": $datasourceId,
+    "point": [
+      {
+        "startTimeNanos": $startDate,
+        "endTimeNanos": $endDate,
+        "dataTypeName": "com.google.blood_glucose",
+        "value": [
+          {
+            "fpVal": 5.0
+          },
+          {
+            "intVal": 3
+          },
+          {
+            "intVal": 1
+          },
+          {
+            "intVal": 3
+          },
+          {
+            "intVal": 2
+          }
+        ]
+      }
+    ]
+  }
