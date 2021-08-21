@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.613.9944",
-      "templateHash": "10142132277341012548"
+      "templateHash": "17850900409574711062"
     }
   },
   "parameters": {
@@ -33,6 +33,10 @@
     "usersKvName": {
       "type": "string",
       "defaultValue": "[format('kv-users-{0}', parameters('basename'))]"
+    },
+    "infraKvName": {
+      "type": "string",
+      "defaultValue": "[format('kv-infra-{0}', parameters('basename'))]"
     }
   },
   "functions": [],
@@ -53,8 +57,8 @@
         },
         "accessPolicies": [
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -62,8 +66,8 @@
             }
           },
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -71,8 +75,8 @@
             }
           },
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -103,14 +107,35 @@
     {
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2019-09-01",
-      "name": "[format('kv-infra-{0}', parameters('basename'))]",
+      "name": "[parameters('infraKvName')]",
       "location": "[resourceGroup().location]",
       "properties": {
+        "accessPolicies": [],
         "sku": {
           "family": "A",
           "name": "standard"
         },
+        "tenantId": "[subscription().tenantId]",
+        "enableSoftDelete": true,
+        "enablePurgeProtection": true,
+        "softDeleteRetentionInDays": 30
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/accessPolicies",
+      "apiVersion": "2019-09-01",
+      "name": "[format('{0}/{1}', parameters('infraKvName'), 'add')]",
+      "properties": {
         "accessPolicies": [
+          {
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "get"
+              ]
+            }
+          },
           {
             "tenantId": "[subscription().tenantId]",
             "objectId": "[subscription().tenantId]",
@@ -120,12 +145,12 @@
               ]
             }
           }
-        ],
-        "tenantId": "[subscription().tenantId]",
-        "enableSoftDelete": true,
-        "enablePurgeProtection": true,
-        "softDeleteRetentionInDays": 30
-      }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
+        "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]"
+      ]
     },
     {
       "type": "Microsoft.Storage/storageAccounts",
@@ -150,6 +175,10 @@
         "encryption": {
           "services": {
             "blob": {
+              "keyType": "Account",
+              "enabled": true
+            },
+            "file": {
               "keyType": "Account",
               "enabled": true
             }
@@ -183,6 +212,15 @@
         },
         "isVersioningEnabled": false
       },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/fileServices",
+      "apiVersion": "2021-04-01",
+      "name": "[format('{0}/{1}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]",
+      "properties": {},
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
@@ -227,24 +265,24 @@
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2019-09-01",
-      "name": "[format('{0}/queue-connection-string', format('kv-infra-{0}', parameters('basename')))]",
+      "name": "[format('{0}/queue-connection-string', parameters('infraKvName'))]",
       "properties": {
         "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2019-09-01",
-      "name": "[format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename')))]",
+      "name": "[format('{0}/eventhub-connection-string', parameters('infraKvName'))]",
       "properties": {
         "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender'), '2021-01-01-preview').primaryConnectionString]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]"
       ]
     },
@@ -297,24 +335,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
         "clientAffinityEnabled": true,
         "siteConfig": {
-          "appSettings": [
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
-            },
-            {
-              "name": "GOOGLE_OAUTH_CLIENT_ID",
-              "value": "[parameters('google_client_id')]"
-            },
-            {
-              "name": "GOOGLE_OAUTH_CLIENT_SECRET",
-              "value": "[parameters('google_client_secret')]"
-            },
-            {
-              "name": "USERS_KEY_VAULT_URI",
-              "value": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
-            }
-          ]
+          "appSettings": "[union(createArray(createObject('name', 'FUNCTIONS_EXTENSION_VERSION', 'value', '~3'), createObject('name', 'FUNCTIONS_WORKER_RUNTIME', 'value', 'dotnet'), createObject('name', 'APPINSIGHTS_INSTRUMENTATIONKEY', 'value', reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey), createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString), createObject('name', 'AzureWebJobsStorage', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)), createObject('name', 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value))), createArray(createObject('name', 'WEBSITE_CONTENTSHARE', 'value', format('identity-{0}-{1}', parameters('basename'), take(uniqueString('identity-', parameters('basename')), 4))), createObject('name', 'GOOGLE_OAUTH_CLIENT_ID', 'value', parameters('google_client_id')), createObject('name', 'GOOGLE_OAUTH_CLIENT_SECRET', 'value', parameters('google_client_secret')), createObject('name', 'USERS_KEY_VAULT_URI', 'value', format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns))))]"
         }
       },
       "dependsOn": [
@@ -337,12 +358,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
         "clientAffinityEnabled": true,
         "siteConfig": {
-          "appSettings": [
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
-            }
-          ]
+          "appSettings": "[union(createArray(createObject('name', 'FUNCTIONS_EXTENSION_VERSION', 'value', '~3'), createObject('name', 'FUNCTIONS_WORKER_RUNTIME', 'value', 'dotnet'), createObject('name', 'APPINSIGHTS_INSTRUMENTATIONKEY', 'value', reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey), createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString), createObject('name', 'AzureWebJobsStorage', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)), createObject('name', 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value))), createArray(createObject('name', 'WEBSITE_CONTENTSHARE', 'value', format('sync-event-{0}-{1}', parameters('basename'), take(uniqueString('sync-event-', parameters('basename')), 4)))))]"
         }
       },
       "dependsOn": [
@@ -365,21 +381,12 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
         "clientAffinityEnabled": true,
         "siteConfig": {
-          "appSettings": [
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
-            },
-            {
-              "name": "EventHubConnectionString",
-              "value": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[0], split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[1])).secretUriWithVersion)]"
-            }
-          ]
+          "appSettings": "[union(createArray(createObject('name', 'FUNCTIONS_EXTENSION_VERSION', 'value', '~3'), createObject('name', 'FUNCTIONS_WORKER_RUNTIME', 'value', 'dotnet'), createObject('name', 'APPINSIGHTS_INSTRUMENTATIONKEY', 'value', reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey), createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString), createObject('name', 'AzureWebJobsStorage', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)), createObject('name', 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING', 'value', format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value))), createArray(createObject('name', 'WEBSITE_CONTENTSHARE', 'value', format('publish-data-{0}-{1}', parameters('basename'), take(uniqueString('publish-data-', parameters('basename')), 4))), createObject('name', 'EventHubConnectionString', 'value', format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[0], split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[1])).secretUriWithVersion))))]"
         }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[0], split(format('{0}/eventhub-connection-string', format('kv-infra-{0}', parameters('basename'))), '/')[1])]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[0], split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[1])]",
         "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
@@ -516,7 +523,7 @@
       "name": "[guid(format('{0}-FhirWriter', resourceGroup().id))]",
       "properties": {
         "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('fhirWriterRoleId'))]",
-        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2021-06-01-preview', 'full').identity.principalId]"
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2021-06-01-preview', 'Full').identity.principalId]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
@@ -530,7 +537,7 @@
       "name": "[guid(format('{0}-EventHubDataReceiver', resourceGroup().id))]",
       "properties": {
         "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('eventHubReceiverRoleId'))]",
-        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2021-06-01-preview', 'full').identity.principalId]"
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2021-06-01-preview', 'Full').identity.principalId]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]",
@@ -581,7 +588,7 @@
     },
     "infraKeyVaultName": {
       "type": "string",
-      "value": "[format('kv-infra-{0}', parameters('basename'))]"
+      "value": "[parameters('infraKvName')]"
     },
     "identityAppName": {
       "type": "string",
