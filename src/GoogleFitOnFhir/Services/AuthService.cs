@@ -40,7 +40,6 @@ namespace GoogleFitOnFhir.Services
             // TODO: Customize datastore to use KeyVault
             return new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
             {
-                // TODO: Securely store and make ClientId/ClientSecret available
                 ClientSecrets = new ClientSecrets
                 {
                     ClientId = this.clientContext.ClientId,
