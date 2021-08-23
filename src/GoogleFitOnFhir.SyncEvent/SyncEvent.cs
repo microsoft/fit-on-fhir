@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Azure.WebJobs;
@@ -25,8 +26,11 @@ namespace GoogleFitOnFhir.SyncEvent
 
             IEnumerable<User> users = this.usersTableRepository.GetAll();
 
+            log.LogInformation("{0} users in table", users.Count<User>());
+
             foreach (User user in users)
             {
+                log.LogInformation("Adding {0} to queue", user.Id);
                 queueService.Add(JsonConvert.SerializeObject(new QueueMessage
                 {
                     UserId = user.Id,
