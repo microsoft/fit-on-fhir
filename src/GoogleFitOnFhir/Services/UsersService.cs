@@ -94,20 +94,35 @@ namespace GoogleFitOnFhir.Services
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await this.eventHubProducerClient.CreateBatchAsync();
 
+            // Get user's info for LastSync date
+            var userInfo = this.usersTableRepository.GetById(user.Id);
+
+            // Generating datasetId based on event type
+            DateTime startDateDt = DateTime.Now.AddDays(-30);
+            DateTimeOffset startDateDto = new DateTimeOffset(startDateDt);
+            if (userInfo.LastSync != null)
+            {
+                startDateDto = userInfo.LastSync.Value;
+            }
+
+            // Convert to DateTimeOffset to so .NET unix conversion is usable
+            DateTimeOffset endDateDto = new DateTimeOffset(DateTime.Now);
+
+            // .NET unix conversion only goes as small as milliseconds, multiplying to get nanoseconds
+            var startDate = startDateDto.ToUnixTimeMilliseconds() * 1000000;
+            var endDate = endDateDto.ToUnixTimeMilliseconds() * 1000000;
+            var datasetId = startDate + "-" + endDate;
+
             // Get dataset for each dataSource
             foreach (var datasourceId in dataSourcesList.DatasourceIds)
             {
-                // TODO: Generate datasetId based on event type
-                //       last 30 days to beginning of hour for first migration
-                //       previous hour for interval migration
                 var dataset = await this.googleFitClient.DatasetRequest(
                     tokensResponse.AccessToken,
                     datasourceId,
-                    "1574159699023000000-1574159699023000000");
+                    datasetId);
 
                 // Add user id to payload
-                // TODO: Use userId from queue message
-                dataset.UserId = "testUserId";
+                dataset.UserId = user.Id;
 
                 // Push dataset to IoMT connector
                 if (!eventBatch.TryAdd(new EventData(JsonConvert.SerializeObject(dataset))))
@@ -123,7 +138,7 @@ namespace GoogleFitOnFhir.Services
                 this.logger.LogInformation("A batch of events has been published.");
 
                 // Update LastSync column
-                user.LastSync = DateTime.Now;
+                user.LastSync = endDateDto;
                 this.usersTableRepository.Update(user);
             }
             finally
