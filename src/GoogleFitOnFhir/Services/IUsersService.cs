@@ -7,7 +7,7 @@ namespace GoogleFitOnFhir.Services
     {
         Task<User> Initiate(string accessCode);
 
-        void ImportFitnessData(User user);
+        Task ImportFitnessData(User user);
 
         void QueueFitnessImport(User user);
     }

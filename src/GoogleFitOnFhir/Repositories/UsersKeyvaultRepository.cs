@@ -28,7 +28,7 @@ namespace GoogleFitOnFhir.Repositories
             this.keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(this.tokenProvider.KeyVaultTokenCallback));
         }
 
-        public async void Upsert(string secretName, string value)
+        public async Task Upsert(string secretName, string value)
         {
             await this.keyVaultClient.SetSecretAsync(
                 this.keyvaultContext.Uri,

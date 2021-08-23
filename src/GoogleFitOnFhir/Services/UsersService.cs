@@ -67,12 +67,12 @@ namespace GoogleFitOnFhir.Services
             this.usersTableRepository.Upsert(user);
 
             // Insert refresh token into users KV by userId
-            this.usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken);
+            await this.usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken);
 
             return user;
         }
 
-        public async void ImportFitnessData(User user)
+        public async Task ImportFitnessData(User user)
         {
             string refreshToken;
 
