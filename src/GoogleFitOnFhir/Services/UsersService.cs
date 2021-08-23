@@ -97,6 +97,9 @@ namespace GoogleFitOnFhir.Services
             // Get user's info for LastSync date
             var userInfo = this.usersTableRepository.GetById(user.Id);
 
+            // Copy ETag over so we can successfully update the row when necessary
+            user.ETag = userInfo.ETag;
+
             // Generating datasetId based on event type
             DateTime startDateDt = DateTime.Now.AddDays(-30);
             DateTimeOffset startDateDto = new DateTimeOffset(startDateDt);
