@@ -86,8 +86,16 @@ namespace GoogleFitOnFhir.Identity
 
         public async Task<IActionResult> Callback(HttpRequest req)
         {
-            await this.usersService.Initiate(req.Query["code"]);
-            return new OkObjectResult("auth flow successful");
+            try
+            {
+                await this.usersService.Initiate(req.Query["code"]);
+                return new OkObjectResult("auth flow successful");
+            }
+            catch (Exception ex)
+            {
+                this.log.LogError(ex.Message);
+                return new NotFoundObjectResult("Unable to authorize");
+            }
         }
 
         public async Task<IActionResult> Login(HttpRequest req)
