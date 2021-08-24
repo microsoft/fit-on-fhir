@@ -366,6 +366,18 @@ resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
           name: 'EventHubConnectionString'
           value: '@Microsoft.KeyVault(SecretUri=${reference(eventHubConnectionStringSecret.id).secretUriWithVersion})'
         }
+        {
+          name: 'GOOGLE_OAUTH_CLIENT_ID'
+          value: google_client_id
+        }
+        {
+          name: 'GOOGLE_OAUTH_CLIENT_SECRET'
+          value: google_client_secret
+        }
+        {
+          name: 'USERS_KEY_VAULT_URI'
+          value: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
+        }
       ])
     }
   }

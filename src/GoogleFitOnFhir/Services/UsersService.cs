@@ -72,13 +72,15 @@ namespace GoogleFitOnFhir.Services
             return user;
         }
 
-        public async Task ImportFitnessData(User user)
+        public async Task ImportFitnessData(string userId)
         {
             string refreshToken;
 
+            this.logger.LogInformation("Get RefreshToken from KV for {0}", userId);
+
             try
             {
-                refreshToken = await this.usersKeyvaultRepository.GetByName(user.Id);
+                refreshToken = await this.usersKeyvaultRepository.GetByName(userId);
             }
             catch (AggregateException ex)
             {
@@ -86,26 +88,29 @@ namespace GoogleFitOnFhir.Services
                 return;
             }
 
+            this.logger.LogInformation("Refreshing the RefreshToken");
             AuthTokensResponse tokensResponse = await this.authService.RefreshTokensRequest(refreshToken);
+
+            this.logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
 
             // TODO: Store new refresh token
             var dataSourcesList = await this.googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken);
+
+            this.logger.LogInformation("Create Eventhub Batch");
 
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await this.eventHubProducerClient.CreateBatchAsync();
 
             // Get user's info for LastSync date
-            var userInfo = this.usersTableRepository.GetById(user.Id);
-
-            // Copy ETag over so we can successfully update the row when necessary
-            user.ETag = userInfo.ETag;
+            this.logger.LogInformation("Query userInfo");
+            var user = this.usersTableRepository.GetById(userId);
 
             // Generating datasetId based on event type
             DateTime startDateDt = DateTime.Now.AddDays(-30);
             DateTimeOffset startDateDto = new DateTimeOffset(startDateDt);
-            if (userInfo.LastSync != null)
+            if (user.LastSync != null)
             {
-                startDateDto = userInfo.LastSync.Value;
+                startDateDto = user.LastSync.Value;
             }
 
             // Convert to DateTimeOffset to so .NET unix conversion is usable
@@ -119,6 +124,7 @@ namespace GoogleFitOnFhir.Services
             // Get dataset for each dataSource
             foreach (var datasourceId in dataSourcesList.DatasourceIds)
             {
+                this.logger.LogInformation("Query Dataset: {0}", datasourceId);
                 var dataset = await this.googleFitClient.DatasetRequest(
                     tokensResponse.AccessToken,
                     datasourceId,
@@ -127,8 +133,12 @@ namespace GoogleFitOnFhir.Services
                 // Add user id to payload
                 dataset.UserId = user.Id;
 
+                var jsonDataset = JsonConvert.SerializeObject(dataset);
+
+                this.logger.LogInformation("Push Dataset: {0}", datasourceId);
+
                 // Push dataset to IoMT connector
-                if (!eventBatch.TryAdd(new EventData(JsonConvert.SerializeObject(dataset))))
+                if (!eventBatch.TryAdd(new EventData(jsonDataset)))
                 {
                     throw new Exception("Event is too large for the batch and cannot be sent.");
                 }
