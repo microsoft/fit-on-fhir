@@ -4,7 +4,7 @@ namespace GoogleFitOnFhir.Repositories
 {
     public interface IUsersKeyvaultRepository
     {
-        void Upsert(string secretName, string value);
+        Task Upsert(string secretName, string value);
 
         Task<string> GetByName(string secretName);
     }

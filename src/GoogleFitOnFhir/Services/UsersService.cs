@@ -67,12 +67,12 @@ namespace GoogleFitOnFhir.Services
             this.usersTableRepository.Upsert(user);
 
             // Insert refresh token into users KV by userId
-            this.usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken);
+            await this.usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken);
 
             return user;
         }
 
-        public async void ImportFitnessData(User user)
+        public async Task ImportFitnessData(User user)
         {
             string refreshToken;
 
@@ -96,6 +96,9 @@ namespace GoogleFitOnFhir.Services
 
             // Get user's info for LastSync date
             var userInfo = this.usersTableRepository.GetById(user.Id);
+
+            // Copy ETag over so we can successfully update the row when necessary
+            user.ETag = userInfo.ETag;
 
             // Generating datasetId based on event type
             DateTime startDateDt = DateTime.Now.AddDays(-30);

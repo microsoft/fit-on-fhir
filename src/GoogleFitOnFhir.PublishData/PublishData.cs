@@ -1,7 +1,6 @@
 using System;
-using Azure.Messaging.EventHubs.Producer;
+using System.Threading.Tasks;
 using GoogleFitOnFhir.Models;
-using GoogleFitOnFhir.Persistence;
 using GoogleFitOnFhir.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -23,7 +22,7 @@ namespace GoogleFitOnFhir.PublishData
         }
 
         [FunctionName("publish-data")]
-        public void Run(
+        public async Task Run(
             [QueueTrigger("publish-data")] string myQueueItem)
         {
             this.log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
@@ -33,7 +32,7 @@ namespace GoogleFitOnFhir.PublishData
             try
             {
                 User user = new User(message.UserId);
-                this.usersService.ImportFitnessData(user);
+                await this.usersService.ImportFitnessData(user);
             }
             catch (Exception e)
             {
