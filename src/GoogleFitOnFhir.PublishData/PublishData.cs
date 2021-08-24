@@ -11,21 +11,19 @@ namespace GoogleFitOnFhir.PublishData
     public class PublishData
     {
         private readonly IUsersService usersService;
-        private readonly ILogger<PublishData> log;
 
         public PublishData(
-            IUsersService usersService,
-            ILogger<PublishData> log)
+            IUsersService usersService)
         {
             this.usersService = usersService;
-            this.log = log;
         }
 
         [FunctionName("publish-data")]
         public async Task Run(
-            [QueueTrigger("publish-data")] string myQueueItem)
+            [QueueTrigger("publish-data")] string myQueueItem,
+            ILogger log)
         {
-            this.log.LogInformation("publish-data has message: {0}", myQueueItem);
+            log.LogInformation("publish-data has message: {0}", myQueueItem);
             QueueMessage message = JsonConvert.DeserializeObject<QueueMessage>(myQueueItem);
             await this.usersService.ImportFitnessData(message.UserId);
         }
