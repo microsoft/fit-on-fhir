@@ -366,6 +366,10 @@ resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
           name: 'EventHubConnectionString'
           value: '@Microsoft.KeyVault(SecretUri=${reference(eventHubConnectionStringSecret.id).secretUriWithVersion})'
         }
+        {
+          name: 'USERS_KEY_VAULT_URI'
+          value: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
+        }
       ])
     }
   }
