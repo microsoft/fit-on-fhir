@@ -25,19 +25,9 @@ namespace GoogleFitOnFhir.PublishData
         public async Task Run(
             [QueueTrigger("publish-data")] string myQueueItem)
         {
-            this.log.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
-
+            this.log.LogInformation("publish-data has message: {0}", myQueueItem);
             QueueMessage message = JsonConvert.DeserializeObject<QueueMessage>(myQueueItem);
-
-            try
-            {
-                User user = new User(message.UserId);
-                await this.usersService.ImportFitnessData(user);
-            }
-            catch (Exception e)
-            {
-                this.log.LogError(e.Message);
-            }
+            await this.usersService.ImportFitnessData(message.UserId);
         }
     }
 }
