@@ -72,15 +72,15 @@ namespace GoogleFitOnFhir.Services
             return user;
         }
 
-        public async Task ImportFitnessData(User user)
+        public async Task ImportFitnessData(string userId)
         {
             string refreshToken;
 
-            this.logger.LogInformation("Get RefreshToken from KV for {0}", user.Id);
+            this.logger.LogInformation("Get RefreshToken from KV for {0}", userId);
 
             try
             {
-                refreshToken = await this.usersKeyvaultRepository.GetByName(user.Id);
+                refreshToken = await this.usersKeyvaultRepository.GetByName(userId);
             }
             catch (AggregateException ex)
             {
@@ -103,17 +103,14 @@ namespace GoogleFitOnFhir.Services
 
             // Get user's info for LastSync date
             this.logger.LogInformation("Query userInfo");
-            var userInfo = this.usersTableRepository.GetById(user.Id);
-
-            // Copy ETag over so we can successfully update the row when necessary
-            user.ETag = userInfo.ETag;
+            var user = this.usersTableRepository.GetById(userId);
 
             // Generating datasetId based on event type
             DateTime startDateDt = DateTime.Now.AddDays(-30);
             DateTimeOffset startDateDto = new DateTimeOffset(startDateDt);
-            if (userInfo.LastSync != null)
+            if (user.LastSync != null)
             {
-                startDateDto = userInfo.LastSync.Value;
+                startDateDto = user.LastSync.Value;
             }
 
             // Convert to DateTimeOffset to so .NET unix conversion is usable
