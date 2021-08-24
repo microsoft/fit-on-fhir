@@ -40,12 +40,12 @@ namespace GoogleFitOnFhir.PublishData
 
             builder.Services.AddSingleton<StorageAccountContext>(sp => new StorageAccountContext(storageAccountConnectionString));
             builder.Services.AddSingleton<UsersKeyvaultContext>(sp => new UsersKeyvaultContext(usersKeyvaultUri));
-            builder.Services.AddSingleton<EventHubProducerClient>(sp => new EventHubProducerClient(iomtConnectionString));
+            builder.Services.AddScoped<EventHubProducerClient>(sp => new EventHubProducerClient(iomtConnectionString));
 
             builder.Services.AddSingleton<IUsersKeyvaultRepository, UsersKeyvaultRepository>();
             builder.Services.AddSingleton<IAuthService, AuthService>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
-            builder.Services.AddSingleton<IUsersService, UsersService>();
+            builder.Services.AddScoped<IUsersService, UsersService>();
         }
     }
 }

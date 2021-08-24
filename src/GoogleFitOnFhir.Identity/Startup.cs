@@ -18,9 +18,6 @@ namespace GoogleFitOnFhir.Identity
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            // TODO: iomtConnectingString from env var or key vault?
-            string iomtConnectionString = string.Empty;
-
             string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
             string usersKeyvaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
 
@@ -41,7 +38,6 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddSingleton<UsersKeyvaultContext>(sp => new UsersKeyvaultContext(usersKeyvaultUri));
             builder.Services.AddSingleton<GoogleFitClient>();
 
-            builder.Services.AddSingleton<EventHubContext>(sp => new EventHubContext(iomtConnectionString));
             builder.Services.AddSingleton<StorageAccountContext>(sp => new StorageAccountContext(storageAccountConnectionString));
             builder.Services.AddSingleton<IUsersKeyvaultRepository, UsersKeyvaultRepository>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
