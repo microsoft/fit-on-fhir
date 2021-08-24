@@ -76,6 +76,8 @@ namespace GoogleFitOnFhir.Services
         {
             string refreshToken;
 
+            this.logger.LogInformation("Get RefreshToken from KV for {0}", user.Id);
+
             try
             {
                 refreshToken = await this.usersKeyvaultRepository.GetByName(user.Id);
@@ -86,15 +88,21 @@ namespace GoogleFitOnFhir.Services
                 return;
             }
 
+            this.logger.LogInformation("Refreshing the RefreshToken");
             AuthTokensResponse tokensResponse = await this.authService.RefreshTokensRequest(refreshToken);
+
+            this.logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
 
             // TODO: Store new refresh token
             var dataSourcesList = await this.googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken);
+
+            this.logger.LogInformation("Create Eventhub Batch");
 
             // Create a batch of events for IoMT eventhub
             using EventDataBatch eventBatch = await this.eventHubProducerClient.CreateBatchAsync();
 
             // Get user's info for LastSync date
+            this.logger.LogInformation("Query userInfo");
             var userInfo = this.usersTableRepository.GetById(user.Id);
 
             // Copy ETag over so we can successfully update the row when necessary
@@ -119,6 +127,7 @@ namespace GoogleFitOnFhir.Services
             // Get dataset for each dataSource
             foreach (var datasourceId in dataSourcesList.DatasourceIds)
             {
+                this.logger.LogInformation("Query Dataset: {0}", datasourceId);
                 var dataset = await this.googleFitClient.DatasetRequest(
                     tokensResponse.AccessToken,
                     datasourceId,
@@ -127,8 +136,12 @@ namespace GoogleFitOnFhir.Services
                 // Add user id to payload
                 dataset.UserId = user.Id;
 
+                var jsonDataset = JsonConvert.SerializeObject(dataset);
+
+                this.logger.LogInformation("Push Dataset: {0}", datasourceId);
+
                 // Push dataset to IoMT connector
-                if (!eventBatch.TryAdd(new EventData(JsonConvert.SerializeObject(dataset))))
+                if (!eventBatch.TryAdd(new EventData(jsonDataset)))
                 {
                     throw new Exception("Event is too large for the batch and cannot be sent.");
                 }
