@@ -7,6 +7,11 @@
                 "isEnabled": true
             }
         },
+        "logLevel": {
+            "default": "Information"
+        }
+    },
+    "extensions": {
         "queues": {
             "maxPollingInterval": "00:00:02",
             "visibilityTimeout": "00:00:30",
