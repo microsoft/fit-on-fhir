@@ -21,9 +21,28 @@ The Sync Event function runs on a timer at regular intervals, and does the follo
 
 The Publish Data function is triggered by new messages added to the users queue in storage (by the Sync Event function described above), and does the following:
 
-* Dequeues the message (TODO: Verify that it does this)
+* Dequeues the message
 * Reads the user ID from the message
-* Retrieves the user's refresh token from key vault and uses it to pull the user's data from the Google Fit API
+* Retrieves the user's refresh token from key vault
+* Retrieves new access token with refresh token
+* Pulls the user's data from the Google Fit API with the access token
 * Transforms data to be compatible with IoT connector
 * Pushes the data to the IoT connector for FHIR server
-* Updates the user's refresh token and stores the new token in key vault
+* Updates the user's refresh token and stores the new token in key vault (incomplete)
+
+## E2E Tests
+
+* Deploy ephemeral infrastructure
+* Deploy durable infrastructure
+* Copy e2e test google account refresh token from durable key vault to ephemeral key vault
+* Get new access token with refresh token
+* Create Google Fitness datasource for e2e test account
+* Insert dataset for 25 days ago into datasource
+* --- incomplete below this line ---
+* Wait for sync/publish (should migrate last month)
+* Validate data in FHIR
+* Insert dataset for now
+* Wait for sync/publish (should migrate recent interval)
+* Validate data in FHIR
+* Delete datasource on e2e test account (complete)
+* Tear down infrastructure (complete)
