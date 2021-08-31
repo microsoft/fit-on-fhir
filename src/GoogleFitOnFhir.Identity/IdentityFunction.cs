@@ -66,7 +66,7 @@ namespace GoogleFitOnFhir.Identity
 
             var matchedFile = this.fileArray.FirstOrDefault(allowedResources =>
             {
-                // If the flattened path matches the whitelist exactly
+                // If the flattened path matches the Allow-listed file exactly
                 return Path.Combine(root, allowedResources[0]) == absPath;
             });
 
