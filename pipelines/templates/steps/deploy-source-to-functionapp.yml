@@ -10,11 +10,9 @@ steps:
     displayName: Deploy zip to ${{ parameters.appName }}
     inputs:
       azureSubscription: ${{ parameters.azureSubscription }}
-      scriptType: bash
+      scriptType: ps
       scriptLocation: inlineScript
-      inlineScript: >
-        ./deploy/scripts/wait-for-command.sh
-        "az webapp deployment source config-zip
-        -g ${{ parameters.resourceGroupName }}
-        -n ${{ parameters.resourceName }}
-        --src ${{ parameters.releasesDir }}/${{ parameters.appName }}.zip"
+      inlineScript: |
+        $src="${{ parameters.releasesDir }}\${{ parameters.appName }}.zip"
+        echo "Source: $src"
+        ./deploy/scripts/deploy-function-app.ps1 -ResourceGroup "${{ parameters.resourceGroupName }}" -Name "${{ parameters.resourceName }}" -Src $src

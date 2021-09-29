@@ -39,19 +39,17 @@ steps:
       deploymentOutputs: armOutput
       deploymentName: ${{ parameters.deploymentName }}
 
-  - bash: |
-      for key in $(echo $output | jq -r 'keys[]'); do
-        echo "Found Key: $key"
-        echo "Use in same job: \$(outputVars.$key)"
-        echo "Use in dependent job:\
-          \$[dependencies.EphemeralDeploy.outputs['outputVars.$key']"
-        echo "Use in dependent stage:\
-          \$[stageDependencies.EphemeralDeploy.outputs['outputVars.$key]"
-        value=$(echo $output | jq -r ".$key.value")
-        echo "##vso[task.setvariable variable=$key;$varSettings]$value"
-      done
+  - pwsh: |
+      $object=$env:OUTPUT | ConvertFrom-Json
+      $object.PSObject.Properties | ForEach-Object {
+        echo "Found Key: $($_.Name)"
+        echo "Use in same job: outputVars.$($_.Name)"
+        echo "Use in dependent job: $[dependencies.EphemeralDeploy.outputs['outputVars.$($_.Name)']"
+        echo "Use in dependent stage: $[stageDependencies.EphemeralDeploy.outputs['outputVars.$($_.Name)']"
+        echo "##vso[task.setvariable variable=$($_.Name);$env:VARSETTINGS]$($_.Value.value)"
+      }
     name: outputVars
     displayName: Parse ARM outputs
     env:
       output: $(armOutput)
-      varSettings: isOutput=true;isSecret=true
+      varSettings: isOutput=true
