@@ -1,0 +1,52 @@
+parameters:
+  environment: ''
+
+stages:
+  - stage: Analyze
+    displayName: Analyzing
+    dependsOn: []
+    jobs:
+      - job: CredScan
+        displayName: Scan for credentials
+        steps:
+          - task: CredScan@3
+
+      - job: ComponentGovernanceDetection
+        displayName: Component governance detection
+        steps:
+          - task: ComponentGovernanceComponentDetection@0
+            inputs:
+              scanType: Register
+              verbosity: Verbose
+              alertWarningLevel: High
+
+      - job: CodeQL
+        displayName: CodeQL (Semmle)
+        dependsOn:
+          - CredScan
+          - ComponentGovernanceDetection
+        steps:
+          - task: Semmle@1
+            env:
+              SYSTEM_ACCESSTOKEN: $(PATTOKEN)
+            inputs:
+              sourceCodeDirectory: $(Build.SourcesDirectory)
+              language: csharp
+              querySuite: Recommended
+              timeout: 1800
+              ram: 16384
+              addProjectDirToScanningExclusionList: true
+
+      - job: PublishSecurityAnalysisLogs
+        displayName: Publish security analysis logs
+        dependsOn:
+          - CredScan
+          - ComponentGovernanceDetection
+          - CodeQL
+        steps:
+          - task: PublishSecurityAnalysisLogs@3
+            inputs:
+              ArtifactName: CodeAnalysisLogs
+              ArtifactType: Container
+              AllTools: true
+              ToolLogsNotFoundAction: Standard

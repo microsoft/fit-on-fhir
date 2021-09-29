@@ -1,11 +1,4 @@
-schedules:
-  # Every day at midnight
-  - cron: 0 0 * * *
-    displayName: Daily midnight e2e tests
-    branches:
-      include:
-        - main
-    always: true
+trigger: none
 
 pool:
   vmImage: ubuntu-latest

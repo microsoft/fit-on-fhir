@@ -10,3 +10,4 @@ rules:
     required: only-when-needed
   line-length:
     max: 120
+  new-lines: disable

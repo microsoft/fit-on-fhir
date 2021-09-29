@@ -4,7 +4,7 @@ trigger:
       - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
 
 variables:
   environment: ci
@@ -15,6 +15,10 @@ stages:
       environment: ${{ variables.environment }}
 
   - template: ./templates/stages/build.yml
+    parameters:
+      environment: ${{ variables.environment }}
+
+  - template: ./templates/stages/analyze.yml
     parameters:
       environment: ${{ variables.environment }}
 
