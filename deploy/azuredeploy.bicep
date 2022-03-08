@@ -381,6 +381,9 @@ resource sync_event_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01'
     branch: repository_branch
     isManualIntegration: true
   }
+  dependsOn: [
+    sync_event_basename_appsettings
+  ]
 }
 
 resource publish_data_basename 'Microsoft.Web/sites@2020-06-01' = {
@@ -436,7 +439,7 @@ resource publish_data_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-0
     isManualIntegration: true
   }
   dependsOn: [
-    sync_event_basename
+    publish_data_basename_appsettings
   ]
 }
 

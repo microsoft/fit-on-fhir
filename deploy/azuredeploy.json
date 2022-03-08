@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "17308747309391051322"
+      "templateHash": "14283461093243192929"
     }
   },
   "parameters": {
@@ -475,7 +475,8 @@
         "isManualIntegration": true
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename')))]"
+        "[resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites/config', format('sync-event-{0}', parameters('basename')), 'appsettings')]"
       ]
     },
     {
@@ -540,7 +541,7 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename')))]"
+        "[resourceId('Microsoft.Web/sites/config', format('publish-data-{0}', parameters('basename')), 'appsettings')]"
       ]
     },
     {
