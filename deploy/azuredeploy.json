@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.1272.37030",
-      "templateHash": "14283461093243192929"
+      "templateHash": "17711067149320683576"
     }
   },
   "parameters": {
@@ -29,7 +29,7 @@
       "type": "string"
     },
     "google_client_secret": {
-      "type": "string"
+      "type": "secureString"
     },
     "spid": {
       "type": "string",
@@ -386,7 +386,7 @@
       "name": "[format('{0}/{1}', format('identity-{0}', parameters('basename')), 'appsettings')]",
       "location": "[parameters('location')]",
       "properties": {
-        "FUNCTIONS_EXTENSION_VERSION": "~3",
+        "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/GoogleFitOnFhir.Identity/GoogleFitOnFhir.Identity.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
@@ -449,7 +449,7 @@
       "name": "[format('{0}/{1}', format('sync-event-{0}', parameters('basename')), 'appsettings')]",
       "location": "[parameters('location')]",
       "properties": {
-        "FUNCTIONS_EXTENSION_VERSION": "~3",
+        "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/GoogleFitOnFhir.SyncEvent/GoogleFitOnFhir.SyncEvent.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
@@ -510,7 +510,7 @@
       "name": "[format('{0}/{1}', format('publish-data-{0}', parameters('basename')), 'appsettings')]",
       "location": "[parameters('location')]",
       "properties": {
-        "FUNCTIONS_EXTENSION_VERSION": "~3",
+        "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/GoogleFitOnFhir.PublishData/GoogleFitOnFhir.PublishData.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",

@@ -6,6 +6,7 @@ param basename string = 'fitonfhir'
 @description('Service prinicipal ID to give permissions for key vaults.')
 param location string = resourceGroup().location
 param google_client_id string
+@secure()
 param google_client_secret string
 
 @description('Service prinicipal ID to give permissions for key vaults.')
@@ -306,7 +307,7 @@ resource identity_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' =
   location: location
   name: 'appsettings'
   properties: {
-    FUNCTIONS_EXTENSION_VERSION: '~3'
+    FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/GoogleFitOnFhir.Identity/GoogleFitOnFhir.Identity.csproj'
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
@@ -359,7 +360,7 @@ resource sync_event_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01'
   location: location
   name: 'appsettings'
   properties: {
-    FUNCTIONS_EXTENSION_VERSION: '~3'
+    FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/GoogleFitOnFhir.SyncEvent/GoogleFitOnFhir.SyncEvent.csproj'
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
@@ -412,7 +413,7 @@ resource publish_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-0
   location: location
   name: 'appsettings'
   properties: {
-    FUNCTIONS_EXTENSION_VERSION: '~3'
+    FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/GoogleFitOnFhir.PublishData/GoogleFitOnFhir.PublishData.csproj'
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
