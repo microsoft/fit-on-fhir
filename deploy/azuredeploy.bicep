@@ -6,6 +6,7 @@ param basename string = 'fitonfhir'
 @description('Service prinicipal ID to give permissions for key vaults.')
 param location string = resourceGroup().location
 param google_client_id string
+@secure()
 param google_client_secret string
 
 @description('Service prinicipal ID to give permissions for key vaults.')
