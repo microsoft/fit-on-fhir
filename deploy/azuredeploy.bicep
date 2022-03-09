@@ -2,49 +2,29 @@
 @minLength(3)
 @maxLength(16)
 param basename string = 'fitonfhir'
+
+@description('Service prinicipal ID to give permissions for key vaults.')
+param location string = resourceGroup().location
 param google_client_id string
 param google_client_secret string
 
 @description('Service prinicipal ID to give permissions for key vaults.')
 param spid string
 
+@description('The repository where the googlefit-on-fhir source code resides.')
+param repository_url string = 'https://github.com/Microsoft/googlefit-on-fhir'
+
+@description('The source code branch to be deployed')
+param repository_branch string = 'main'
 param usersKvName string = 'kv-users-${basename}'
 param infraKvName string = 'kv-infra-${basename}'
 
 var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
 var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
 
-var storageAccountConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
-var commonAppSettings = [
-  {
-    name: 'FUNCTIONS_EXTENSION_VERSION'
-    value: '~3'
-  }
-  {
-    name: 'FUNCTIONS_WORKER_RUNTIME'
-    value: 'dotnet'
-  }
-  {
-    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-    value: reference(appInsights.id).InstrumentationKey
-  }
-  {
-    name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-    value: reference(appInsights.id).ConnectionString
-  }
-  {
-    name: 'AzureWebJobsStorage'
-    value: storageAccountConnectionString
-  }
-  {
-    name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-    value: storageAccountConnectionString
-  }
-]
-
-resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
+resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: usersKvName
-  location: resourceGroup().location
+  location: location
   properties: {
     sku: {
       family: 'A'
@@ -52,8 +32,8 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     }
     accessPolicies: [
       {
-        tenantId: reference(publishDataFn.id, publishDataFn.apiVersion, 'Full').identity.tenantId
-        objectId: reference(publishDataFn.id, publishDataFn.apiVersion, 'Full').identity.principalId
+        tenantId: reference(publish_data_basename.id, '2020-06-01', 'Full').identity.tenantId
+        objectId: reference(publish_data_basename.id, '2020-06-01', 'Full').identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -61,8 +41,8 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
         }
       }
       {
-        tenantId: reference(syncEventFn.id, syncEventFn.apiVersion, 'Full').identity.tenantId
-        objectId: reference(syncEventFn.id, syncEventFn.apiVersion, 'Full').identity.principalId
+        tenantId: reference(sync_event_basename.id, '2020-06-01', 'Full').identity.tenantId
+        objectId: reference(sync_event_basename.id, '2020-06-01', 'Full').identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -70,8 +50,8 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
         }
       }
       {
-        tenantId: reference(identityFn.id, identityFn.apiVersion, 'Full').identity.tenantId
-        objectId: reference(identityFn.id, identityFn.apiVersion, 'Full').identity.principalId
+        tenantId: reference(identity_basename.id, '2020-06-01', 'Full').identity.tenantId
+        objectId: reference(identity_basename.id, '2020-06-01', 'Full').identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -95,9 +75,9 @@ resource usersKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   }
 }
 
-resource infraKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
+resource infraKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
   name: infraKvName
-  location: resourceGroup().location
+  location: location
   properties: {
     accessPolicies: []
     sku: {
@@ -111,14 +91,14 @@ resource infraKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
   }
 }
 
-resource infraKeyVaultAccessPolicies 'Microsoft.KeyVault/vaults/accessPolicies@2019-09-01' = {
-  parent: infraKeyVault
+resource infraKvName_add 'Microsoft.KeyVault/vaults/accessPolicies@2019-09-01' = {
+  parent: infraKvName_resource
   name: 'add'
   properties: {
     accessPolicies: [
       {
-        tenantId: publishDataFn.identity.tenantId
-        objectId: publishDataFn.identity.principalId
+        tenantId: reference(publish_data_basename.id, '2020-06-01', 'full').identity.tenantId
+        objectId: reference(publish_data_basename.id, '2020-06-01', 'full').identity.principalId
         permissions: {
           secrets: [
             'get'
@@ -126,7 +106,6 @@ resource infraKeyVaultAccessPolicies 'Microsoft.KeyVault/vaults/accessPolicies@2
         }
       }
       {
-        //TODO: this is a placeholder policy that is required for provisioning but should be removed when there is a managed identity that can be used
         tenantId: subscription().tenantId
         objectId: subscription().tenantId
         permissions: {
@@ -139,9 +118,9 @@ resource infraKeyVaultAccessPolicies 'Microsoft.KeyVault/vaults/accessPolicies@2
   }
 }
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' = {
+resource sa_basename 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   name: replace('sa-${basename}', '-', '')
-  location: resourceGroup().location
+  location: location
   kind: 'StorageV2'
   sku: {
     name: 'Standard_GRS'
@@ -174,9 +153,8 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   }
 }
 
-resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-04-01' = {
-  parent: storageAccount
-  name: 'default'
+resource sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@2021-04-01' = {
+  name: '${replace('sa-${basename}', '-', '')}/default'
   properties: {
     changeFeed: {
       enabled: false
@@ -197,60 +175,71 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-04-01'
     }
     isVersioningEnabled: false
   }
+  dependsOn: [
+    sa_basename
+  ]
 }
 
-resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2021-04-01' = {
-  parent: storageAccount
-  name: 'default'
+resource Microsoft_Storage_storageAccounts_fileServices_sa_basename_default 'Microsoft.Storage/storageAccounts/fileServices@2021-04-01' = {
+  name: '${replace('sa-${basename}', '-', '')}/default'
   properties: {}
+  dependsOn: [
+    sa_basename
+  ]
 }
 
-resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2021-04-01' = {
-  parent: storageAccount
-  name: 'default'
+resource Microsoft_Storage_storageAccounts_queueServices_sa_basename_default 'Microsoft.Storage/storageAccounts/queueServices@2021-04-01' = {
+  name: '${replace('sa-${basename}', '-', '')}/default'
+  dependsOn: [
+    sa_basename
+  ]
 }
 
-resource queue 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-04-01' = {
-  parent: queueService
+resource sa_basename_default_publish_data 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-04-01' = {
+  parent: Microsoft_Storage_storageAccounts_queueServices_sa_basename_default
   name: 'publish-data'
   properties: {
     metadata: {}
   }
+  dependsOn: [
+    sa_basename
+  ]
 }
 
-resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2021-02-01' = {
-  parent: storageAccount
-  name: 'default'
+resource Microsoft_Storage_storageAccounts_tableServices_sa_basename_default 'Microsoft.Storage/storageAccounts/tableServices@2021-02-01' = {
+  name: '${replace('sa-${basename}', '-', '')}/default'
+  dependsOn: [
+    sa_basename
+  ]
 }
 
-resource tableUsersTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2021-02-01' = {
-  parent: tableService
+resource sa_basename_default_users 'Microsoft.Storage/storageAccounts/tableServices/tables@2021-02-01' = {
+  parent: Microsoft_Storage_storageAccounts_tableServices_sa_basename_default
   name: 'users'
-}
-
-resource queueConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-  name: '${infraKvName}/queue-connection-string'
-  properties: {
-    value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, storageAccount.apiVersion).keys[0].value}'
-  }
   dependsOn: [
-    infraKeyVault
+    sa_basename
   ]
 }
 
-resource eventHubConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-  name: '${infraKvName}/eventhub-connection-string'
+resource infraKvName_queue_connection_string 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+  parent: infraKvName_resource
+  name: 'queue-connection-string'
   properties: {
-    value: listkeys(iotIngestAuthorizationRule.id, iotIngestAuthorizationRule.apiVersion).primaryConnectionString
+    value: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
   }
-  dependsOn: [
-    infraKeyVault
-  ]
 }
 
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
+resource infraKvName_eventhub_connection_string 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+  parent: infraKvName_resource
+  name: 'eventhub-connection-string'
+  properties: {
+    value: listkeys(en_basename_ingest_FunctionSender.id, '2021-01-01-preview').primaryConnectionString
+  }
+}
+
+resource la_basename 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
   name: 'la-${basename}'
-  location: resourceGroup().location
+  location: location
   properties: {
     sku: {
       name: 'PerGB2018'
@@ -258,140 +247,205 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06
   }
 }
 
-resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+resource ai_basename 'Microsoft.Insights/components@2020-02-02' = {
   name: 'ai-${basename}'
-  location: resourceGroup().location
+  location: location
   kind: 'web'
   properties: {
     Application_Type: 'web'
-    WorkspaceResourceId: logAnalyticsWorkspace.id
+    WorkspaceResourceId: la_basename.id
   }
 }
 
-resource hostingPlan 'Microsoft.Web/serverfarms@2020-10-01' = {
+resource app_plan_basename 'Microsoft.Web/serverfarms@2020-10-01' = {
   name: 'app-plan-${basename}'
-  location: resourceGroup().location
+  location: location
   sku: {
     name: 'Y1'
     tier: 'Dynamic'
+    size: 'Y1'
+    family: 'Y'
+    capacity: 0
+  }
+  kind: 'functionapp'
+  properties: {
+    perSiteScaling: false
+    maximumElasticWorkerCount: 1
+    isSpot: false
+    reserved: false
+    isXenon: false
+    hyperV: false
+    targetWorkerCount: 0
+    targetWorkerSizeId: 0
   }
 }
 
-resource identityFn 'Microsoft.Web/sites@2020-06-01' = {
+resource identity_basename 'Microsoft.Web/sites@2020-06-01' = {
   name: 'identity-${basename}'
-  location: resourceGroup().location
+  location: location
   kind: 'functionapp'
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
+    enabled: true
     httpsOnly: true
-    serverFarmId: hostingPlan.id
+    serverFarmId: app_plan_basename.id
+    reserved: false
+    scmSiteAlsoStopped: false
     clientAffinityEnabled: true
-    siteConfig: {
-      appSettings: union(commonAppSettings, [
-        {
-          name: 'WEBSITE_CONTENTSHARE'
-          value: 'identity-${basename}-${take(uniqueString('identity-', basename), 4)}'
-        }
-        {
-          name: 'GOOGLE_OAUTH_CLIENT_ID'
-          value: google_client_id
-        }
-        {
-          name: 'GOOGLE_OAUTH_CLIENT_SECRET'
-          value: google_client_secret
-        }
-        {
-          name: 'USERS_KEY_VAULT_URI'
-          value: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
-        }
-      ])
-    }
+    clientCertEnabled: false
+    hostNamesDisabled: false
+    containerSize: 1536
+    dailyMemoryTimeQuota: 0
   }
+}
 
+resource identity_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' = {
+  parent: identity_basename
+  location: location
+  name: 'appsettings'
+  properties: {
+    FUNCTIONS_EXTENSION_VERSION: '~3'
+    FUNCTIONS_WORKER_RUNTIME: 'dotnet'
+    PROJECT: 'src/GoogleFitOnFhir.Identity/GoogleFitOnFhir.Identity.csproj'
+    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
+    APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    WEBSITE_CONTENTSHARE: 'identity-${basename}-${take(uniqueString('identity-', basename), 4)}'
+    GOOGLE_OAUTH_CLIENT_ID: google_client_id
+    GOOGLE_OAUTH_CLIENT_SECRET: google_client_secret
+    USERS_KEY_VAULT_URI: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
+  }
+}
+
+resource identity_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
+  parent: identity_basename
+  name: 'web'
+  properties: {
+    repoUrl: repository_url
+    branch: repository_branch
+    isManualIntegration: true
+  }
   dependsOn: [
-    appInsights
-    hostingPlan
-    storageAccount
+    identity_basename_appsettings
   ]
 }
 
-resource syncEventFn 'Microsoft.Web/sites@2020-06-01' = {
+resource sync_event_basename 'Microsoft.Web/sites@2020-06-01' = {
   name: 'sync-event-${basename}'
-  location: resourceGroup().location
+  location: location
   kind: 'functionapp'
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
+    enabled: true
     httpsOnly: true
-    serverFarmId: hostingPlan.id
+    serverFarmId: app_plan_basename.id
+    reserved: false
+    scmSiteAlsoStopped: false
     clientAffinityEnabled: true
-    siteConfig: {
-      appSettings: union(commonAppSettings, [
-        {
-          name: 'WEBSITE_CONTENTSHARE'
-          value: 'sync-event-${basename}-${take(uniqueString('sync-event-', basename), 4)}'
-        }
-      ])
-    }
+    clientCertEnabled: false
+    hostNamesDisabled: false
+    containerSize: 1536
+    dailyMemoryTimeQuota: 0
   }
+}
 
+resource sync_event_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' = {
+  parent: sync_event_basename
+  location: location
+  name: 'appsettings'
+  properties: {
+    FUNCTIONS_EXTENSION_VERSION: '~3'
+    FUNCTIONS_WORKER_RUNTIME: 'dotnet'
+    PROJECT: 'src/GoogleFitOnFhir.SyncEvent/GoogleFitOnFhir.SyncEvent.csproj'
+    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
+    APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    WEBSITE_CONTENTSHARE: 'sync-event-${basename}-${take(uniqueString('sync-event-', basename), 4)}'
+  }
   dependsOn: [
-    appInsights
-    hostingPlan
-    storageAccount
+    identity_basename
   ]
 }
 
-resource publishDataFn 'Microsoft.Web/sites@2020-06-01' = {
+resource sync_event_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
+  parent: sync_event_basename
+  name: 'web'
+  properties: {
+    repoUrl: repository_url
+    branch: repository_branch
+    isManualIntegration: true
+  }
+  dependsOn: [
+    sync_event_basename_appsettings
+  ]
+}
+
+resource publish_data_basename 'Microsoft.Web/sites@2020-06-01' = {
   name: 'publish-data-${basename}'
-  location: resourceGroup().location
+  location: location
   kind: 'functionapp'
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
+    enabled: true
     httpsOnly: true
-    serverFarmId: hostingPlan.id
+    serverFarmId: app_plan_basename.id
+    reserved: false
+    scmSiteAlsoStopped: false
     clientAffinityEnabled: true
-    siteConfig: {
-      appSettings: union(commonAppSettings, [
-        {
-          name: 'WEBSITE_CONTENTSHARE'
-          value: 'publish-data-${basename}-${take(uniqueString('publish-data-', basename), 4)}'
-        }
-        {
-          name: 'EventHubConnectionString'
-          value: '@Microsoft.KeyVault(SecretUri=${reference(eventHubConnectionStringSecret.id).secretUriWithVersion})'
-        }
-        {
-          name: 'GOOGLE_OAUTH_CLIENT_ID'
-          value: google_client_id
-        }
-        {
-          name: 'GOOGLE_OAUTH_CLIENT_SECRET'
-          value: google_client_secret
-        }
-        {
-          name: 'USERS_KEY_VAULT_URI'
-          value: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
-        }
-      ])
-    }
+    clientCertEnabled: false
+    hostNamesDisabled: false
+    containerSize: 1536
+    dailyMemoryTimeQuota: 0
   }
+}
 
+resource publish_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' = {
+  parent: publish_data_basename
+  location: location
+  name: 'appsettings'
+  properties: {
+    FUNCTIONS_EXTENSION_VERSION: '~3'
+    FUNCTIONS_WORKER_RUNTIME: 'dotnet'
+    PROJECT: 'src/GoogleFitOnFhir.PublishData/GoogleFitOnFhir.PublishData.csproj'
+    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
+    APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    WEBSITE_CONTENTSHARE: 'publish-data-${basename}-${take(uniqueString('publish-data-', basename), 4)}'
+    EventHubConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', split('${infraKvName}/eventhub-connection-string', '/')[0], split('${infraKvName}/eventhub-connection-string', '/')[1])).secretUriWithVersion})'
+    GOOGLE_OAUTH_CLIENT_ID: google_client_id
+    GOOGLE_OAUTH_CLIENT_SECRET: google_client_secret
+    USERS_KEY_VAULT_URI: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
+  }
   dependsOn: [
-    appInsights
-    hostingPlan
-    storageAccount
+    infraKvName_eventhub_connection_string
   ]
 }
 
-resource iotEventHubNamespace 'Microsoft.EventHub/namespaces@2021-01-01-preview' = {
+resource publish_data_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
+  parent: publish_data_basename
+  name: 'web'
+  properties: {
+    repoUrl: repository_url
+    branch: repository_branch
+    isManualIntegration: true
+  }
+  dependsOn: [
+    publish_data_basename_appsettings
+  ]
+}
+
+resource en_basename 'Microsoft.EventHub/namespaces@2021-01-01-preview' = {
   name: 'en-${basename}'
-  location: resourceGroup().location
+  location: location
   sku: {
     name: 'Standard'
     tier: 'Standard'
@@ -405,8 +459,8 @@ resource iotEventHubNamespace 'Microsoft.EventHub/namespaces@2021-01-01-preview'
   }
 }
 
-resource iotIngestEventHub 'Microsoft.EventHub/namespaces/eventhubs@2021-01-01-preview' = {
-  parent: iotEventHubNamespace
+resource en_basename_ingest 'Microsoft.EventHub/namespaces/eventhubs@2021-01-01-preview' = {
+  parent: en_basename
   name: 'ingest'
   properties: {
     messageRetentionInDays: 1
@@ -414,13 +468,13 @@ resource iotIngestEventHub 'Microsoft.EventHub/namespaces/eventhubs@2021-01-01-p
   }
 }
 
-resource iotIngestDefaultEventHubConsumerGroup 'Microsoft.EventHub/namespaces/eventhubs/consumergroups@2021-01-01-preview' = {
-  parent: iotIngestEventHub
+resource en_basename_ingest_Default 'Microsoft.EventHub/namespaces/eventhubs/consumergroups@2021-01-01-preview' = {
+  parent: en_basename_ingest
   name: '$Default'
 }
 
-resource iotIngestAuthorizationRule 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-01-01-preview' = {
-  parent: iotIngestEventHub
+resource en_basename_ingest_FunctionSender 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-01-01-preview' = {
+  parent: en_basename_ingest
   name: 'FunctionSender'
   properties: {
     rights: [
@@ -429,16 +483,15 @@ resource iotIngestAuthorizationRule 'Microsoft.EventHub/namespaces/eventhubs/aut
   }
 }
 
-resource workspace 'Microsoft.HealthcareApis/workspaces@2021-06-01-preview' = {
+resource hw_basename 'Microsoft.HealthcareApis/workspaces@2021-06-01-preview' = {
   name: replace('hw-${basename}', '-', '')
-  location: resourceGroup().location
+  location: location
   properties: {}
 }
 
-resource fhirservice 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-06-01-preview' = {
-  parent: workspace
-  name: 'fs-${basename}'
-  location: resourceGroup().location
+resource hw_basename_fs_basename 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-06-01-preview' = {
+  name: '${replace('hw-${basename}', '-', '')}/fs-${basename}'
+  location: location
   kind: 'fhir-R4'
   identity: {
     type: 'SystemAssigned'
@@ -446,24 +499,26 @@ resource fhirservice 'Microsoft.HealthcareApis/workspaces/fhirservices@2021-06-0
   properties: {
     authenticationConfiguration: {
       authority: '${environment().authentication.loginEndpoint}${subscription().tenantId}'
-      audience: 'https://${workspace.name}-fs-${basename}.fhir.azurehealthcareapis.com'
+      audience: 'https://${replace('hw-${basename}', '-', '')}-fs-${basename}.fhir.azurehealthcareapis.com'
       smartProxyEnabled: false
     }
   }
+  dependsOn: [
+    hw_basename
+  ]
 }
 
-resource iotconnector 'Microsoft.HealthcareApis/workspaces/iotconnectors@2021-06-01-preview' = {
-  parent: workspace
-  name: 'hi-${basename}'
-  location: resourceGroup().location
+resource hw_basename_hi_basename 'Microsoft.HealthcareApis/workspaces/iotconnectors@2021-06-01-preview' = {
+  name: '${replace('hw-${basename}', '-', '')}/hi-${basename}'
+  location: location
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
     ingestionEndpointConfiguration: {
-      eventHubName: iotIngestEventHub.name
-      consumerGroup: iotIngestDefaultEventHubConsumerGroup.name
-      fullyQualifiedEventHubNamespace: '${iotEventHubNamespace.name}.servicebus.windows.net'
+      eventHubName: 'ingest'
+      consumerGroup: '$Default'
+      fullyQualifiedEventHubNamespace: 'en-${basename}.servicebus.windows.net'
     }
     deviceMapping: {
       content: {
@@ -490,33 +545,39 @@ resource iotconnector 'Microsoft.HealthcareApis/workspaces/iotconnectors@2021-06
       }
     }
   }
+  dependsOn: [
+    en_basename
+    en_basename_ingest_Default
+    en_basename_ingest
+    hw_basename
+  ]
 }
 
-resource iotFhirWriterRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+resource id_FhirWriter 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+  scope: hw_basename_fs_basename
   name: guid('${resourceGroup().id}-FhirWriter')
-  scope: fhirservice
   properties: {
     roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${fhirWriterRoleId}'
-    principalId: reference(iotconnector.id, iotconnector.apiVersion, 'Full').identity.principalId
+    principalId: reference(hw_basename_hi_basename.id, '2021-06-01-preview', 'Full').identity.principalId
   }
 }
 
-resource eventHubReceiverRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+resource id_EventHubDataReceiver 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+  scope: en_basename_ingest
   name: guid('${resourceGroup().id}-EventHubDataReceiver')
-  scope: iotIngestEventHub
   properties: {
     roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${eventHubReceiverRoleId}'
-    principalId: reference(iotconnector.id, iotconnector.apiVersion, 'Full').identity.principalId
+    principalId: reference(hw_basename_hi_basename.id, '2021-06-01-preview', 'Full').identity.principalId
   }
 }
 
-resource iotdestination 'Microsoft.HealthcareApis/workspaces/iotconnectors/fhirdestinations@2021-06-01-preview' = {
-  parent: iotconnector
+resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspaces/iotconnectors/fhirdestinations@2021-06-01-preview' = {
+  parent: hw_basename_hi_basename
   name: 'hd-${basename}'
-  location: resourceGroup().location
+  location: location
   properties: {
     resourceIdentityResolutionType: 'Create'
-    fhirServiceResourceId: fhirservice.id
+    fhirServiceResourceId: hw_basename_fs_basename.id
     fhirMapping: {
       content: {
         templateType: 'CollectionFhir'
@@ -539,11 +600,13 @@ resource iotdestination 'Microsoft.HealthcareApis/workspaces/iotconnectors/fhird
       }
     }
   }
+  dependsOn: [
+    hw_basename
+  ]
 }
 
-output usersKeyVaultName string = usersKeyVault.name
-output infraKeyVaultName string = infraKeyVault.name
-
-output identityAppName string = identityFn.name
-output syncEventAppName string = syncEventFn.name
-output publishDataAppName string = publishDataFn.name
+output usersKeyVaultName string = usersKvName
+output infraKeyVaultName string = infraKvName
+output identityAppName string = 'identity-${basename}'
+output syncEventAppName string = 'sync-event-${basename}'
+output publishDataAppName string = 'publish-data-${basename}'
