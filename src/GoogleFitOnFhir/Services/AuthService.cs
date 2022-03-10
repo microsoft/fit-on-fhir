@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
@@ -10,28 +15,28 @@ namespace GoogleFitOnFhir.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly ClientContext clientContext;
+        private readonly ClientContext _clientContext;
 
         public AuthService(ClientContext clientContext)
         {
-            this.clientContext = clientContext;
+            _clientContext = clientContext;
         }
 
         public Task<AuthUriResponse> AuthUriRequest()
         {
-            return new AuthUriRequest(this.clientContext, this.GetAuthFlow())
+            return new AuthUriRequest(_clientContext, GetAuthFlow())
                 .ExecuteAsync();
         }
 
         public Task<AuthTokensResponse> AuthTokensRequest(string authCode)
         {
-            return new AuthTokensRequest(this.clientContext, authCode, this.GetAuthFlow())
+            return new AuthTokensRequest(_clientContext, authCode, GetAuthFlow())
                 .ExecuteAsync();
         }
 
         public Task<AuthTokensResponse> RefreshTokensRequest(string refreshToken)
         {
-            return new RefreshTokensRequest(this.clientContext, refreshToken, this.GetAuthFlow())
+            return new RefreshTokensRequest(_clientContext, refreshToken, GetAuthFlow())
                 .ExecuteAsync();
         }
 
@@ -42,8 +47,8 @@ namespace GoogleFitOnFhir.Services
             {
                 ClientSecrets = new ClientSecrets
                 {
-                    ClientId = this.clientContext.ClientId,
-                    ClientSecret = this.clientContext.ClientSecret,
+                    ClientId = _clientContext.ClientId,
+                    ClientSecret = _clientContext.ClientSecret,
                 },
 
                 // TODO: Only need write scopes for e2e tests - make this dynamic

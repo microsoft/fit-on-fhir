@@ -1,4 +1,8 @@
-using System.Threading;
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.PeopleService.v1;
@@ -9,11 +13,11 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class MyEmailRequest
     {
-        private readonly PeopleServiceService peopleService;
+        private readonly PeopleServiceService _peopleService;
 
         public MyEmailRequest(string accessToken)
         {
-            this.peopleService = new PeopleServiceService(
+            _peopleService = new PeopleServiceService(
                 new BaseClientService.Initializer()
             {
                 HttpClientInitializer =
@@ -23,13 +27,16 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 
         public async Task<MyEmailResponse> ExecuteAsync()
         {
-            var request = this.peopleService.People.Get("people/me");
+            var request = _peopleService.People.Get("people/me");
             request.PersonFields = "emailAddresses";
 
             var data = await request.ExecuteAsync();
 
-            var response = new MyEmailResponse();
-            response.EmailAddress = data.EmailAddresses[0].Value;
+            var response = new MyEmailResponse
+            {
+                EmailAddress = data.EmailAddresses[0].Value,
+            };
+
             return response;
         }
     }

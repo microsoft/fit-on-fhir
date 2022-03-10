@@ -1,4 +1,8 @@
-using System;
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System.Threading.Tasks;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Services;
@@ -10,12 +14,12 @@ namespace GoogleFitOnFhir.PublishData
 {
     public class PublishData
     {
-        private readonly IUsersService usersService;
+        private readonly IUsersService _usersService;
 
         public PublishData(
             IUsersService usersService)
         {
-            this.usersService = usersService;
+            _usersService = usersService;
         }
 
         [FunctionName("publish-data")]
@@ -25,7 +29,7 @@ namespace GoogleFitOnFhir.PublishData
         {
             log.LogInformation("publish-data has message: {0}", myQueueItem);
             QueueMessage message = JsonConvert.DeserializeObject<QueueMessage>(myQueueItem);
-            await this.usersService.ImportFitnessData(message.UserId);
+            await _usersService.ImportFitnessData(message.UserId);
         }
     }
 }

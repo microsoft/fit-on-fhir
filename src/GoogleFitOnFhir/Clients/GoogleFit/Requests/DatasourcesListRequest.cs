@@ -1,8 +1,11 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System.Linq;
 using System.Threading.Tasks;
-using Google.Apis.Auth.OAuth2;
 using Google.Apis.Fitness.v1;
-using Google.Apis.Services;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
@@ -16,7 +19,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 
         public async Task<DatasourcesListResponse> ExecuteAsync()
         {
-            var listRequest = new UsersResource.DataSourcesResource.ListRequest(this.FitnessService, "me");
+            var listRequest = new UsersResource.DataSourcesResource.ListRequest(FitnessService, "me");
             var datasourceList = await listRequest.ExecuteAsync();
 
             // Filter by dataType, first example using com.google.blood_glucose

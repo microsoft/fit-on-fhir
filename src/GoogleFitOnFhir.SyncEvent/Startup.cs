@@ -1,11 +1,13 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using GoogleFitOnFhir.Persistence;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-
-using GoogleFitClient = GoogleFitOnFhir.Clients.GoogleFit.Client;
-using GoogleFitClientContext = GoogleFitOnFhir.Clients.GoogleFit.ClientContext;
 
 [assembly: FunctionsStartup(typeof(GoogleFitOnFhir.SyncEvent.Startup))]
 
@@ -17,7 +19,7 @@ namespace GoogleFitOnFhir.SyncEvent
         {
             string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
 
-            builder.Services.AddSingleton<StorageAccountContext>(sp => new StorageAccountContext(storageAccountConnectionString));
+            builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
 
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
         }

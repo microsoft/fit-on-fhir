@@ -1,4 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Fitness.v1;
 using Google.Apis.Services;
@@ -9,8 +13,8 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
     {
         public BaseFitnessRequest(string accessToken)
         {
-            this.AccessToken = accessToken;
-            this.FitnessService = new FitnessService(new BaseClientService.Initializer()
+            AccessToken = accessToken;
+            FitnessService = new FitnessService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = GoogleCredential.FromAccessToken(accessToken),
             });

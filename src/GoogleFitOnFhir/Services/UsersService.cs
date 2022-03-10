@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
@@ -17,17 +22,12 @@ namespace GoogleFitOnFhir.Services
     /// </summary>
     public class UsersService : IUsersService
     {
-        private readonly IUsersTableRepository usersTableRepository;
-
-        private readonly GoogleFitClient googleFitClient;
-
-        private readonly EventHubProducerClient eventHubProducerClient;
-
-        private readonly ILogger<UsersService> logger;
-
-        private readonly IUsersKeyvaultRepository usersKeyvaultRepository;
-
-        private readonly IAuthService authService;
+        private readonly IUsersTableRepository _usersTableRepository;
+        private readonly GoogleFitClient _googleFitClient;
+        private readonly EventHubProducerClient _eventHubProducerClient;
+        private readonly ILogger<UsersService> _logger;
+        private readonly IUsersKeyvaultRepository _usersKeyvaultRepository;
+        private readonly IAuthService _authService;
 
         public UsersService(
             IUsersTableRepository usersTableRepository,
@@ -37,23 +37,23 @@ namespace GoogleFitOnFhir.Services
             IAuthService authService,
             ILogger<UsersService> logger)
         {
-            this.usersTableRepository = usersTableRepository;
-            this.googleFitClient = googleFitClient;
-            this.eventHubProducerClient = eventHubProducerClient;
-            this.usersKeyvaultRepository = usersKeyvaultRepository;
-            this.authService = authService;
-            this.logger = logger;
+            _usersTableRepository = usersTableRepository;
+            _googleFitClient = googleFitClient;
+            _eventHubProducerClient = eventHubProducerClient;
+            _usersKeyvaultRepository = usersKeyvaultRepository;
+            _authService = authService;
+            _logger = logger;
         }
 
         public async Task<User> Initiate(string authCode)
         {
-            var tokenResponse = await this.authService.AuthTokensRequest(authCode);
+            var tokenResponse = await _authService.AuthTokensRequest(authCode);
             if (tokenResponse == null)
             {
                 throw new Exception("Token response empty");
             }
 
-            var emailResponse = await this.googleFitClient.MyEmailRequest(tokenResponse.AccessToken);
+            var emailResponse = await _googleFitClient.MyEmailRequest(tokenResponse.AccessToken);
             if (emailResponse == null)
             {
                 throw new Exception("Email response empty");
@@ -64,10 +64,10 @@ namespace GoogleFitOnFhir.Services
             var user = new User(userId);
 
             // Insert user into UsersTable
-            this.usersTableRepository.Upsert(user);
+            _usersTableRepository.Upsert(user);
 
             // Insert refresh token into users KV by userId
-            await this.usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken);
+            await _usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken);
 
             return user;
         }
@@ -76,34 +76,34 @@ namespace GoogleFitOnFhir.Services
         {
             string refreshToken;
 
-            this.logger.LogInformation("Get RefreshToken from KV for {0}", userId);
+            _logger.LogInformation("Get RefreshToken from KV for {0}", userId);
 
             try
             {
-                refreshToken = await this.usersKeyvaultRepository.GetByName(userId);
+                refreshToken = await _usersKeyvaultRepository.GetByName(userId);
             }
             catch (AggregateException ex)
             {
-                this.logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
                 return;
             }
 
-            this.logger.LogInformation("Refreshing the RefreshToken");
-            AuthTokensResponse tokensResponse = await this.authService.RefreshTokensRequest(refreshToken);
+            _logger.LogInformation("Refreshing the RefreshToken");
+            AuthTokensResponse tokensResponse = await _authService.RefreshTokensRequest(refreshToken);
 
-            this.logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
+            _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
 
             // TODO: Store new refresh token
-            var dataSourcesList = await this.googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken);
+            var dataSourcesList = await _googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken);
 
-            this.logger.LogInformation("Create Eventhub Batch");
+            _logger.LogInformation("Create Eventhub Batch");
 
             // Create a batch of events for IoMT eventhub
-            using EventDataBatch eventBatch = await this.eventHubProducerClient.CreateBatchAsync();
+            using EventDataBatch eventBatch = await _eventHubProducerClient.CreateBatchAsync();
 
             // Get user's info for LastSync date
-            this.logger.LogInformation("Query userInfo");
-            var user = this.usersTableRepository.GetById(userId);
+            _logger.LogInformation("Query userInfo");
+            var user = _usersTableRepository.GetById(userId);
 
             // Generating datasetId based on event type
             DateTime startDateDt = DateTime.Now.AddDays(-30);
@@ -124,8 +124,8 @@ namespace GoogleFitOnFhir.Services
             // Get dataset for each dataSource
             foreach (var datasourceId in dataSourcesList.DatasourceIds)
             {
-                this.logger.LogInformation("Query Dataset: {0}", datasourceId);
-                var dataset = await this.googleFitClient.DatasetRequest(
+                _logger.LogInformation("Query Dataset: {0}", datasourceId);
+                var dataset = await _googleFitClient.DatasetRequest(
                     tokensResponse.AccessToken,
                     datasourceId,
                     datasetId);
@@ -135,7 +135,7 @@ namespace GoogleFitOnFhir.Services
 
                 var jsonDataset = JsonConvert.SerializeObject(dataset);
 
-                this.logger.LogInformation("Push Dataset: {0}", datasourceId);
+                _logger.LogInformation("Push Dataset: {0}", datasourceId);
 
                 // Push dataset to IoMT connector
                 if (!eventBatch.TryAdd(new EventData(jsonDataset)))
@@ -147,16 +147,16 @@ namespace GoogleFitOnFhir.Services
             try
             {
                 // Use the producer client to send the batch of events to the event hub
-                await this.eventHubProducerClient.SendAsync(eventBatch);
-                this.logger.LogInformation("A batch of events has been published.");
+                await _eventHubProducerClient.SendAsync(eventBatch);
+                _logger.LogInformation("A batch of events has been published.");
 
                 // Update LastSync column
                 user.LastSync = endDateDto;
-                this.usersTableRepository.Update(user);
+                _usersTableRepository.Update(user);
             }
             finally
             {
-                await this.eventHubProducerClient.DisposeAsync();
+                await _eventHubProducerClient.DisposeAsync();
             }
         }
 

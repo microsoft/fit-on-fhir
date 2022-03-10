@@ -1,6 +1,10 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Azure.Data.Tables;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Persistence;
@@ -10,38 +14,36 @@ namespace GoogleFitOnFhir.Repositories
 {
     public class UsersTableRepository : IUsersTableRepository
     {
-        private StorageAccountContext storageAccountContext;
-
-        private TableClient tableClient;
-
-        private ILogger<UsersTableRepository> logger;
+        private readonly StorageAccountContext _storageAccountContext;
+        private readonly TableClient _tableClient;
+        private readonly ILogger<UsersTableRepository> _logger;
 
         public UsersTableRepository(StorageAccountContext storageAccountContext, ILogger<UsersTableRepository> logger)
         {
-            this.storageAccountContext = storageAccountContext;
-            this.tableClient = new TableClient(this.storageAccountContext.ConnectionString, "users");
-            this.logger = logger;
+            _storageAccountContext = storageAccountContext;
+            _tableClient = new TableClient(storageAccountContext.ConnectionString, "users");
+            _logger = logger;
         }
 
         public IEnumerable<User> GetAll()
         {
-            return this.tableClient.Query<User>();
+            return _tableClient.Query<User>();
         }
 
         public User GetById(string id)
         {
-            return this.tableClient.GetEntity<User>(id, id);
+            return _tableClient.GetEntity<User>(id, id);
         }
 
         public void Insert(User user)
         {
             try
             {
-                this.tableClient.AddEntity(user);
+                _tableClient.AddEntity(user);
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
             }
         }
 
@@ -49,11 +51,11 @@ namespace GoogleFitOnFhir.Repositories
         {
             try
             {
-                this.tableClient.UpdateEntity(user, user.ETag);
+                _tableClient.UpdateEntity(user, user.ETag);
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
             }
         }
 
@@ -61,11 +63,11 @@ namespace GoogleFitOnFhir.Repositories
         {
             try
             {
-                this.tableClient.UpsertEntity(user);
+                _tableClient.UpsertEntity(user);
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
             }
         }
 
@@ -73,11 +75,11 @@ namespace GoogleFitOnFhir.Repositories
         {
             try
             {
-                this.tableClient.DeleteEntity(user.PartitionKey, user.RowKey);
+                _tableClient.DeleteEntity(user.PartitionKey, user.RowKey);
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
             }
         }
     }

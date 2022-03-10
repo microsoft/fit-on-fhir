@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,11 +17,11 @@ namespace GoogleFitOnFhir.SyncEvent
 {
     public class SyncEvent
     {
-        private readonly IUsersTableRepository usersTableRepository;
+        private readonly IUsersTableRepository _usersTableRepository;
 
         public SyncEvent(IUsersTableRepository usersTableRepository)
         {
-            this.usersTableRepository = usersTableRepository;
+            _usersTableRepository = usersTableRepository;
         }
 
         [FunctionName("SyncEvent")]
@@ -24,9 +29,9 @@ namespace GoogleFitOnFhir.SyncEvent
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            IEnumerable<User> users = this.usersTableRepository.GetAll();
+            IEnumerable<User> users = _usersTableRepository.GetAll();
 
-            log.LogInformation("{0} users in table", users.Count<User>());
+            log.LogInformation("{0} users in table", users.Count());
 
             foreach (User user in users)
             {
