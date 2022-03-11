@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Text;
 using Azure.Messaging.EventHubs.Producer;
@@ -26,21 +31,18 @@ namespace GoogleFitOnFhir.PublishData
             string googleFitClientId = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID");
             string googleFitClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET");
 
-            StringBuilder stringBuilder = new StringBuilder("http");
-            #if !DEBUG
-            stringBuilder.Append("s");
-            #endif
+            StringBuilder stringBuilder = new StringBuilder("https");
             stringBuilder.Append("://")
                 .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
                 .Append("/api/callback");
 
             builder.Services.AddLogging();
-            builder.Services.AddSingleton<GoogleFitClientContext>(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, stringBuilder.ToString()));
+            builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, stringBuilder.ToString()));
             builder.Services.AddSingleton<GoogleFitClient>();
 
-            builder.Services.AddSingleton<StorageAccountContext>(sp => new StorageAccountContext(storageAccountConnectionString));
-            builder.Services.AddSingleton<UsersKeyvaultContext>(sp => new UsersKeyvaultContext(usersKeyvaultUri));
-            builder.Services.AddScoped<EventHubProducerClient>(sp => new EventHubProducerClient(iomtConnectionString));
+            builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
+            builder.Services.AddSingleton(sp => new UsersKeyvaultContext(usersKeyvaultUri));
+            builder.Services.AddScoped(sp => new EventHubProducerClient(iomtConnectionString));
 
             builder.Services.AddSingleton<IUsersKeyvaultRepository, UsersKeyvaultRepository>();
             builder.Services.AddSingleton<IAuthService, AuthService>();

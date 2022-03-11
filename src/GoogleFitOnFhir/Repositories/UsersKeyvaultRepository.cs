@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System.Threading.Tasks;
 using GoogleFitOnFhir.Persistence;
 using Microsoft.Azure.KeyVault;
@@ -9,29 +14,25 @@ namespace GoogleFitOnFhir.Repositories
 {
     public class UsersKeyvaultRepository : IUsersKeyvaultRepository
     {
-        private readonly UsersKeyvaultContext keyvaultContext;
-
-        private readonly IKeyVaultClient keyVaultClient;
-
-        private readonly AzureServiceTokenProvider tokenProvider;
-
-        private readonly ILogger<UsersKeyvaultRepository> logger;
+        private readonly UsersKeyvaultContext _keyvaultContext;
+        private readonly IKeyVaultClient _keyVaultClient;
+        private readonly AzureServiceTokenProvider _tokenProvider;
+        private readonly ILogger<UsersKeyvaultRepository> _logger;
 
         public UsersKeyvaultRepository(
             UsersKeyvaultContext keyvaultContext,
             ILogger<UsersKeyvaultRepository> logger)
         {
-            this.keyvaultContext = keyvaultContext;
-            this.logger = logger;
-
-            this.tokenProvider = new AzureServiceTokenProvider();
-            this.keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(this.tokenProvider.KeyVaultTokenCallback));
+            _keyvaultContext = keyvaultContext;
+            _logger = logger;
+            _tokenProvider = new AzureServiceTokenProvider();
+            _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_tokenProvider.KeyVaultTokenCallback));
         }
 
         public async Task Upsert(string secretName, string value)
         {
-            await this.keyVaultClient.SetSecretAsync(
-                this.keyvaultContext.Uri,
+            await _keyVaultClient.SetSecretAsync(
+                _keyvaultContext.Uri,
                 secretName,
                 value);
         }
@@ -40,14 +41,14 @@ namespace GoogleFitOnFhir.Repositories
         {
             try
             {
-                SecretBundle secret = await this.keyVaultClient.GetSecretAsync(
-                    this.keyvaultContext.Uri,
+                SecretBundle secret = await _keyVaultClient.GetSecretAsync(
+                    _keyvaultContext.Uri,
                     secretName);
                 return secret.Value;
             }
             catch (KeyVaultErrorException ex)
             {
-                this.logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
                 throw;
             }
         }

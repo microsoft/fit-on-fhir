@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +16,11 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Models
         public IomtDataset(Dataset dataset)
                 : base()
         {
-            this.DataSourceId = dataset.DataSourceId;
-            this.MaxEndTimeNs = dataset.MaxEndTimeNs;
-            this.MinStartTimeNs = dataset.MinStartTimeNs;
-            this.NextPageToken = dataset.NextPageToken;
-            this.Point = new List<IomtDataPoint>(dataset.Point.Select(dp =>
+            DataSourceId = dataset.DataSourceId;
+            MaxEndTimeNs = dataset.MaxEndTimeNs;
+            MinStartTimeNs = dataset.MinStartTimeNs;
+            NextPageToken = dataset.NextPageToken;
+            Point = new List<IomtDataPoint>(dataset.Point.Select(dp =>
             {
                 DateTime dateTime = new DateTime(1970, 1, 1).AddTicks(dp.EndTimeNanos.Value / 100);
                 return new IomtDataPoint
@@ -31,7 +36,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Models
                     EndTimeISO8601 = dateTime.ToString("o"),
                 };
             }));
-            this.ETag = dataset.ETag;
+            ETag = dataset.ETag;
         }
 
         [JsonProperty("userId")]

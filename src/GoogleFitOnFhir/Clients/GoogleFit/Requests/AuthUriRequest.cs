@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2.Flows;
@@ -8,28 +13,30 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class AuthUriRequest
     {
-        private readonly ClientContext clientContext;
-
-        private readonly IAuthorizationCodeFlow authFlow;
+        private readonly ClientContext _clientContext;
+        private readonly IAuthorizationCodeFlow _authFlow;
 
         public AuthUriRequest(ClientContext clientContext, IAuthorizationCodeFlow authFlow)
         {
-            this.clientContext = clientContext;
-            this.authFlow = authFlow;
+            _clientContext = clientContext;
+            _authFlow = authFlow;
         }
 
         public async Task<AuthUriResponse> ExecuteAsync()
         {
             var request = new AuthorizationCodeWebApp(
-                this.authFlow,
-                this.clientContext.CallbackUri,
+                _authFlow,
+                _clientContext.CallbackUri,
                 string.Empty);
 
             var result = await request.AuthorizeAsync("user", CancellationToken.None);
             if (result.Credential == null)
             {
-                var response = new AuthUriResponse();
-                response.Uri = result.RedirectUri;
+                var response = new AuthUriResponse
+                {
+                    Uri = result.RedirectUri,
+                };
+
                 return response;
             }
             else
