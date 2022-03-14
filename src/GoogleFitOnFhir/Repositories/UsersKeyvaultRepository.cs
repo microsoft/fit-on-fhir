@@ -12,16 +12,16 @@ using Microsoft.Extensions.Logging;
 
 namespace GoogleFitOnFhir.Repositories
 {
-    public class UsersKeyvaultRepository : IUsersKeyvaultRepository
+    public class UsersKeyVaultRepository : IUsersKeyvaultRepository
     {
-        private readonly UsersKeyvaultContext _keyvaultContext;
+        private readonly UsersKeyVaultContext _keyvaultContext;
         private readonly IKeyVaultClient _keyVaultClient;
         private readonly AzureServiceTokenProvider _tokenProvider;
-        private readonly ILogger<UsersKeyvaultRepository> _logger;
+        private readonly ILogger<UsersKeyVaultRepository> _logger;
 
-        public UsersKeyvaultRepository(
-            UsersKeyvaultContext keyvaultContext,
-            ILogger<UsersKeyvaultRepository> logger)
+        public UsersKeyVaultRepository(
+            UsersKeyVaultContext keyvaultContext,
+            ILogger<UsersKeyVaultRepository> logger)
         {
             _keyvaultContext = keyvaultContext;
             _logger = logger;

@@ -5,9 +5,9 @@
 
 namespace GoogleFitOnFhir.Persistence
 {
-    public class UsersKeyvaultContext
+    public class UsersKeyVaultContext
     {
-        public UsersKeyvaultContext(string uri)
+        public UsersKeyVaultContext(string uri)
         {
             Uri = uri;
         }

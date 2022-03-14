@@ -13,23 +13,23 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class AuthUriRequest
     {
-        private readonly ClientContext _clientContext;
+        private readonly GoogleFitClientContext _clientContext;
         private readonly IAuthorizationCodeFlow _authFlow;
 
-        public AuthUriRequest(ClientContext clientContext, IAuthorizationCodeFlow authFlow)
+        public AuthUriRequest(GoogleFitClientContext clientContext, IAuthorizationCodeFlow authFlow)
         {
             _clientContext = clientContext;
             _authFlow = authFlow;
         }
 
-        public async Task<AuthUriResponse> ExecuteAsync()
+        public async Task<AuthUriResponse> ExecuteAsync(CancellationToken cancellationToken)
         {
             var request = new AuthorizationCodeWebApp(
                 _authFlow,
                 _clientContext.CallbackUri,
                 string.Empty);
 
-            var result = await request.AuthorizeAsync("user", CancellationToken.None);
+            var result = await request.AuthorizeAsync("user", cancellationToken);
             if (result.Credential == null)
             {
                 var response = new AuthUriResponse

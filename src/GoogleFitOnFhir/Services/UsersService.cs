@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
@@ -13,14 +14,14 @@ using GoogleFitOnFhir.Repositories;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-using GoogleFitClient = GoogleFitOnFhir.Clients.GoogleFit.Client;
+using GoogleFitClient = GoogleFitOnFhir.Clients.GoogleFit.GoogleFitClient;
 
 namespace GoogleFitOnFhir.Services
 {
     /// <summary>
     /// User Service.
     /// </summary>
-    public class UsersService : IUsersService
+    public class UsersService : IUsersService, IAsyncDisposable
     {
         private readonly IUsersTableRepository _usersTableRepository;
         private readonly GoogleFitClient _googleFitClient;
@@ -45,15 +46,15 @@ namespace GoogleFitOnFhir.Services
             _logger = logger;
         }
 
-        public async Task<User> Initiate(string authCode)
+        public async Task<User> Initiate(string authCode, CancellationToken cancellationToken)
         {
-            var tokenResponse = await _authService.AuthTokensRequest(authCode);
+            var tokenResponse = await _authService.AuthTokensRequest(authCode, cancellationToken);
             if (tokenResponse == null)
             {
                 throw new Exception("Token response empty");
             }
 
-            var emailResponse = await _googleFitClient.MyEmailRequest(tokenResponse.AccessToken);
+            var emailResponse = await _googleFitClient.MyEmailRequest(tokenResponse.AccessToken, cancellationToken);
             if (emailResponse == null)
             {
                 throw new Exception("Email response empty");
@@ -64,7 +65,7 @@ namespace GoogleFitOnFhir.Services
             var user = new User(userId);
 
             // Insert user into UsersTable
-            _usersTableRepository.Upsert(user);
+            await _usersTableRepository.Upsert(user, cancellationToken);
 
             // Insert refresh token into users KV by userId
             await _usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken);
@@ -72,7 +73,7 @@ namespace GoogleFitOnFhir.Services
             return user;
         }
 
-        public async Task ImportFitnessData(string userId)
+        public async Task ImportFitnessData(string userId, CancellationToken cancellationToken)
         {
             string refreshToken;
 
@@ -89,21 +90,21 @@ namespace GoogleFitOnFhir.Services
             }
 
             _logger.LogInformation("Refreshing the RefreshToken");
-            AuthTokensResponse tokensResponse = await _authService.RefreshTokensRequest(refreshToken);
+            AuthTokensResponse tokensResponse = await _authService.RefreshTokensRequest(refreshToken, cancellationToken);
 
             _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
 
             // TODO: Store new refresh token
-            var dataSourcesList = await _googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken);
+            var dataSourcesList = await _googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken, cancellationToken);
 
             _logger.LogInformation("Create Eventhub Batch");
 
             // Create a batch of events for IoMT eventhub
-            using EventDataBatch eventBatch = await _eventHubProducerClient.CreateBatchAsync();
+            using EventDataBatch eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
 
             // Get user's info for LastSync date
             _logger.LogInformation("Query userInfo");
-            var user = _usersTableRepository.GetById(userId);
+            var user = await _usersTableRepository.GetById(userId, cancellationToken);
 
             // Generating datasetId based on event type
             DateTime startDateDt = DateTime.Now.AddDays(-30);
@@ -128,7 +129,8 @@ namespace GoogleFitOnFhir.Services
                 var dataset = await _googleFitClient.DatasetRequest(
                     tokensResponse.AccessToken,
                     datasourceId,
-                    datasetId);
+                    datasetId,
+                    cancellationToken);
 
                 // Add user id to payload
                 dataset.UserId = user.Id;
@@ -144,24 +146,22 @@ namespace GoogleFitOnFhir.Services
                 }
             }
 
-            try
-            {
-                // Use the producer client to send the batch of events to the event hub
-                await _eventHubProducerClient.SendAsync(eventBatch);
-                _logger.LogInformation("A batch of events has been published.");
+            // Use the producer client to send the batch of events to the event hub
+            await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
+            _logger.LogInformation("A batch of events has been published.");
 
-                // Update LastSync column
-                user.LastSync = endDateDto;
-                _usersTableRepository.Update(user);
-            }
-            finally
-            {
-                await _eventHubProducerClient.DisposeAsync();
-            }
+            // Update LastSync column
+            user.LastSync = endDateDto;
+            await _usersTableRepository.Update(user, cancellationToken);
         }
 
         public void QueueFitnessImport(User user)
         {
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _eventHubProducerClient.DisposeAsync();
         }
     }
 }

@@ -5,9 +5,9 @@
 
 namespace GoogleFitOnFhir.Clients.GoogleFit
 {
-    public class ClientContext
+    public class GoogleFitClientContext
     {
-        public ClientContext(string clientId, string clientSecret, string callbackUri)
+        public GoogleFitClientContext(string clientId, string clientSecret, string callbackUri)
         {
             ClientId = clientId;
             ClientSecret = clientSecret;

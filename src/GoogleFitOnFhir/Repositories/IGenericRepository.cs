@@ -3,23 +3,25 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Azure;
 
 namespace GoogleFitOnFhir.Repositories
 {
     public interface IGenericRepository<T>
-    where T : class
+        where T : class
     {
-        IEnumerable<T> GetAll();
+        AsyncPageable<T> GetAll(CancellationToken cancellationToken);
 
-        T GetById(string id);
+        Task<T> GetById(string id, CancellationToken cancellationToken);
 
-        void Insert(T obj);
+        Task Insert(T entity, CancellationToken cancellationToken);
 
-        void Update(T obj);
+        Task Update(T entity, CancellationToken cancellationToken);
 
-        void Upsert(T obj);
+        Task Upsert(T entity, CancellationToken cancellationToken);
 
-        void Delete(T obj);
+        Task Delete(T entity, CancellationToken cancellationToken);
     }
 }

@@ -7,12 +7,10 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Responses
 {
     public class AuthTokensResponse
     {
-        public AuthTokensResponse()
-        {
-        }
-
         public string AccessToken { get; set; }
 
         public string RefreshToken { get; set; }
+
+        public string IdToken { get; set; }
     }
 }

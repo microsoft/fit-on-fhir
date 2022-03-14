@@ -13,25 +13,20 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class AuthTokensRequest
     {
-        private readonly ClientContext _clientContext;
+        private readonly GoogleFitClientContext _clientContext;
         private readonly string _authCode;
         private readonly IAuthorizationCodeFlow _authFlow;
 
-        public AuthTokensRequest(ClientContext clientContext, string authCode, IAuthorizationCodeFlow authFlow)
+        public AuthTokensRequest(GoogleFitClientContext clientContext, string authCode, IAuthorizationCodeFlow authFlow)
         {
             _clientContext = clientContext;
             _authCode = authCode;
             _authFlow = authFlow;
         }
 
-        public async Task<AuthTokensResponse> ExecuteAsync()
+        public async Task<AuthTokensResponse> ExecuteAsync(CancellationToken cancellationToken)
         {
-            TokenResponse tokenResponse = await _authFlow
-                .ExchangeCodeForTokenAsync(
-                    "me",
-                    _authCode,
-                    _clientContext.CallbackUri,
-                    CancellationToken.None);
+            TokenResponse tokenResponse = await _authFlow.ExchangeCodeForTokenAsync("me", _authCode, _clientContext.CallbackUri, cancellationToken);
 
             if (tokenResponse != null && tokenResponse.RefreshToken != null)
             {
