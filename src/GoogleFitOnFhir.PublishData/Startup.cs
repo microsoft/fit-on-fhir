@@ -41,7 +41,7 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddScoped(sp => new EventHubProducerClient(iomtConnectionString));
 
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
-            builder.Services.AddSingleton<IUsersKeyvaultRepository, UsersKeyVaultRepository>();
+            builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IAuthService, AuthService>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddScoped<IUsersService, UsersService>();

@@ -27,14 +27,14 @@ namespace GoogleFitOnFhir.Services
         private readonly GoogleFitClient _googleFitClient;
         private readonly EventHubProducerClient _eventHubProducerClient;
         private readonly ILogger<UsersService> _logger;
-        private readonly IUsersKeyvaultRepository _usersKeyvaultRepository;
+        private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
         private readonly IAuthService _authService;
 
         public UsersService(
             IUsersTableRepository usersTableRepository,
             GoogleFitClient googleFitClient,
             EventHubProducerClient eventHubProducerClient,
-            IUsersKeyvaultRepository usersKeyvaultRepository,
+            IUsersKeyVaultRepository usersKeyvaultRepository,
             IAuthService authService,
             ILogger<UsersService> logger)
         {

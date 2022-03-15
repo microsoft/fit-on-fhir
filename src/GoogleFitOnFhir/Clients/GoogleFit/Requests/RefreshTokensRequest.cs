@@ -26,21 +26,8 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
         {
             TokenResponse tokenResponse = await _authFlow.RefreshTokenAsync("me", _refreshToken, cancellationToken);
 
-            if (tokenResponse != null && tokenResponse.RefreshToken != null && tokenResponse.IdToken != null)
-            {
-                AuthTokensResponse response = new AuthTokensResponse
-                {
-                    AccessToken = tokenResponse.AccessToken,
-                    RefreshToken = tokenResponse.RefreshToken,
-                    IdToken = tokenResponse.IdToken,
-                };
-
-                return response;
-            }
-            else
-            {
-                return null;
-            }
+            AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
+            return response;
         }
     }
 }

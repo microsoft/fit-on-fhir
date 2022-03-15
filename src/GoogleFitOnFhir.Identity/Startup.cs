@@ -40,7 +40,7 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddSingleton(sp => new UsersKeyVaultContext(usersKeyvaultUri));
 
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
-            builder.Services.AddSingleton<IUsersKeyvaultRepository, UsersKeyVaultRepository>();
+            builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IAuthService, AuthService>();
