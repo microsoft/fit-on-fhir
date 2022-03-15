@@ -3,8 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Google.Apis.Auth.OAuth2.Responses;
 using System.IdentityModel.Tokens.Jwt;
+using Google.Apis.Auth.OAuth2.Responses;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit.Responses
 {

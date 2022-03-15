@@ -60,15 +60,20 @@ namespace GoogleFitOnFhir.Services
                 throw new Exception("Email response empty");
             }
 
-            // Hash email to reduce characterset for KV secret name compatability
-            var userId = Utility.Base58String(emailResponse.EmailAddress);
-            var user = new User(userId);
+            // https://developers.google.com/identity/protocols/oauth2/openid-connect#an-id-tokens-payload
+            // Use the IdToken sub (Subject) claim for the user id - From the Google docs:
+            // "An identifier for the user, unique among all Google accounts and never reused.
+            // A Google account can have multiple email addresses at different points in time, but the sub value is never changed.
+            // Use sub within your application as the unique-identifier key for the user.
+            // Maximum length of 255 case-sensitive ASCII characters."
+            string userId = tokenResponse.IdToken.Subject;
+            User user = new User(userId);
 
             // Insert user into UsersTable
             await _usersTableRepository.Upsert(user, cancellationToken);
 
             // Insert refresh token into users KV by userId
-            await _usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken);
+            await _usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken, cancellationToken);
 
             return user;
         }
@@ -81,7 +86,7 @@ namespace GoogleFitOnFhir.Services
 
             try
             {
-                refreshToken = await _usersKeyvaultRepository.GetByName(userId);
+                refreshToken = await _usersKeyvaultRepository.GetByName(userId, cancellationToken);
             }
             catch (AggregateException ex)
             {
