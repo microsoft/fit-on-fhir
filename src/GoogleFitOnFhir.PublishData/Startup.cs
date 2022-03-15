@@ -5,7 +5,9 @@
 
 using System;
 using System.Text;
+using Azure.Identity;
 using Azure.Messaging.EventHubs.Producer;
+using Azure.Security.KeyVault.Secrets;
 using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Persistence;
 using GoogleFitOnFhir.Repositories;
@@ -25,7 +27,7 @@ namespace GoogleFitOnFhir.PublishData
         {
             string iomtConnectionString = Environment.GetEnvironmentVariable("EventHubConnectionString");
             string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            string usersKeyvaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
+            string usersKeyVaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
             string googleFitClientId = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID");
             string googleFitClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET");
 
@@ -37,8 +39,8 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddLogging();
             builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, stringBuilder.ToString()));
             builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
-            builder.Services.AddSingleton(sp => new UsersKeyVaultContext(usersKeyvaultUri));
             builder.Services.AddScoped(sp => new EventHubProducerClient(iomtConnectionString));
+            builder.Services.AddSingleton(sp => new SecretClient(new Uri(usersKeyVaultUri), new DefaultAzureCredential()));
 
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();

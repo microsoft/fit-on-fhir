@@ -8,13 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-
-using GoogleFitClient = GoogleFitOnFhir.Clients.GoogleFit.GoogleFitClient;
 
 namespace GoogleFitOnFhir.Services
 {
@@ -24,7 +23,7 @@ namespace GoogleFitOnFhir.Services
     public class UsersService : IUsersService, IAsyncDisposable
     {
         private readonly IUsersTableRepository _usersTableRepository;
-        private readonly GoogleFitClient _googleFitClient;
+        private readonly IGoogleFitClient _googleFitClient;
         private readonly EventHubProducerClient _eventHubProducerClient;
         private readonly ILogger<UsersService> _logger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
@@ -32,7 +31,7 @@ namespace GoogleFitOnFhir.Services
 
         public UsersService(
             IUsersTableRepository usersTableRepository,
-            GoogleFitClient googleFitClient,
+            IGoogleFitClient googleFitClient,
             EventHubProducerClient eventHubProducerClient,
             IUsersKeyVaultRepository usersKeyvaultRepository,
             IAuthService authService,

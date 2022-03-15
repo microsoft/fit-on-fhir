@@ -5,6 +5,8 @@
 
 using System;
 using System.Text;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Persistence;
 using GoogleFitOnFhir.Repositories;
@@ -23,7 +25,7 @@ namespace GoogleFitOnFhir.Identity
         public override void Configure(IFunctionsHostBuilder builder)
         {
             string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            string usersKeyvaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
+            string usersKeyVaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
 
             string googleFitClientId = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID");
             string googleFitClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET");
@@ -37,7 +39,7 @@ namespace GoogleFitOnFhir.Identity
 
             builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, stringBuilder.ToString()));
             builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
-            builder.Services.AddSingleton(sp => new UsersKeyVaultContext(usersKeyvaultUri));
+            builder.Services.AddSingleton(sp => new SecretClient(new Uri(usersKeyVaultUri), new DefaultAzureCredential()));
 
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();

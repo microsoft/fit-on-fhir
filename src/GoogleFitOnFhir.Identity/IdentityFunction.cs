@@ -98,7 +98,7 @@ namespace GoogleFitOnFhir.Identity
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new NotFoundObjectResult("Unable to authorize");
+                return new NotFoundObjectResult(ex.Message);
             }
         }
 

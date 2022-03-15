@@ -39,4 +39,7 @@
   <ItemGroup>
     <ProjectReference Include="..\GoogleFitOnFhir\GoogleFitOnFhir.csproj" />
   </ItemGroup>
+  <PropertyGroup>
+    <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
+  </PropertyGroup>
 </Project>
