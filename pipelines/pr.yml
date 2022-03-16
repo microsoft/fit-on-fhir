@@ -1,0 +1,21 @@
+pr:
+  - main
+      
+pool:
+  vmImage: windows-latest
+
+variables:
+  environment: pr
+
+stages:
+  - template: ./templates/stages/lint.yml
+    parameters:
+      environment: ${{ variables.environment }}
+
+  - template: ./templates/stages/build.yml
+    parameters:
+      environment: ${{ variables.environment }}
+
+  - template: ./templates/stages/analyze.yml
+    parameters:
+      environment: ${{ variables.environment }}
