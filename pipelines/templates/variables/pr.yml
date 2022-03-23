@@ -1,0 +1,8 @@
+variables:
+  - group: gfit-dev-deploy-vg
+  - name: basename
+    value: gfof-pr-$(Build.BuildId)
+  - name: location
+    value: eastus
+  - name: azure_service_connection_name
+    value: dev
