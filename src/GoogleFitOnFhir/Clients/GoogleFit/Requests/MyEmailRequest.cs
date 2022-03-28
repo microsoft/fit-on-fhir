@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.PeopleService.v1;
@@ -25,12 +26,12 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
             });
         }
 
-        public async Task<MyEmailResponse> ExecuteAsync()
+        public async Task<MyEmailResponse> ExecuteAsync(CancellationToken cancellationToken)
         {
             var request = _peopleService.People.Get("people/me");
             request.PersonFields = "emailAddresses";
 
-            var data = await request.ExecuteAsync();
+            var data = await request.ExecuteAsync(cancellationToken);
 
             var response = new MyEmailResponse
             {

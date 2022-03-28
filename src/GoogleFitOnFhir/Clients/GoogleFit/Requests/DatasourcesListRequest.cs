@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Fitness.v1;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
@@ -17,10 +18,10 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
         {
         }
 
-        public async Task<DatasourcesListResponse> ExecuteAsync()
+        public async Task<DatasourcesListResponse> ExecuteAsync(CancellationToken cancellationToken)
         {
             var listRequest = new UsersResource.DataSourcesResource.ListRequest(FitnessService, "me");
-            var datasourceList = await listRequest.ExecuteAsync();
+            var datasourceList = await listRequest.ExecuteAsync(cancellationToken);
 
             // Filter by dataType, first example using com.google.blood_glucose
             // Datasource.Type "raw" is an original datasource

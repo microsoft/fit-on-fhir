@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Fitness.v1;
 using GoogleFitOnFhir.Clients.GoogleFit.Models;
@@ -21,14 +22,14 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
             _datasetId = datasetId;
         }
 
-        public async Task<IomtDataset> ExecuteAsync()
+        public async Task<IomtDataset> ExecuteAsync(CancellationToken cancellationToken)
         {
             var datasourceRequest = new UsersResource.DataSourcesResource.DatasetsResource.GetRequest(
                 FitnessService,
                 "me",
                 _dataStreamId,
                 _datasetId);
-            var result = await datasourceRequest.ExecuteAsync();
+            var result = await datasourceRequest.ExecuteAsync(cancellationToken);
             return new IomtDataset(result);
         }
     }

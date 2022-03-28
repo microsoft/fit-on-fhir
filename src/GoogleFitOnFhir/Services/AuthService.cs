@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
@@ -15,29 +16,29 @@ namespace GoogleFitOnFhir.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly ClientContext _clientContext;
+        private readonly GoogleFitClientContext _clientContext;
 
-        public AuthService(ClientContext clientContext)
+        public AuthService(GoogleFitClientContext clientContext)
         {
             _clientContext = clientContext;
         }
 
-        public Task<AuthUriResponse> AuthUriRequest()
+        public Task<AuthUriResponse> AuthUriRequest(CancellationToken cancellationToken)
         {
             return new AuthUriRequest(_clientContext, GetAuthFlow())
-                .ExecuteAsync();
+                .ExecuteAsync(cancellationToken);
         }
 
-        public Task<AuthTokensResponse> AuthTokensRequest(string authCode)
+        public Task<AuthTokensResponse> AuthTokensRequest(string authCode, CancellationToken cancellationToken)
         {
             return new AuthTokensRequest(_clientContext, authCode, GetAuthFlow())
-                .ExecuteAsync();
+                .ExecuteAsync(cancellationToken);
         }
 
-        public Task<AuthTokensResponse> RefreshTokensRequest(string refreshToken)
+        public Task<AuthTokensResponse> RefreshTokensRequest(string refreshToken, CancellationToken cancellationToken)
         {
-            return new RefreshTokensRequest(_clientContext, refreshToken, GetAuthFlow())
-                .ExecuteAsync();
+            return new RefreshTokensRequest(refreshToken, GetAuthFlow())
+                .ExecuteAsync(cancellationToken);
         }
 
         private IAuthorizationCodeFlow GetAuthFlow()

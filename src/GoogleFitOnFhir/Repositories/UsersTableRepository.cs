@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Azure;
 using Azure.Data.Tables;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Persistence;
@@ -25,61 +27,61 @@ namespace GoogleFitOnFhir.Repositories
             _logger = logger;
         }
 
-        public IEnumerable<User> GetAll()
+        public AsyncPageable<User> GetAll(CancellationToken cancellationToken)
         {
-            return _tableClient.Query<User>();
+            return _tableClient.QueryAsync<User>(cancellationToken: cancellationToken);
         }
 
-        public User GetById(string id)
+        public async Task<User> GetById(string id, CancellationToken cancellationToken)
         {
-            return _tableClient.GetEntity<User>(id, id);
+            return await _tableClient.GetEntityAsync<User>(id, id, cancellationToken: cancellationToken);
         }
 
-        public void Insert(User user)
+        public async Task Insert(User user, CancellationToken cancellationToken)
         {
             try
             {
-                _tableClient.AddEntity(user);
+                await _tableClient.AddEntityAsync(user, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
             }
         }
 
-        public void Update(User user)
+        public async Task Update(User user, CancellationToken cancellationToken)
         {
             try
             {
-                _tableClient.UpdateEntity(user, user.ETag);
+                await _tableClient.UpdateEntityAsync(user, user.ETag, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
             }
         }
 
-        public void Upsert(User user)
+        public async Task Upsert(User user, CancellationToken cancellationToken)
         {
             try
             {
-                _tableClient.UpsertEntity(user);
+                await _tableClient.UpsertEntityAsync(user, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
             }
         }
 
-        public void Delete(User user)
+        public async Task Delete(User user, CancellationToken cancellationToken)
         {
             try
             {
-                _tableClient.DeleteEntity(user.PartitionKey, user.RowKey);
+                await _tableClient.DeleteEntityAsync(user.PartitionKey, user.RowKey, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
             }
         }
     }

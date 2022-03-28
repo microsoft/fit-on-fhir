@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
 using GoogleFitOnFhir.Models;
 
@@ -10,9 +11,9 @@ namespace GoogleFitOnFhir.Services
 {
     public interface IUsersService
     {
-        Task<User> Initiate(string accessCode);
+        Task<User> Initiate(string accessCode, CancellationToken cancellationToken);
 
-        Task ImportFitnessData(string userId);
+        Task ImportFitnessData(string userId, CancellationToken cancellationToken);
 
         void QueueFitnessImport(User user);
     }

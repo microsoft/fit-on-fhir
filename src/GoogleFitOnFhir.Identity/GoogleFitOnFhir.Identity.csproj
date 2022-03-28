@@ -17,11 +17,10 @@
     <PackageReference Include="Google.Apis.Fitness.v1" Version="1.56.0.2454" />
     <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.56.0.1869" />
     <PackageReference Include="Google.Apis.PeopleService.v1" Version="1.56.0.2616" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.10.0" />
-    <PackageReference Include="Azure.Data.Tables" Version="12.4.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.11.0" />
+    <PackageReference Include="Azure.Data.Tables" Version="12.5.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.38.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
@@ -51,6 +50,9 @@
   <ItemGroup>
     <ProjectReference Include="..\GoogleFitOnFhir\GoogleFitOnFhir.csproj" />
   </ItemGroup>
+  <PropertyGroup>
+    <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
+  </PropertyGroup>
     <Target Name="RunFunction">
     <Exec Command="func start" />
   </Target>

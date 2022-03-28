@@ -5,14 +5,16 @@
 
 using System;
 using System.Text;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Persistence;
 using GoogleFitOnFhir.Repositories;
 using GoogleFitOnFhir.Services;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
-using GoogleFitClient = GoogleFitOnFhir.Clients.GoogleFit.Client;
-using GoogleFitClientContext = GoogleFitOnFhir.Clients.GoogleFit.ClientContext;
+using GoogleFitClientContext = GoogleFitOnFhir.Clients.GoogleFit.GoogleFitClientContext;
 
 [assembly: FunctionsStartup(typeof(GoogleFitOnFhir.Identity.Startup))]
 
@@ -23,7 +25,7 @@ namespace GoogleFitOnFhir.Identity
         public override void Configure(IFunctionsHostBuilder builder)
         {
             string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            string usersKeyvaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
+            string usersKeyVaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
 
             string googleFitClientId = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID");
             string googleFitClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET");
@@ -36,11 +38,11 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddLogging();
 
             builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, stringBuilder.ToString()));
-            builder.Services.AddSingleton(sp => new UsersKeyvaultContext(usersKeyvaultUri));
-            builder.Services.AddSingleton<GoogleFitClient>();
-
             builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
-            builder.Services.AddSingleton<IUsersKeyvaultRepository, UsersKeyvaultRepository>();
+            builder.Services.AddSingleton(sp => new SecretClient(new Uri(usersKeyVaultUri), new DefaultAzureCredential()));
+
+            builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
+            builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IAuthService, AuthService>();

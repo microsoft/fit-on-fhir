@@ -5,8 +5,9 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Azure;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Azure.WebJobs;
@@ -25,17 +26,19 @@ namespace GoogleFitOnFhir.SyncEvent
         }
 
         [FunctionName("SyncEvent")]
-        public void Run([TimerTrigger("0 0 * * * *")] TimerInfo myTimer, [Queue("publish-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService, ILogger log)
+        public async Task Run(
+            [TimerTrigger("0 0 * * * *")] TimerInfo myTimer,
+            [Queue("publish-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService,
+            ILogger logger,
+            CancellationToken cancellationToken)
         {
-            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+            logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            IEnumerable<User> users = _usersTableRepository.GetAll();
+            AsyncPageable<User> usersPageable = _usersTableRepository.GetAll(cancellationToken);
 
-            log.LogInformation("{0} users in table", users.Count());
-
-            foreach (User user in users)
+            await foreach (User user in usersPageable)
             {
-                log.LogInformation("Adding {0} to queue", user.Id);
+                logger.LogInformation("Adding {0} to queue", user.Id);
                 queueService.Add(JsonConvert.SerializeObject(new QueueMessage
                 {
                     UserId = user.Id,
