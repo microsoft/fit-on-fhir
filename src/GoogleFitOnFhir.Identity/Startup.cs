@@ -46,6 +46,7 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IAuthService, AuthService>();
+            builder.Services.AddSingleton<IRoutingService, RoutingService>();
         }
     }
 }
