@@ -5,20 +5,19 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Common.Handler;
 
 namespace GoogleFitOnFhir.Common
 {
-    public class UnknownOperationHandler : IResponsibilityHandler<(IServiceScope scope, RoutingRequest request), Task<IActionResult>>
+    public class UnknownOperationHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
     {
         private UnknownOperationHandler()
         {
         }
 
-        public static IResponsibilityHandler<(IServiceScope scope, RoutingRequest request), Task<IActionResult>> Instance { get; } = new UnknownOperationHandler();
+        public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new UnknownOperationHandler();
 
-        public Task<IActionResult> Evaluate((IServiceScope scope, RoutingRequest request) request)
+        public Task<IActionResult> Evaluate(RoutingRequest request)
         {
             return Task.Run<IActionResult>(() => new NotFoundResult());
         }
