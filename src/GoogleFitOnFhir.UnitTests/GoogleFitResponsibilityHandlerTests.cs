@@ -14,6 +14,7 @@ using GoogleFitOnFhir.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Common.Handler;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -75,7 +76,7 @@ namespace GoogleFitOnFhir.UnitTests
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
             var result = (OkObjectResult)await _googleFitHandler.Evaluate(routingRequest);
 
-            var expectedResult = new OkObjectResult("auth flow successful");
+            var expectedResult = new OkObjectResult("auth flow success");
             Assert.Equal(expectedResult.Value, result.Value);
         }
 
@@ -93,8 +94,9 @@ namespace GoogleFitOnFhir.UnitTests
 
         private RoutingRequest CreateRoutingRequest(PathString pathString)
         {
-            var httpRequest = new DefaultHttpContext().Request;
+            var httpRequest = Substitute.For<HttpRequest>();
             httpRequest.Path = pathString;
+            httpRequest.Query["code"].Returns(new StringValues("access code"));
             var context = new ExecutionContext();
             var cancellationToken = new CancellationToken(false);
             using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, httpRequest.HttpContext.RequestAborted);

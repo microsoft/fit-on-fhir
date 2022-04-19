@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
@@ -32,8 +33,16 @@ namespace GoogleFitOnFhir.Services
 
         public Task<IActionResult> RouteTo(HttpRequest req, string root, CancellationToken cancellationToken)
         {
-            var routingRequest = new RoutingRequest() { HttpRequest = req, Root = root, Token = cancellationToken };
-            return _handler.Evaluate(routingRequest);
+            try
+            {
+                var routingRequest = new RoutingRequest() { HttpRequest = req, Root = root, Token = cancellationToken };
+                return _handler.Evaluate(routingRequest);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return Task.FromResult<IActionResult>(new NotFoundObjectResult(ex.Message));
+            }
         }
 
         private void BuildHandlerChain()

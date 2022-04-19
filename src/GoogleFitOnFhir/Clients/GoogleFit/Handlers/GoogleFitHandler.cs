@@ -32,8 +32,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 
         public Task<IActionResult> Evaluate(RoutingRequest request)
         {
-            var path = EnsureArg.IsNotNull(request.HttpRequest.Path.Value?[1..]);
-            var root = request.Root;
+            var path = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Path.Value?[1..]);
 
             if (path.StartsWith(GoogleFitAuthorizeRequest))
             {
@@ -51,7 +50,8 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 
         private async Task<IActionResult> Authorize(RoutingRequest request)
         {
-            AuthUriResponse response = await _authService.AuthUriRequest(request.Token);
+            var token = EnsureArg.IsNotDefault(request.Token);
+            AuthUriResponse response = await _authService.AuthUriRequest(token);
             return new RedirectResult(response.Uri);
         }
 
@@ -59,7 +59,9 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
         {
             try
             {
-                await _usersService.Initiate(request.HttpRequest.Query["code"], request.Token);
+                var accessCode = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Query["code"]);
+                var token = EnsureArg.IsNotDefault(request.Token);
+                await _usersService.Initiate(accessCode, token);
                 return new OkObjectResult("auth flow success");
             }
             catch (Exception ex)
