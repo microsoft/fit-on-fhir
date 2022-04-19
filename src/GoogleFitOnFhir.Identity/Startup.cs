@@ -33,7 +33,7 @@ namespace GoogleFitOnFhir.Identity
             StringBuilder stringBuilder = new StringBuilder("https");
             stringBuilder.Append("://")
                 .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
-                .Append("/api/callback");
+                .Append("/api/googlefit/callback");
 
             builder.Services.AddLogging();
 

@@ -60,7 +60,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
             try
             {
                 await _usersService.Initiate(request.HttpRequest.Query["code"], request.Token);
-                return new OkObjectResult("auth flow successful");
+                return new OkObjectResult("auth flow success");
             }
             catch (Exception ex)
             {
