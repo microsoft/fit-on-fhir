@@ -28,8 +28,6 @@ namespace GoogleFitOnFhir.Services
             _serviceScope = scope;
             _handler = handler;
             _logger = logger;
-
-            BuildHandlerChain();
         }
 
         public Task<IActionResult> RouteTo(HttpRequest req, ExecutionContext context, CancellationToken cancellationToken)
@@ -44,15 +42,6 @@ namespace GoogleFitOnFhir.Services
                 _logger.LogError(ex.Message);
                 return Task.FromResult<IActionResult>(new NotFoundObjectResult(ex.Message));
             }
-        }
-
-        private void BuildHandlerChain()
-        {
-            _handler.Chain(new GoogleFitHandler(
-                    _serviceScope.ServiceProvider.GetRequiredService<IAuthService>(),
-                    _serviceScope.ServiceProvider.GetRequiredService<IUsersService>(),
-                    _serviceScope.ServiceProvider.GetRequiredService<ILogger<GoogleFitHandler>>()))
-                .Chain(UnknownOperationHandler.Instance);
         }
     }
 }
