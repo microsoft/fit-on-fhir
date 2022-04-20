@@ -6,11 +6,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
 using GoogleFitOnFhir.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;

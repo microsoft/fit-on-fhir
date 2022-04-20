@@ -23,12 +23,18 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
         private readonly IUsersService _usersService;
         private readonly ILogger<GoogleFitHandler> _logger;
 
+        private GoogleFitHandler()
+        {
+        }
+
         public GoogleFitHandler(IAuthService authService, IUsersService usersService, ILogger<GoogleFitHandler> logger)
         {
             _authService = authService;
             _usersService = usersService;
             _logger = logger;
         }
+
+        public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitHandler();
 
         public Task<IActionResult> Evaluate(RoutingRequest request)
         {

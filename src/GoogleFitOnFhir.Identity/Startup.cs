@@ -45,6 +45,8 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IAuthService, AuthService>();
             builder.Services.AddSingleton<IRoutingService, RoutingService>();
+            builder.Services.AddSingleton<GoogleFitHandler>();
+            builder.Services.AddSingleton<UnknownOperationHandler>();
             builder.Services.AddSingleton(sp => CreateOrderedHandlerChain(sp, typeof(GoogleFitHandler), typeof(UnknownOperationHandler)));
         }
 
@@ -52,7 +54,7 @@ namespace GoogleFitOnFhir.Identity
         {
             IResponsibilityHandler<RoutingRequest, Task<IActionResult>> previousHandler = null;
 
-            // Loop through the handlerTypes retrieve the instance and chain then together.
+            // Loop through the handlerTypes retrieve the instance and chain them together.
             foreach (Type handlerType in handlerTypes)
             {
                 IResponsibilityHandler<RoutingRequest, Task<IActionResult>> handler = serviceProvider.GetRequiredService(handlerType) as IResponsibilityHandler<RoutingRequest, Task<IActionResult>>;

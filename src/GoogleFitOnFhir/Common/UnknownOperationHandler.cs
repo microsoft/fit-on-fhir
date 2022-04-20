@@ -11,7 +11,7 @@ namespace GoogleFitOnFhir.Common
 {
     public class UnknownOperationHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
     {
-        private UnknownOperationHandler()
+        public UnknownOperationHandler()
         {
         }
 
