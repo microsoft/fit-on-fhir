@@ -19,13 +19,11 @@ namespace GoogleFitOnFhir.Services
 {
     public class RoutingService : IRoutingService
     {
-        private readonly IServiceScope _serviceScope;
         private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _handler;
         private readonly ILogger _logger;
 
-        public RoutingService(IServiceScope scope, IResponsibilityHandler<RoutingRequest, Task<IActionResult>> handler, ILogger<RoutingService> logger)
+        public RoutingService(IResponsibilityHandler<RoutingRequest, Task<IActionResult>> handler, ILogger<RoutingService> logger)
         {
-            _serviceScope = scope;
             _handler = handler;
             _logger = logger;
         }
