@@ -34,7 +34,7 @@ namespace GoogleFitOnFhir.PublishData
             StringBuilder stringBuilder = new StringBuilder("https");
             stringBuilder.Append("://")
                 .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
-                .Append("/api/callback");
+                .Append("/api/googlefit/callback");
 
             builder.Services.AddLogging();
             builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, stringBuilder.ToString()));
