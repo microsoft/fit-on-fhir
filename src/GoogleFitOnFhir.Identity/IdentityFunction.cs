@@ -16,19 +16,11 @@ namespace GoogleFitOnFhir.Identity
 {
     public class IdentityFunction
     {
-        private readonly IUsersService _usersService;
-        private readonly IAuthService _authService;
         private readonly IRoutingService _routingService;
         private readonly ILogger _logger;
 
-        public IdentityFunction(
-            IUsersService usersService,
-            IAuthService authService,
-            IRoutingService routingService,
-            ILogger<IdentityFunction> logger)
+        public IdentityFunction(IRoutingService routingService, ILogger<IdentityFunction> logger)
         {
-            _usersService = usersService;
-            _authService = authService;
             _routingService = routingService;
             _logger = logger;
         }
@@ -40,7 +32,7 @@ namespace GoogleFitOnFhir.Identity
             CancellationToken cancellationToken)
         {
             using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, req.HttpContext.RequestAborted);
-            return await _routingService.RouteTo(req, context.FunctionAppDirectory, cancellationSource.Token);
+            return await _routingService.RouteTo(req, context, cancellationSource.Token);
         }
     }
 }

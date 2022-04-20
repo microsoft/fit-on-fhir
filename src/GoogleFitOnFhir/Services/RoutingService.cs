@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
+using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace GoogleFitOnFhir.Services
 {
@@ -31,11 +32,11 @@ namespace GoogleFitOnFhir.Services
             BuildHandlerChain();
         }
 
-        public Task<IActionResult> RouteTo(HttpRequest req, string root, CancellationToken cancellationToken)
+        public Task<IActionResult> RouteTo(HttpRequest req, ExecutionContext context, CancellationToken cancellationToken)
         {
             try
             {
-                var routingRequest = new RoutingRequest() { HttpRequest = req, Root = root, Token = cancellationToken };
+                var routingRequest = new RoutingRequest() { HttpRequest = req, Context = context, Token = cancellationToken };
                 return _handler.Evaluate(routingRequest);
             }
             catch (Exception ex)

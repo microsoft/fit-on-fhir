@@ -34,9 +34,6 @@
     </PackageReference>
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.16.0" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Clients\Fitbit\Handlers\" />
-  </ItemGroup>
   <PropertyGroup>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
   </PropertyGroup>

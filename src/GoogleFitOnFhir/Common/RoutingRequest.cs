@@ -5,6 +5,7 @@
 
 using System.Threading;
 using Microsoft.AspNetCore.Http;
+using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace GoogleFitOnFhir.Common
 {
@@ -12,7 +13,7 @@ namespace GoogleFitOnFhir.Common
     {
         public HttpRequest HttpRequest { get; set; }
 
-        public string Root { get; set; }
+        public ExecutionContext Context { get; set; }
 
         public CancellationToken Token { get; set; }
     }

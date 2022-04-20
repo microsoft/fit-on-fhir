@@ -19,8 +19,8 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
     {
         private const string GoogleFitAuthorizeRequest = "api/googlefit/authorize";
         private const string GoogleFitCallbackRequest = "api/googlefit/callback";
-        private IAuthService _authService;
-        private IUsersService _usersService;
+        private readonly IAuthService _authService;
+        private readonly IUsersService _usersService;
         private readonly ILogger<GoogleFitHandler> _logger;
 
         public GoogleFitHandler(IAuthService authService, IUsersService usersService, ILogger<GoogleFitHandler> logger)
@@ -32,26 +32,33 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 
         public Task<IActionResult> Evaluate(RoutingRequest request)
         {
-            var path = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Path.Value?[1..]);
+            try
+            {
+                var path = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Path.Value?[1..]);
 
-            if (path.StartsWith(GoogleFitAuthorizeRequest))
-            {
-                return Authorize(request);
+                if (path.StartsWith(GoogleFitAuthorizeRequest))
+                {
+                    return Authorize(request);
+                }
+                else if (path.StartsWith(GoogleFitCallbackRequest))
+                {
+                    return Callback(request);
+                }
+                else
+                {
+                    return null;
+                }
             }
-            else if (path.StartsWith(GoogleFitCallbackRequest))
+            catch (Exception ex)
             {
-                return Callback(request);
-            }
-            else
-            {
+                _logger.LogError(ex.Message);
                 return null;
             }
         }
 
         private async Task<IActionResult> Authorize(RoutingRequest request)
         {
-            var token = EnsureArg.IsNotDefault(request.Token);
-            AuthUriResponse response = await _authService.AuthUriRequest(token);
+            AuthUriResponse response = await _authService.AuthUriRequest(request.Token);
             return new RedirectResult(response.Uri);
         }
 
@@ -59,9 +66,8 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
         {
             try
             {
-                var accessCode = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Query["code"]);
-                var token = EnsureArg.IsNotDefault(request.Token);
-                await _usersService.Initiate(accessCode, token);
+                var accessCode = EnsureArg.IsNotNullOrWhiteSpace(request?.HttpRequest?.Query?["code"], "accessCode");
+                await _usersService.Initiate(accessCode, request.Token);
                 return new OkObjectResult("auth flow success");
             }
             catch (Exception ex)

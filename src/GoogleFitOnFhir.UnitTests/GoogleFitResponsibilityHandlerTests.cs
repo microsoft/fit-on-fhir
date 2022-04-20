@@ -101,7 +101,7 @@ namespace GoogleFitOnFhir.UnitTests
             var cancellationToken = new CancellationToken(false);
             using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, httpRequest.HttpContext.RequestAborted);
 
-            return new RoutingRequest() { HttpRequest = httpRequest, Root = context.FunctionAppDirectory, Token = cancellationSource.Token };
+            return new RoutingRequest() { HttpRequest = httpRequest, Context = context, Token = cancellationSource.Token };
         }
     }
 }

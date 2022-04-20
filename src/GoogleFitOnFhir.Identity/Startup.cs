@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Text;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using GoogleFitOnFhir.Clients.GoogleFit;
@@ -30,14 +29,9 @@ namespace GoogleFitOnFhir.Identity
             string googleFitClientId = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID");
             string googleFitClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET");
 
-            StringBuilder stringBuilder = new StringBuilder("https");
-            stringBuilder.Append("://")
-                .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
-                .Append("/api/googlefit/callback");
-
             builder.Services.AddLogging();
 
-            builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, stringBuilder.ToString()));
+            builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME")));
             builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
             builder.Services.AddSingleton(sp => new SecretClient(new Uri(usersKeyVaultUri), new DefaultAzureCredential()));
 
