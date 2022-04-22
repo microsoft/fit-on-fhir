@@ -84,4 +84,5 @@ az deployment group create \
 NOTE: To deploy as an ARM template instead of a Bicep template, repeat the command above replacing the following argment `--template-file azuredeploy.json`.
 
 ## Google Cloud Platform Setup
+
 For information on how to setup a Google Cloud Platform account, refer to the README [here](./src/GoogleFitOnFhir.Identity/README.md).
