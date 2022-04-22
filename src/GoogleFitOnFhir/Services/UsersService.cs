@@ -96,9 +96,17 @@ namespace GoogleFitOnFhir.Services
             _logger.LogInformation("Refreshing the RefreshToken");
             AuthTokensResponse tokensResponse = await _authService.RefreshTokensRequest(refreshToken, cancellationToken);
 
-            _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
+            if (!string.IsNullOrEmpty(tokensResponse.RefreshToken)) 
+            {
+                _logger.LogInformation("Updating refreshToken in KV for {0}", userId);
+                await _usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken, cancellationToken);
+            }
+            else 
+            {
+                _logger.LogInformation("RefreshToken is empty for {0}", userId);
+            }
 
-            // TODO: Store new refresh token
+            _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
             var dataSourcesList = await _googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken, cancellationToken);
 
             _logger.LogInformation("Create Eventhub Batch");
