@@ -96,12 +96,12 @@ namespace GoogleFitOnFhir.Services
             _logger.LogInformation("Refreshing the RefreshToken");
             AuthTokensResponse tokensResponse = await _authService.RefreshTokensRequest(refreshToken, cancellationToken);
 
-            if (!string.IsNullOrEmpty(tokensResponse.RefreshToken)) 
+            if (!string.IsNullOrEmpty(tokensResponse.RefreshToken))
             {
                 _logger.LogInformation("Updating refreshToken in KV for {0}", userId);
-                await _usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken, cancellationToken);
+                await _usersKeyvaultRepository.Upsert(userId, tokensResponse.RefreshToken, cancellationToken);
             }
-            else 
+            else
             {
                 _logger.LogInformation("RefreshToken is empty for {0}", userId);
             }
