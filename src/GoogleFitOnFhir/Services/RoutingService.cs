@@ -6,6 +6,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using GoogleFitOnFhir.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,8 +23,8 @@ namespace GoogleFitOnFhir.Services
 
         public RoutingService(IResponsibilityHandler<RoutingRequest, Task<IActionResult>> handler, ILogger<RoutingService> logger)
         {
-            _handler = handler;
-            _logger = logger;
+            _handler = EnsureArg.IsNotNull(handler);
+            _logger = EnsureArg.IsNotNull(logger);
         }
 
         public Task<IActionResult> RouteTo(HttpRequest req, ExecutionContext context, CancellationToken cancellationToken)

@@ -5,6 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using GoogleFitOnFhir.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,8 +22,8 @@ namespace GoogleFitOnFhir.Identity
 
         public IdentityFunction(IRoutingService routingService, ILogger<IdentityFunction> logger)
         {
-            _routingService = routingService;
-            _logger = logger;
+            _routingService = EnsureArg.IsNotNull(routingService);
+            _logger = EnsureArg.IsNotNull(logger);
         }
 
         [FunctionName("api")]

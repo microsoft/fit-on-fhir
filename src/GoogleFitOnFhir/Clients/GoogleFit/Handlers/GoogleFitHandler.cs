@@ -29,9 +29,9 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 
         public GoogleFitHandler(IAuthService authService, IUsersService usersService, ILogger<GoogleFitHandler> logger)
         {
-            _authService = authService;
-            _usersService = usersService;
-            _logger = logger;
+            _authService = EnsureArg.IsNotNull(authService);
+            _usersService = EnsureArg.IsNotNull(usersService);
+            _logger = EnsureArg.IsNotNull(logger);
         }
 
         public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitHandler();
