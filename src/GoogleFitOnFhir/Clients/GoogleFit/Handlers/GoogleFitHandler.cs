@@ -17,8 +17,6 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 {
     public class GoogleFitHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
     {
-        private const string GoogleFitAuthorizeRequest = "api/googlefit/authorize";
-        private const string GoogleFitCallbackRequest = "api/googlefit/callback";
         private readonly IAuthService _authService;
         private readonly IUsersService _usersService;
         private readonly ILogger<GoogleFitHandler> _logger;
@@ -35,6 +33,16 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
         }
 
         public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitHandler();
+
+        /// <summary>
+        /// Path for authorization requests
+        /// </summary>
+        public static string GoogleFitAuthorizeRequest => "api/googlefit/authorize";
+
+        /// <summary>
+        /// Path for callback requests
+        /// </summary>
+        public static string GoogleFitCallbackRequest => "api/googlefit/callback";
 
         public Task<IActionResult> Evaluate(RoutingRequest request)
         {

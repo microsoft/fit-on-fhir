@@ -32,6 +32,7 @@ namespace GoogleFitOnFhir.Identity
             Microsoft.Azure.WebJobs.ExecutionContext context,
             CancellationToken cancellationToken)
         {
+            _logger.LogInformation("incoming request from: {0}", req.Host + req.Path);
             using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, req.HttpContext.RequestAborted);
             return await _routingService.RouteTo(req, context, cancellationSource.Token);
         }

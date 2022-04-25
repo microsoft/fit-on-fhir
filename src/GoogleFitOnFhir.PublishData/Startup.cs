@@ -30,10 +30,11 @@ namespace GoogleFitOnFhir.PublishData
             string usersKeyVaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
             string googleFitClientId = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID");
             string googleFitClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET");
+            string hostName = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME");
 
             StringBuilder stringBuilder = new StringBuilder("https");
             stringBuilder.Append("://")
-                .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
+                .Append(hostName)
                 .Append("/api/googlefit/callback");
 
             builder.Services.AddLogging();

@@ -3,15 +3,15 @@
 In order to test your deployment with the Google Fit API, it is necessary to setup a Google Cloud Platform account.
 There are 5 areas of concern that must be addressed in order to complete this process.
 
-## Create a Google Developer Account
+## Create a Google Account
 
-The first step is to create a google developer account.  Go to the [portal](https://cloud.google.com/), and follow the steps
+The first step is to create a google account.  Go to the [accounts page](https://accounts.google.com/), and follow the steps
 for signing up.
 
 ## Create a project in the dashboard
 
-Once your developer account has been created, go to your Google Cloud Platform console.  From the Dashboard view, choose
-Create Project.  Give your project a name, and choose your location.
+Once your google account has been created, go to the [Google Cloud Platform console](https://console.cloud.google.com/).  From the Dashboard view, click
+the *Select a Project* dropdown.  From the view that appears, click the *NEW PROJECT* button.  Give your project a name, and choose your location.
 
 ## Enable API access
 

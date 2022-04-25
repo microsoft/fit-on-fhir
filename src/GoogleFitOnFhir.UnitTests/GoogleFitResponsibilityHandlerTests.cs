@@ -14,6 +14,7 @@ using GoogleFitOnFhir.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Common.Handler;
 using NSubstitute;
@@ -27,9 +28,9 @@ namespace GoogleFitOnFhir.UnitTests
     {
         private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _googleFitHandler;
 
-        private readonly PathString googleFitAuthorizeRequest = new PathString("/api/googlefit/authorize");
-        private readonly PathString googleFitCallbackRequest = new PathString("/api/googlefit/callback");
-        private readonly PathString emptyGoogleFitRequest = new PathString("/api/googlefit/");
+        private readonly string googleFitAuthorizeRequest = GoogleFitHandler.GoogleFitAuthorizeRequest;
+        private readonly string googleFitCallbackRequest = GoogleFitHandler.GoogleFitCallbackRequest;
+        private readonly string emptyGoogleFitRequest = "api/googlefit/";
 
         private static string _fakeRedirectUri = "http://localhost";
 
@@ -41,13 +42,13 @@ namespace GoogleFitOnFhir.UnitTests
         {
             _authService = Substitute.For<IAuthService>();
             _usersService = Substitute.For<IUsersService>();
-            _logger = Substitute.For<ILogger<GoogleFitHandler>>();
+            _logger = NullLogger<GoogleFitHandler>.Instance;
 
             _googleFitHandler = new GoogleFitHandler(_authService, _usersService, _logger);
         }
 
         [Fact]
-        public void GoogleFitHandler_ReturnsNull_WhenRequestIsNotForAuthorization()
+        public void GivenRequestCannotBeHandled_WhenEvaluateIsCalled_NullIsReturned()
         {
             var routingRequest = CreateRoutingRequest(emptyGoogleFitRequest);
             var result = _googleFitHandler.Evaluate(routingRequest);
@@ -56,7 +57,7 @@ namespace GoogleFitOnFhir.UnitTests
         }
 
         [Fact]
-        public async Task GoogleFitHandler_RedirectsUser_WhenRequestIsForAuthorization()
+        public async Task GivenRequestHandled_WhenRequestIsForAuthorization_RedirectsUser()
         {
             _authService.AuthUriRequest(Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
 
@@ -69,7 +70,7 @@ namespace GoogleFitOnFhir.UnitTests
         }
 
         [Fact]
-        public async Task GoogleFitHandler_ReturnsOkResult_WhenRequestIsCallback_AndUserExists()
+        public async Task GivenRequestHandledAndUserExists_WhenRequestIsCallback_ReturnsOkResult()
         {
             _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User("test user"));
 
@@ -81,7 +82,7 @@ namespace GoogleFitOnFhir.UnitTests
         }
 
         [Fact]
-        public async Task GoogleFitHandler_ReturnsNotFoundResult_WhenRequestIsCallback_AndExceptionIsThrown()
+        public async Task GivenRequestHandledAndExceptionIsThrown_WhenRequestIsCallback_ReturnsNotFoundResult()
         {
             _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception("exception"));
 
@@ -92,16 +93,14 @@ namespace GoogleFitOnFhir.UnitTests
             Assert.Equal(expectedResult.Value, result.Value);
         }
 
-        private RoutingRequest CreateRoutingRequest(PathString pathString)
+        private RoutingRequest CreateRoutingRequest(string pathString)
         {
             var httpRequest = Substitute.For<HttpRequest>();
-            httpRequest.Path = pathString;
+            httpRequest.Path = new PathString("/" + pathString);
             httpRequest.Query["code"].Returns(new StringValues("access code"));
             var context = new ExecutionContext();
-            var cancellationToken = new CancellationToken(false);
-            using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, httpRequest.HttpContext.RequestAborted);
 
-            return new RoutingRequest() { HttpRequest = httpRequest, Context = context, Token = cancellationSource.Token };
+            return new RoutingRequest() { HttpRequest = httpRequest, Context = context, Token = CancellationToken.None };
         }
     }
 }
