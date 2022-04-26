@@ -28,9 +28,9 @@ namespace GoogleFitOnFhir.UnitTests
     {
         private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _googleFitHandler;
 
-        private readonly string googleFitAuthorizeRequest = GoogleFitHandler.GoogleFitAuthorizeRequest;
-        private readonly string googleFitCallbackRequest = GoogleFitHandler.GoogleFitCallbackRequest;
-        private readonly string emptyGoogleFitRequest = "api/googlefit/";
+        private readonly PathString googleFitAuthorizeRequest = "/" + GoogleFitHandler.GoogleFitAuthorizeRequest;
+        private readonly PathString googleFitCallbackRequest = "/" + GoogleFitHandler.GoogleFitCallbackRequest;
+        private readonly PathString emptyGoogleFitRequest = "/api/googlefit/";
 
         private static string _fakeRedirectUri = "http://localhost";
 
@@ -62,11 +62,13 @@ namespace GoogleFitOnFhir.UnitTests
             _authService.AuthUriRequest(Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
 
             var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest);
-            RedirectResult response = (RedirectResult)await _googleFitHandler.Evaluate(routingRequest);
+            var result = await _googleFitHandler.Evaluate(routingRequest);
+            Assert.IsType<RedirectResult>(result);
 
+            var actualResult = result as RedirectResult;
             AuthUriResponse authUriResponse = new AuthUriResponse { Uri = _fakeRedirectUri };
             var expectedRedirect = new RedirectResult(authUriResponse.Uri);
-            Assert.Equal(expectedRedirect.Url, response.Url);
+            Assert.Equal(expectedRedirect.Url, actualResult?.Url);
         }
 
         [Fact]
@@ -75,10 +77,12 @@ namespace GoogleFitOnFhir.UnitTests
             _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User("test user"));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
-            var result = (OkObjectResult)await _googleFitHandler.Evaluate(routingRequest);
+            var result = await _googleFitHandler.Evaluate(routingRequest);
+            Assert.IsType<OkObjectResult>(result);
 
+            var actualResult = result as OkObjectResult;
             var expectedResult = new OkObjectResult("auth flow success");
-            Assert.Equal(expectedResult.Value, result.Value);
+            Assert.Equal(expectedResult.Value, actualResult?.Value);
         }
 
         [Fact]
@@ -87,16 +91,18 @@ namespace GoogleFitOnFhir.UnitTests
             _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception("exception"));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
-            var result = (NotFoundObjectResult)await _googleFitHandler.Evaluate(routingRequest);
+            var result = await _googleFitHandler.Evaluate(routingRequest);
+            Assert.IsType<NotFoundObjectResult>(result);
 
+            var actualResult = result as NotFoundObjectResult;
             var expectedResult = new NotFoundObjectResult("exception");
-            Assert.Equal(expectedResult.Value, result.Value);
+            Assert.Equal(expectedResult.Value, actualResult?.Value);
         }
 
-        private RoutingRequest CreateRoutingRequest(string pathString)
+        private RoutingRequest CreateRoutingRequest(PathString pathString)
         {
             var httpRequest = Substitute.For<HttpRequest>();
-            httpRequest.Path = new PathString("/" + pathString);
+            httpRequest.Path = pathString;
             httpRequest.Query["code"].Returns(new StringValues("access code"));
             var context = new ExecutionContext();
 
