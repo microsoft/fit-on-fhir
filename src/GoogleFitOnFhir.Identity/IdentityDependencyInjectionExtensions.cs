@@ -27,7 +27,7 @@ namespace GoogleFitOnFhir.Identity
         /// <param name="handlerTypes">The list of handlers to form a chain from.</param>
         public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> CreateOrderedHandlerChain(this IServiceProvider serviceProvider, params Type[] handlerTypes)
         {
-            if (handlerTypes.Any())
+            if (handlerTypes.Any() && handlerTypes.All(handler => handler.GetInterfaces().Contains(typeof(IResponsibilityHandler<RoutingRequest, Task<IActionResult>>))))
             {
                 IResponsibilityHandler<RoutingRequest, Task<IActionResult>> previousHandler = null;
 
@@ -48,7 +48,7 @@ namespace GoogleFitOnFhir.Identity
             }
             else
             {
-                throw new ArgumentException("handlers empty");
+                throw new ArgumentException("handlers empty or wrong type");
             }
         }
     }

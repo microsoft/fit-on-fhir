@@ -38,7 +38,7 @@ namespace GoogleFitOnFhir.PublishData
                 .Append("/api/googlefit/callback");
 
             builder.Services.AddLogging();
-            builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, stringBuilder.ToString()));
+            builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, hostName));
             builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
             builder.Services.AddScoped(sp => new EventHubProducerClient(iomtConnectionString));
             builder.Services.AddSingleton(sp => new SecretClient(new Uri(usersKeyVaultUri), new DefaultAzureCredential()));
