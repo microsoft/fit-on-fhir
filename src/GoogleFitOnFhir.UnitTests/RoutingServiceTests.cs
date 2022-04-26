@@ -30,8 +30,6 @@ namespace GoogleFitOnFhir.UnitTests
         private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _handler;
         private readonly IRoutingService _routingService;
 
-        // private static string _fakeRedirectUri = "http://localhost";
-
         public RoutingServiceTests()
         {
             _handler = Substitute.For<IResponsibilityHandler<RoutingRequest, Task<IActionResult>>>();
