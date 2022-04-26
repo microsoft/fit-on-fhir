@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.4.1318.3566",
-      "templateHash": "14074886718104240563"
+      "version": "0.5.6.12127",
+      "templateHash": "806291632320845830"
     }
   },
   "parameters": {
@@ -578,7 +578,6 @@
       "apiVersion": "2021-01-01-preview",
       "name": "[format('{0}/{1}/{2}', format('en-{0}', parameters('basename')), 'ingest', '$Default')]",
       "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
       ]
     },
@@ -592,7 +591,6 @@
         ]
       },
       "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
       ]
     },

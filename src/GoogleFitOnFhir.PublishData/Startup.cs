@@ -30,14 +30,10 @@ namespace GoogleFitOnFhir.PublishData
             string usersKeyVaultUri = Environment.GetEnvironmentVariable("USERS_KEY_VAULT_URI");
             string googleFitClientId = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_ID");
             string googleFitClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET");
-
-            StringBuilder stringBuilder = new StringBuilder("https");
-            stringBuilder.Append("://")
-                .Append(Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"))
-                .Append("/api/callback");
+            string hostName = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME");
 
             builder.Services.AddLogging();
-            builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, stringBuilder.ToString()));
+            builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, hostName));
             builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
             builder.Services.AddScoped(sp => new EventHubProducerClient(iomtConnectionString));
             builder.Services.AddSingleton(sp => new SecretClient(new Uri(usersKeyVaultUri), new DefaultAzureCredential()));
