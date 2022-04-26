@@ -32,11 +32,6 @@ namespace GoogleFitOnFhir.PublishData
             string googleFitClientSecret = Environment.GetEnvironmentVariable("GOOGLE_OAUTH_CLIENT_SECRET");
             string hostName = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME");
 
-            StringBuilder stringBuilder = new StringBuilder("https");
-            stringBuilder.Append("://")
-                .Append(hostName)
-                .Append("/api/googlefit/callback");
-
             builder.Services.AddLogging();
             builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, hostName));
             builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
