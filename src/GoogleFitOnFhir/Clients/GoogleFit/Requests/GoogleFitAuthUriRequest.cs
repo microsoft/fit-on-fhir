@@ -8,19 +8,21 @@ using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Web;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
+using GoogleFitOnFhir.Services;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
-    public class AuthUriRequest
+    public class GoogleFitAuthUriRequest : IGoogleFitAuthUriRequest
     {
-        private readonly GoogleFitClientContext _clientContext;
-        private readonly IAuthorizationCodeFlow _authFlow;
+        private GoogleFitClientContext _clientContext;
+        private IAuthorizationCodeFlow _authFlow;
 
-        public AuthUriRequest(GoogleFitClientContext clientContext, IAuthorizationCodeFlow authFlow)
+        public GoogleFitAuthUriRequest(GoogleFitClientContext clientContext)
         {
             _clientContext = clientContext;
-            _authFlow = authFlow;
         }
+
+        public void SetAuthFlow(IAuthorizationCodeFlow authFlow) => _authFlow = authFlow;
 
         public async Task<AuthUriResponse> ExecuteAsync(CancellationToken cancellationToken)
         {

@@ -24,7 +24,7 @@ using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace GoogleFitOnFhir.UnitTests
 {
-    public class GoogleFitResponsibilityHandlerTests
+    public class GoogleFitHandlerTests
     {
         private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _googleFitHandler;
 
@@ -34,13 +34,13 @@ namespace GoogleFitOnFhir.UnitTests
 
         private static string _fakeRedirectUri = "http://localhost";
 
-        private readonly IAuthService _authService;
+        private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
         private readonly ILogger<GoogleFitHandler> _logger;
 
-        public GoogleFitResponsibilityHandlerTests()
+        public GoogleFitHandlerTests()
         {
-            _authService = Substitute.For<IAuthService>();
+            _authService = Substitute.For<IGoogleFitAuthService>();
             _usersService = Substitute.For<IUsersService>();
             _logger = NullLogger<GoogleFitHandler>.Instance;
 
