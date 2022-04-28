@@ -3,13 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Google.Apis.Auth.OAuth2.Flows;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 
 namespace GoogleFitOnFhir.Services
 {
     public interface IGoogleFitAuthTokensRequest : IAuthRequest<AuthTokensResponse>
     {
-        public void SetAuthCodeAndFlow(string authCode, IAuthorizationCodeFlow authFlow);
+        /// <summary>
+        /// Sets the authorization code for the token request.
+        /// </summary>
+        /// <param name="authCode">The authorization code.</param>
+        public void SetAuthCode(string authCode);
     }
 }

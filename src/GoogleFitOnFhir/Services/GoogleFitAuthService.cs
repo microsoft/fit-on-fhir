@@ -6,17 +6,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Fitness.v1;
 using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using Microsoft.Extensions.Logging;
 
 namespace GoogleFitOnFhir.Services
 {
-    public class GoogleFitAuthService : AuthService<GoogleFitAuthService>, IGoogleFitAuthService
+    public class GoogleFitAuthService : IGoogleFitAuthService
     {
+        private readonly ILogger<GoogleFitAuthService> _logger;
         private readonly GoogleFitClientContext _clientContext;
         private readonly IGoogleFitAuthUriRequest _googleFitAuthUriRequest;
         private readonly IGoogleFitAuthTokensRequest _googleFitAuthTokensRequest;
@@ -36,8 +34,8 @@ namespace GoogleFitOnFhir.Services
             IGoogleFitAuthUriRequest googleFitAuthUriRequest,
             IGoogleFitAuthTokensRequest googleFitAuthTokensRequest,
             IGoogleFitRefreshTokenRequest googleFitRefreshTokenRequest)
-            : base(logger)
         {
+            _logger = logger;
             _clientContext = EnsureArg.IsNotNull(clientContext);
             _googleFitAuthUriRequest = EnsureArg.IsNotNull(googleFitAuthUriRequest);
             _googleFitAuthTokensRequest = EnsureArg.IsNotNull(googleFitAuthTokensRequest);
@@ -47,46 +45,21 @@ namespace GoogleFitOnFhir.Services
         /// <inheritdoc/>
         public Task<AuthUriResponse> AuthUriRequest(CancellationToken cancellationToken)
         {
-            _googleFitAuthUriRequest.SetAuthFlow(GetAuthFlow());
             return _googleFitAuthUriRequest.ExecuteAsync(cancellationToken);
         }
 
         /// <inheritdoc/>
         public Task<AuthTokensResponse> AuthTokensRequest(string authCode, CancellationToken cancellationToken)
         {
-            _googleFitAuthTokensRequest.SetAuthCodeAndFlow(authCode, GetAuthFlow());
+            _googleFitAuthTokensRequest.SetAuthCode(authCode);
             return _googleFitAuthTokensRequest.ExecuteAsync(cancellationToken);
         }
 
         /// <inheritdoc/>
         public Task<AuthTokensResponse> RefreshTokensRequest(string refreshToken, CancellationToken cancellationToken)
         {
-            _googleFitRefreshTokensRequest.SetRefreshTokenAndAuthFlow(refreshToken, GetAuthFlow());
+            _googleFitRefreshTokensRequest.SetRefreshToken(refreshToken);
             return _googleFitRefreshTokensRequest.ExecuteAsync(cancellationToken);
-        }
-
-        private IAuthorizationCodeFlow GetAuthFlow()
-        {
-            // TODO: Customize datastore to use KeyVault
-            return new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-            {
-                ClientSecrets = new ClientSecrets
-                {
-                    ClientId = _clientContext.ClientId,
-                    ClientSecret = _clientContext.ClientSecret,
-                },
-
-                // TODO: Only need write scopes for e2e tests - make this dynamic
-                Scopes = new[]
-                {
-                    "https://www.googleapis.com/auth/userinfo.email",
-                    "https://www.googleapis.com/auth/userinfo.profile",
-                    FitnessService.Scope.FitnessBloodGlucoseRead,
-                    FitnessService.Scope.FitnessBloodGlucoseWrite,
-                    FitnessService.Scope.FitnessHeartRateRead,
-                    FitnessService.Scope.FitnessHeartRateWrite,
-                },
-            });
         }
     }
 }

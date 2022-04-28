@@ -14,22 +14,19 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class GoogleFitRefreshTokensRequest : IGoogleFitRefreshTokenRequest
     {
+        private readonly GoogleAuthorizationCodeFlow _authorizationCodeFlow;
         private string _refreshToken;
-        private IAuthorizationCodeFlow _authFlow;
 
-        public GoogleFitRefreshTokensRequest()
+        public GoogleFitRefreshTokensRequest(GoogleAuthorizationCodeFlow authorizationCodeFlow)
         {
+            _authorizationCodeFlow = authorizationCodeFlow;
         }
 
-        public void SetRefreshTokenAndAuthFlow(string refreshToken, IAuthorizationCodeFlow authFlow)
-        {
-            _refreshToken = refreshToken;
-            _authFlow = authFlow;
-        }
+        public void SetRefreshToken(string refreshToken) => _refreshToken = refreshToken;
 
         public async Task<AuthTokensResponse> ExecuteAsync(CancellationToken cancellationToken)
         {
-            TokenResponse tokenResponse = await _authFlow.RefreshTokenAsync("me", _refreshToken, cancellationToken);
+            TokenResponse tokenResponse = await _authorizationCodeFlow.RefreshTokenAsync("me", _refreshToken, cancellationToken);
 
             AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
             return response;

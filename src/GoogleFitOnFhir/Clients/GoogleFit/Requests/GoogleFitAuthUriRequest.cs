@@ -14,20 +14,19 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class GoogleFitAuthUriRequest : IGoogleFitAuthUriRequest
     {
-        private GoogleFitClientContext _clientContext;
-        private IAuthorizationCodeFlow _authFlow;
+        private readonly GoogleFitClientContext _clientContext;
+        private readonly GoogleAuthorizationCodeFlow _googleAuthorizationCodeFlow;
 
-        public GoogleFitAuthUriRequest(GoogleFitClientContext clientContext)
+        public GoogleFitAuthUriRequest(GoogleFitClientContext clientContext, GoogleAuthorizationCodeFlow googleAuthorizationCodeFlow)
         {
             _clientContext = clientContext;
+            _googleAuthorizationCodeFlow = googleAuthorizationCodeFlow;
         }
-
-        public void SetAuthFlow(IAuthorizationCodeFlow authFlow) => _authFlow = authFlow;
 
         public async Task<AuthUriResponse> ExecuteAsync(CancellationToken cancellationToken)
         {
             var request = new AuthorizationCodeWebApp(
-                _authFlow,
+                _googleAuthorizationCodeFlow,
                 _clientContext.CallbackUri,
                 string.Empty);
 
