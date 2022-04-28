@@ -35,7 +35,7 @@ namespace GoogleFitOnFhir.Services
             IGoogleFitAuthTokensRequest googleFitAuthTokensRequest,
             IGoogleFitRefreshTokenRequest googleFitRefreshTokenRequest)
         {
-            _logger = logger;
+            _logger = EnsureArg.IsNotNull(logger);
             _clientContext = EnsureArg.IsNotNull(clientContext);
             _googleFitAuthUriRequest = EnsureArg.IsNotNull(googleFitAuthUriRequest);
             _googleFitAuthTokensRequest = EnsureArg.IsNotNull(googleFitAuthTokensRequest);

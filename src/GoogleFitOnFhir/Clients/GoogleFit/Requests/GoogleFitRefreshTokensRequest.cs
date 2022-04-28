@@ -5,6 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
@@ -14,19 +15,19 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class GoogleFitRefreshTokensRequest : IGoogleFitRefreshTokenRequest
     {
-        private readonly GoogleAuthorizationCodeFlow _authorizationCodeFlow;
+        private readonly GoogleAuthorizationCodeFlow _googleAuthorizationCodeFlow;
         private string _refreshToken;
 
-        public GoogleFitRefreshTokensRequest(GoogleAuthorizationCodeFlow authorizationCodeFlow)
+        public GoogleFitRefreshTokensRequest(GoogleAuthorizationCodeFlow googleAuthorizationCodeFlow)
         {
-            _authorizationCodeFlow = authorizationCodeFlow;
+            _googleAuthorizationCodeFlow = EnsureArg.IsNotNull(googleAuthorizationCodeFlow);
         }
 
         public void SetRefreshToken(string refreshToken) => _refreshToken = refreshToken;
 
         public async Task<AuthTokensResponse> ExecuteAsync(CancellationToken cancellationToken)
         {
-            TokenResponse tokenResponse = await _authorizationCodeFlow.RefreshTokenAsync("me", _refreshToken, cancellationToken);
+            TokenResponse tokenResponse = await _googleAuthorizationCodeFlow.RefreshTokenAsync("me", _refreshToken, cancellationToken);
 
             AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
             return response;

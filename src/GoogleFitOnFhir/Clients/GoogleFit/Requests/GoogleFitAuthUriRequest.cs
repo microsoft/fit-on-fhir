@@ -5,6 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Web;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
@@ -19,8 +20,8 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 
         public GoogleFitAuthUriRequest(GoogleFitClientContext clientContext, GoogleAuthorizationCodeFlow googleAuthorizationCodeFlow)
         {
-            _clientContext = clientContext;
-            _googleAuthorizationCodeFlow = googleAuthorizationCodeFlow;
+            _clientContext = EnsureArg.IsNotNull(clientContext);
+            _googleAuthorizationCodeFlow = EnsureArg.IsNotNull(googleAuthorizationCodeFlow);
         }
 
         public async Task<AuthUriResponse> ExecuteAsync(CancellationToken cancellationToken)
