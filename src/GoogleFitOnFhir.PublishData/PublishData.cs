@@ -15,12 +15,12 @@ namespace GoogleFitOnFhir.PublishData
 {
     public class PublishData
     {
-        private readonly IUsersService _usersService;
+        private readonly IGoogleFitDataImporter _googleFitDataImporter;
 
         public PublishData(
-            IUsersService usersService)
+            IGoogleFitDataImporter googleFitDataImporter)
         {
-            _usersService = usersService;
+            _googleFitDataImporter = googleFitDataImporter;
         }
 
         [FunctionName("publish-data")]
@@ -31,7 +31,7 @@ namespace GoogleFitOnFhir.PublishData
         {
             log.LogInformation("publish-data has message: {0}", myQueueItem);
             QueueMessage message = JsonConvert.DeserializeObject<QueueMessage>(myQueueItem);
-            await _usersService.ImportFitnessData(message.UserId, cancellationToken);
+            await _googleFitDataImporter.ImportFitnessData(message.UserId, cancellationToken);
         }
     }
 }
