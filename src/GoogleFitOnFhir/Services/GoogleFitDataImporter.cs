@@ -41,7 +41,7 @@ namespace GoogleFitOnFhir.Services
             _logger = logger;
         }
 
-        public async Task ImportFitnessData(string userId, CancellationToken cancellationToken)
+        public async Task Import(string userId, CancellationToken cancellationToken)
         {
             string refreshToken;
 

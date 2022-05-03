@@ -31,7 +31,7 @@ namespace GoogleFitOnFhir.PublishData
         {
             log.LogInformation("publish-data has message: {0}", myQueueItem);
             QueueMessage message = JsonConvert.DeserializeObject<QueueMessage>(myQueueItem);
-            await _googleFitDataImporter.ImportFitnessData(message.UserId, cancellationToken);
+            await _googleFitDataImporter.Import(message.UserId, cancellationToken);
         }
     }
 }

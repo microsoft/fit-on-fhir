@@ -10,6 +10,6 @@ namespace GoogleFitOnFhir.Services
 {
     public interface IGoogleFitDataImporter
     {
-        Task ImportFitnessData(string userId, CancellationToken cancellationToken);
+        Task Import(string userId, CancellationToken cancellationToken);
     }
 }
