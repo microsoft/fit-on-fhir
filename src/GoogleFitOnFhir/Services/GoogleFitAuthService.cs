@@ -6,6 +6,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Auth.OAuth2.Web;
 using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using Microsoft.Extensions.Logging;
@@ -16,50 +20,71 @@ namespace GoogleFitOnFhir.Services
     {
         private readonly ILogger<GoogleFitAuthService> _logger;
         private readonly GoogleFitClientContext _clientContext;
-        private readonly IGoogleFitAuthUriRequest _googleFitAuthUriRequest;
-        private readonly IGoogleFitAuthTokensRequest _googleFitAuthTokensRequest;
-        private readonly IGoogleFitRefreshTokenRequest _googleFitRefreshTokensRequest;
+        private readonly GoogleAuthorizationCodeFlow _googleAuthorizationCodeFlow;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GoogleFitAuthService"/> class.
         /// </summary>
         /// <param name="logger">The <see cref="ILogger"/> for this service.</param>
         /// <param name="clientContext">The <see cref="GoogleFitClientContext"/> to be used by this service.</param>
-        /// <param name="googleFitAuthUriRequest">The <see cref="IGoogleFitAuthUriRequest"/> used to initiate authorization.</param>
-        /// <param name="googleFitAuthTokensRequest">The <see cref="IGoogleFitAuthTokensRequest"/> used to retrieve the auth token.</param>
-        /// <param name="googleFitRefreshTokenRequest">The <see cref="IGoogleFitRefreshTokenRequest"/> used to refresh the access token.</param>
-        public GoogleFitAuthService(
-            ILogger<GoogleFitAuthService> logger,
-            GoogleFitClientContext clientContext,
-            IGoogleFitAuthUriRequest googleFitAuthUriRequest,
-            IGoogleFitAuthTokensRequest googleFitAuthTokensRequest,
-            IGoogleFitRefreshTokenRequest googleFitRefreshTokenRequest)
+        public GoogleFitAuthService(ILogger<GoogleFitAuthService> logger, GoogleFitClientContext clientContext)
         {
             _logger = EnsureArg.IsNotNull(logger);
             _clientContext = EnsureArg.IsNotNull(clientContext);
-            _googleFitAuthUriRequest = EnsureArg.IsNotNull(googleFitAuthUriRequest);
-            _googleFitAuthTokensRequest = EnsureArg.IsNotNull(googleFitAuthTokensRequest);
-            _googleFitRefreshTokensRequest = EnsureArg.IsNotNull(googleFitRefreshTokenRequest);
+            _googleAuthorizationCodeFlow = new GoogleAuthorizationCodeFlow(
+                new GoogleAuthorizationCodeFlow.Initializer
+                {
+                    ClientSecrets = new ClientSecrets
+                    {
+                        ClientId = clientContext.ClientId,
+                        ClientSecret = clientContext.ClientSecret,
+                    },
+
+                    Scopes = clientContext.DefaultScopes,
+                });
         }
 
         /// <inheritdoc/>
-        public Task<AuthUriResponse> AuthUriRequest(CancellationToken cancellationToken)
+        public async Task<AuthUriResponse> AuthUriRequest(CancellationToken cancellationToken)
         {
-            return _googleFitAuthUriRequest.ExecuteAsync(cancellationToken);
+            var request = new AuthorizationCodeWebApp(
+                _googleAuthorizationCodeFlow,
+                _clientContext.CallbackUri,
+                string.Empty);
+
+            var result = await request.AuthorizeAsync("user", cancellationToken);
+            if (result.Credential == null)
+            {
+                var response = new AuthUriResponse
+                {
+                    Uri = result.RedirectUri,
+                };
+
+                return response;
+            }
+            else
+            {
+                // Not sure when this would happen
+                return null;
+            }
         }
 
         /// <inheritdoc/>
-        public Task<AuthTokensResponse> AuthTokensRequest(string authCode, CancellationToken cancellationToken)
+        public async Task<AuthTokensResponse> AuthTokensRequest(string authCode, CancellationToken cancellationToken)
         {
-            _googleFitAuthTokensRequest.SetAuthCode(authCode);
-            return _googleFitAuthTokensRequest.ExecuteAsync(cancellationToken);
+            TokenResponse tokenResponse = await _googleAuthorizationCodeFlow.ExchangeCodeForTokenAsync("me", authCode, _clientContext.CallbackUri, cancellationToken);
+
+            AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
+            return response;
         }
 
         /// <inheritdoc/>
-        public Task<AuthTokensResponse> RefreshTokensRequest(string refreshToken, CancellationToken cancellationToken)
+        public async Task<AuthTokensResponse> RefreshTokensRequest(string refreshToken, CancellationToken cancellationToken)
         {
-            _googleFitRefreshTokensRequest.SetRefreshToken(refreshToken);
-            return _googleFitRefreshTokensRequest.ExecuteAsync(cancellationToken);
+            TokenResponse tokenResponse = await _googleAuthorizationCodeFlow.RefreshTokenAsync("me", refreshToken, cancellationToken);
+
+            AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
+            return response;
         }
     }
 }

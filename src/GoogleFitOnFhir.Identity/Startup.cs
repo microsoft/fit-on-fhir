@@ -6,12 +6,8 @@
 using System;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Fitness.v1;
 using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
-using GoogleFitOnFhir.Clients.GoogleFit.Requests;
 using GoogleFitOnFhir.Common;
 using GoogleFitOnFhir.Persistence;
 using GoogleFitOnFhir.Repositories;
@@ -39,38 +35,12 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, hostName));
             builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
             builder.Services.AddSingleton(sp => new SecretClient(new Uri(usersKeyVaultUri), new DefaultAzureCredential()));
-            builder.Services.AddSingleton(sp =>
-            {
-                var googleFitClientContext = sp.GetService(typeof(GoogleFitClientContext)) as GoogleFitClientContext;
-                return new GoogleAuthorizationCodeFlow(
-                    new GoogleAuthorizationCodeFlow.Initializer
-                    {
-                        ClientSecrets = new ClientSecrets
-                        {
-                            ClientId = googleFitClientContext.ClientId,
-                            ClientSecret = googleFitClientContext.ClientSecret,
-                        },
-
-                        Scopes = new[]
-                        {
-                            "https://www.googleapis.com/auth/userinfo.email",
-                            "https://www.googleapis.com/auth/userinfo.profile",
-                            FitnessService.Scope.FitnessBloodGlucoseRead,
-                            FitnessService.Scope.FitnessBloodGlucoseWrite,
-                            FitnessService.Scope.FitnessHeartRateRead,
-                            FitnessService.Scope.FitnessHeartRateWrite,
-                        },
-                    });
-            });
 
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
-            builder.Services.AddSingleton<IGoogleFitAuthUriRequest, GoogleFitAuthUriRequest>();
-            builder.Services.AddSingleton<IGoogleFitAuthTokensRequest, GoogleFitAuthTokensRequest>();
-            builder.Services.AddSingleton<IGoogleFitRefreshTokenRequest, GoogleFitRefreshTokensRequest>();
             builder.Services.AddSingleton<IRoutingService, RoutingService>();
             builder.Services.AddSingleton<GoogleFitHandler>();
             builder.Services.AddSingleton<UnknownOperationHandler>();
