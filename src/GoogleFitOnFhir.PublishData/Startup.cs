@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Text;
 using Azure.Identity;
 using Azure.Messaging.EventHubs.Producer;
 using Azure.Security.KeyVault.Secrets;
@@ -40,7 +39,7 @@ namespace GoogleFitOnFhir.PublishData
 
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
-            builder.Services.AddSingleton<IAuthService, AuthService>();
+            builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddScoped<IUsersService, UsersService>();
         }

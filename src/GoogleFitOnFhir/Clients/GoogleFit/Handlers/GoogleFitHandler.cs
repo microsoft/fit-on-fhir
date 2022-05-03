@@ -17,7 +17,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 {
     public class GoogleFitHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
     {
-        private readonly IAuthService _authService;
+        private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
         private readonly ILogger<GoogleFitHandler> _logger;
 
@@ -25,7 +25,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
         {
         }
 
-        public GoogleFitHandler(IAuthService authService, IUsersService usersService, ILogger<GoogleFitHandler> logger)
+        public GoogleFitHandler(IGoogleFitAuthService authService, IUsersService usersService, ILogger<GoogleFitHandler> logger)
         {
             _authService = EnsureArg.IsNotNull(authService);
             _usersService = EnsureArg.IsNotNull(usersService);

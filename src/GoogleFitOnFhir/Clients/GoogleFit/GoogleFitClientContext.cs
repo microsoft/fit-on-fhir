@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Text;
+using Google.Apis.Fitness.v1;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit
 {
@@ -20,6 +22,17 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
                 .Append("/api/googlefit/callback");
 
             CallbackUri = stringBuilder.ToString();
+
+            // these are not the final default values
+            DefaultScopes = new[]
+            {
+                "https://www.googleapis.com/auth/userinfo.email",
+                "https://www.googleapis.com/auth/userinfo.profile",
+                FitnessService.Scope.FitnessBloodGlucoseRead,
+                FitnessService.Scope.FitnessBloodGlucoseWrite,
+                FitnessService.Scope.FitnessHeartRateRead,
+                FitnessService.Scope.FitnessHeartRateWrite,
+            };
         }
 
         public string ClientId { get; set; }
@@ -27,5 +40,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
         public string ClientSecret { get; set; }
 
         public string CallbackUri { get; set; }
+
+        public IEnumerable<string> DefaultScopes { get; private set; }
     }
 }
