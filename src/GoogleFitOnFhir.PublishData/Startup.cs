@@ -4,10 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Messaging.EventHubs.Producer;
 using Azure.Security.KeyVault.Secrets;
 using GoogleFitOnFhir.Clients.GoogleFit;
+using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
+using GoogleFitOnFhir.Common;
+using GoogleFitOnFhir.Identity;
 using GoogleFitOnFhir.Persistence;
 using GoogleFitOnFhir.Repositories;
 using GoogleFitOnFhir.Services;
@@ -42,6 +46,10 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddScoped<IUsersService, UsersService>();
+            builder.Services.AddSingleton<IPublisherService, PublisherService>();
+            builder.Services.AddSingleton<GoogleFitPublishingHandler>();
+            builder.Services.AddSingleton<UnknownGoogleFitPublisherHandler>();
+            builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<PublishRequest, Task>(typeof(GoogleFitPublishingHandler), typeof(UnknownGoogleFitPublisherHandler)));
         }
     }
 }

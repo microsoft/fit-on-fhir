@@ -28,23 +28,23 @@ namespace GoogleFitOnFhir.UnitTests
     {
         private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _googleFitHandler;
 
-        private readonly PathString googleFitAuthorizeRequest = "/" + GoogleFitHandler.GoogleFitAuthorizeRequest;
-        private readonly PathString googleFitCallbackRequest = "/" + GoogleFitHandler.GoogleFitCallbackRequest;
+        private readonly PathString googleFitAuthorizeRequest = "/" + GoogleFitAuthorizationHandler.GoogleFitAuthorizeRequest;
+        private readonly PathString googleFitCallbackRequest = "/" + GoogleFitAuthorizationHandler.GoogleFitCallbackRequest;
         private readonly PathString emptyGoogleFitRequest = "/api/googlefit/";
 
         private static string _fakeRedirectUri = "http://localhost";
 
         private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
-        private readonly ILogger<GoogleFitHandler> _logger;
+        private readonly ILogger<GoogleFitAuthorizationHandler> _logger;
 
         public GoogleFitHandlerTests()
         {
             _authService = Substitute.For<IGoogleFitAuthService>();
             _usersService = Substitute.For<IUsersService>();
-            _logger = NullLogger<GoogleFitHandler>.Instance;
+            _logger = NullLogger<GoogleFitAuthorizationHandler>.Instance;
 
-            _googleFitHandler = new GoogleFitHandler(_authService, _usersService, _logger);
+            _googleFitHandler = new GoogleFitAuthorizationHandler(_authService, _usersService, _logger);
         }
 
         [Fact]

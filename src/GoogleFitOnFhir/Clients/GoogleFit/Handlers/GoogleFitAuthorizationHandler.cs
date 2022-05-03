@@ -15,24 +15,24 @@ using Microsoft.Health.Common.Handler;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 {
-    public class GoogleFitHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
+    public class GoogleFitAuthorizationHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
     {
         private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
-        private readonly ILogger<GoogleFitHandler> _logger;
+        private readonly ILogger<GoogleFitAuthorizationHandler> _logger;
 
-        private GoogleFitHandler()
+        private GoogleFitAuthorizationHandler()
         {
         }
 
-        public GoogleFitHandler(IGoogleFitAuthService authService, IUsersService usersService, ILogger<GoogleFitHandler> logger)
+        public GoogleFitAuthorizationHandler(IGoogleFitAuthService authService, IUsersService usersService, ILogger<GoogleFitAuthorizationHandler> logger)
         {
             _authService = EnsureArg.IsNotNull(authService);
             _usersService = EnsureArg.IsNotNull(usersService);
             _logger = EnsureArg.IsNotNull(logger);
         }
 
-        public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitHandler();
+        public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitAuthorizationHandler();
 
         /// <summary>
         /// Path for authorization requests

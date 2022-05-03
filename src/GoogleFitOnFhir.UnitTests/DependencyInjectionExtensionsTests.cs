@@ -4,44 +4,47 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
+using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
 using GoogleFitOnFhir.Common;
 using GoogleFitOnFhir.Identity;
 using GoogleFitOnFhir.UnitTests.Mocks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace GoogleFitOnFhir.UnitTests
 {
-    public class IdentityDependencyInjectionExtensionsTests
+    public class DependencyInjectionExtensionsTests
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public IdentityDependencyInjectionExtensionsTests()
+        public DependencyInjectionExtensionsTests()
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton<MockBaseResponsibilityHandler>();
             serviceCollection.AddSingleton<MockMismatchedInterfaceResponsibilityHandler>();
-            serviceCollection.AddSingleton<UnknownOperationHandler>();
+            serviceCollection.AddSingleton<UnknownGoogleFitAuthorizationHandler>();
             _serviceProvider = serviceCollection.BuildServiceProvider(true);
         }
 
         [Fact]
         public void GivenHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_BaseHandlerIsReturned()
         {
-            var service = _serviceProvider.CreateOrderedHandlerChain(typeof(MockBaseResponsibilityHandler), typeof(UnknownOperationHandler));
+            var service = _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockBaseResponsibilityHandler), typeof(UnknownGoogleFitAuthorizationHandler));
             Assert.IsType<MockBaseResponsibilityHandler>(service);
         }
 
         [Fact]
         public void GivenNoHandlersAreReferenced_WhenCreateOrderedHandlerChainIsCalled_ArgumentExceptionIsThrown()
         {
-            Assert.Throws<ArgumentException>(() => _serviceProvider.CreateOrderedHandlerChain());
+            Assert.Throws<ArgumentException>(() => _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>());
         }
 
         [Fact]
         public void GivenHandlerOfWrongTypeIsReferenced_WhenCreateOrderedHandlerChainIsCalled_ArgumentExceptionIsThrown()
         {
-            Assert.Throws<ArgumentException>(() => _serviceProvider.CreateOrderedHandlerChain(typeof(MockMismatchedInterfaceResponsibilityHandler), typeof(UnknownOperationHandler)));
+            Assert.Throws<ArgumentException>(() => _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockMismatchedInterfaceResponsibilityHandler), typeof(UnknownGoogleFitAuthorizationHandler)));
         }
     }
 }
