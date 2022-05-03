@@ -14,10 +14,15 @@ stages:
           - bash: az bicep build -f deploy/azuredeploy.bicep --outdir /tmp
             displayName: Compile Bicep
           - bash: |
-              cmp --silent /tmp/azuredeploy.json deploy/azuredeploy.json
+              diff <(tail -n +10 /tmp/azuredeploy.json) <(tail -n +10 deploy/azuredeploy.json)
               if [ $? -ne  0 ]; then
+                echo ''
                 echo '🚨 Compiled ARM json does not match'
-                echo '⚠️ Compile the bicep into ARM and commit to pass'
+                echo '⚠️ This error can be caused by a new release of Bicep'
+                echo '⚠️ To fix this issue:'
+                echo '⚠️ Update Bicep (az bicep upgrade)'
+                echo '⚠️ Rebuild the arm template (az bicep build -f azuredeploy.bicep)'
+                echo '⚠️ Commit the changes'
                 exit 1
               fi
             displayName: Verify built bicep matches ARM in repo
