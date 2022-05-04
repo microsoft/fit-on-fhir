@@ -7,6 +7,8 @@ using System;
 using System.Threading.Tasks;
 using EnsureThat;
 using GoogleFitOnFhir.Common;
+using GoogleFitOnFhir.Models;
+using GoogleFitOnFhir.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
 
@@ -14,21 +16,28 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 {
     public class GoogleFitPublishingHandler : IResponsibilityHandler<PublishRequest, Task>
     {
+        private readonly IGoogleFitDataImporter _googleFitDataImporter;
+        private readonly IErrorHandler _errorHandler;
         private readonly ILogger<GoogleFitPublishingHandler> _logger;
 
         private GoogleFitPublishingHandler()
         {
         }
 
-        public GoogleFitPublishingHandler(ILogger<GoogleFitPublishingHandler> logger)
+        public GoogleFitPublishingHandler(
+            IGoogleFitDataImporter googleFitDataImporter,
+            IErrorHandler errorHandler,
+            ILogger<GoogleFitPublishingHandler> logger)
         {
+            _googleFitDataImporter = EnsureArg.IsNotNull(googleFitDataImporter);
+            _errorHandler = EnsureArg.IsNotNull(errorHandler);
             _logger = EnsureArg.IsNotNull(logger);
         }
 
         public static IResponsibilityHandler<PublishRequest, Task> Instance { get; } = new GoogleFitPublishingHandler();
 
         /// <summary>
-        /// Path for callback requests
+        /// String identifier for the GoogleFit platform.  Used to help identify the recipient platform for a <see cref="QueueMessage"/>.
         /// </summary>
         public static string GoogleFitPlatform => "GoogleFit";
 
@@ -38,8 +47,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
             {
                 if (request.Message.PlatformName == GoogleFitPlatform)
                 {
-                    // TODO call the new GoogleFitDataImporter here
-                    // ImportFitnessData(request.Message.UserId, request.Token)
+                    _googleFitDataImporter.Import(request.Message.UserId, request.Token);
                     return Task.CompletedTask;
                 }
                 else
@@ -50,6 +58,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
+                _errorHandler.HandleDataSyncError(request.Message, ex);
                 return null;
             }
         }

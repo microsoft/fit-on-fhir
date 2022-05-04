@@ -36,7 +36,7 @@ namespace GoogleFitOnFhir.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return Task.CompletedTask;
+                return Task.FromException(ex);
             }
         }
     }

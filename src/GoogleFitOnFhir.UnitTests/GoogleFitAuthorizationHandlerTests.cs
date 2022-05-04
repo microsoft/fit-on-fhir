@@ -24,9 +24,9 @@ using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace GoogleFitOnFhir.UnitTests
 {
-    public class GoogleFitHandlerTests
+    public class GoogleFitAuthorizationHandlerTests
     {
-        private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _googleFitHandler;
+        private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _googleFitAuthorizationHandler;
 
         private readonly PathString googleFitAuthorizeRequest = "/" + GoogleFitAuthorizationHandler.GoogleFitAuthorizeRequest;
         private readonly PathString googleFitCallbackRequest = "/" + GoogleFitAuthorizationHandler.GoogleFitCallbackRequest;
@@ -38,20 +38,20 @@ namespace GoogleFitOnFhir.UnitTests
         private readonly IUsersService _usersService;
         private readonly ILogger<GoogleFitAuthorizationHandler> _logger;
 
-        public GoogleFitHandlerTests()
+        public GoogleFitAuthorizationHandlerTests()
         {
             _authService = Substitute.For<IGoogleFitAuthService>();
             _usersService = Substitute.For<IUsersService>();
             _logger = NullLogger<GoogleFitAuthorizationHandler>.Instance;
 
-            _googleFitHandler = new GoogleFitAuthorizationHandler(_authService, _usersService, _logger);
+            _googleFitAuthorizationHandler = new GoogleFitAuthorizationHandler(_authService, _usersService, _logger);
         }
 
         [Fact]
         public void GivenRequestCannotBeHandled_WhenEvaluateIsCalled_NullIsReturned()
         {
             var routingRequest = CreateRoutingRequest(emptyGoogleFitRequest);
-            var result = _googleFitHandler.Evaluate(routingRequest);
+            var result = _googleFitAuthorizationHandler.Evaluate(routingRequest);
 
             Assert.Null(result);
         }
@@ -62,7 +62,7 @@ namespace GoogleFitOnFhir.UnitTests
             _authService.AuthUriRequest(Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
 
             var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest);
-            var result = await _googleFitHandler.Evaluate(routingRequest);
+            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
             Assert.IsType<RedirectResult>(result);
 
             var actualResult = result as RedirectResult;
@@ -77,7 +77,7 @@ namespace GoogleFitOnFhir.UnitTests
             _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User("test user"));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
-            var result = await _googleFitHandler.Evaluate(routingRequest);
+            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
             Assert.IsType<OkObjectResult>(result);
 
             var actualResult = result as OkObjectResult;
@@ -91,7 +91,7 @@ namespace GoogleFitOnFhir.UnitTests
             _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception("exception"));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
-            var result = await _googleFitHandler.Evaluate(routingRequest);
+            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
             Assert.IsType<NotFoundObjectResult>(result);
 
             var actualResult = result as NotFoundObjectResult;
