@@ -49,6 +49,7 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddSingleton<IPublisherService, PublisherService>();
             builder.Services.AddSingleton<GoogleFitPublishingHandler>();
             builder.Services.AddSingleton<UnknownGoogleFitPublisherHandler>();
+            builder.Services.AddScoped<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<PublishRequest, Task>(typeof(GoogleFitPublishingHandler), typeof(UnknownGoogleFitPublisherHandler)));
         }
     }

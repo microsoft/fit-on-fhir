@@ -13,8 +13,6 @@ namespace GoogleFitOnFhir.Services
     {
         Task<User> Initiate(string accessCode, CancellationToken cancellationToken);
 
-        Task ImportFitnessData(string userId, CancellationToken cancellationToken);
-
         void QueueFitnessImport(User user);
     }
 }

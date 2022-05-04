@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace GoogleFitOnFhir.Services
 {
-    public interface IAuthRequest<TResponseType>
+    public interface IGoogleFitDataImporter
     {
-        Task<TResponseType> ExecuteAsync(CancellationToken cancellationToken);
+        Task Import(string userId, CancellationToken cancellationToken);
     }
 }
