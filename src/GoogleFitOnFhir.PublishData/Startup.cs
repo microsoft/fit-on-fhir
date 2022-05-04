@@ -42,6 +42,7 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddScoped<IUsersService, UsersService>();
+            builder.Services.AddScoped<IGoogleFitDataImporter, GoogleFitDataImporter>();
         }
     }
 }

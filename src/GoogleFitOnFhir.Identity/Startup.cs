@@ -37,6 +37,7 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddSingleton(sp => new SecretClient(new Uri(usersKeyVaultUri), new DefaultAzureCredential()));
 
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
+            builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
