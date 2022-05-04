@@ -23,6 +23,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
 
             CallbackUri = stringBuilder.ToString();
 
+            // these are not the final default values
             DefaultScopes = new[]
             {
                 "https://www.googleapis.com/auth/userinfo.email",
