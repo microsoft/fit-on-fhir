@@ -10,14 +10,14 @@ using Microsoft.Health.Common.Handler;
 
 namespace GoogleFitOnFhir.Services
 {
-    public interface IPublisherService
+    public interface IDataImporterService
     {
         /// <summary>
         /// Passes along a <see cref="QueueMessage"/> to an <see cref="IResponsibilityHandler{TRequest,TResult}"/>, which
-        /// can then evaluate it and have the appropriate platform specific data publishing handler take action.
+        /// can then evaluate it and have the appropriate platform specific data importing handler take action.
         /// </summary>
         /// <param name="message">The <see cref="QueueMessage"/> to take action on.</param>
         /// <param name="cancellationToken">A cancellation token for graceful recovery.</param>
-        public Task PublishTo(QueueMessage message, CancellationToken cancellationToken);
+        public Task ImportFrom(QueueMessage message, CancellationToken cancellationToken);
     }
 }

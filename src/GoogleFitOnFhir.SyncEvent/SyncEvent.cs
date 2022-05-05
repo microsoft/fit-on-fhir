@@ -43,7 +43,7 @@ namespace GoogleFitOnFhir.SyncEvent
                 queueService.Add(JsonConvert.SerializeObject(new QueueMessage
                 {
                     UserId = user.Id,
-                    PlatformName = GoogleFitPublishingHandler.GoogleFitPlatform,
+                    PlatformName = GoogleFitDataImportHandler.GoogleFitPlatform,
                 }));
             }
         }

@@ -24,14 +24,14 @@ namespace GoogleFitOnFhir.UnitTests
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton<MockBaseResponsibilityHandler>();
             serviceCollection.AddSingleton<MockMismatchedInterfaceResponsibilityHandler>();
-            serviceCollection.AddSingleton<UnknownGoogleFitAuthorizationHandler>();
+            serviceCollection.AddSingleton<UnknownAuthorizationHandler>();
             _serviceProvider = serviceCollection.BuildServiceProvider(true);
         }
 
         [Fact]
         public void GivenHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_BaseHandlerIsReturned()
         {
-            var service = _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockBaseResponsibilityHandler), typeof(UnknownGoogleFitAuthorizationHandler));
+            var service = _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockBaseResponsibilityHandler), typeof(UnknownAuthorizationHandler));
             Assert.IsType<MockBaseResponsibilityHandler>(service);
         }
 
@@ -44,7 +44,7 @@ namespace GoogleFitOnFhir.UnitTests
         [Fact]
         public void GivenHandlerOfWrongTypeIsReferenced_WhenCreateOrderedHandlerChainIsCalled_ArgumentExceptionIsThrown()
         {
-            Assert.Throws<ArgumentException>(() => _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockMismatchedInterfaceResponsibilityHandler), typeof(UnknownGoogleFitAuthorizationHandler)));
+            Assert.Throws<ArgumentException>(() => _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockMismatchedInterfaceResponsibilityHandler), typeof(UnknownAuthorizationHandler)));
         }
     }
 }

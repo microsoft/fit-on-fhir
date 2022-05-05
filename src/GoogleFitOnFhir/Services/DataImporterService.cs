@@ -14,24 +14,24 @@ using Microsoft.Health.Common.Handler;
 
 namespace GoogleFitOnFhir.Services
 {
-    public class PublisherService : IPublisherService
+    public class DataImporterService : IDataImporterService
     {
-        private readonly IResponsibilityHandler<PublishRequest, Task> _handler;
+        private readonly IResponsibilityHandler<ImportRequest, Task> _handler;
         private readonly ILogger _logger;
 
-        public PublisherService(IResponsibilityHandler<PublishRequest, Task> handler, ILogger<PublisherService> logger)
+        public DataImporterService(IResponsibilityHandler<ImportRequest, Task> handler, ILogger<DataImporterService> logger)
         {
             _handler = EnsureArg.IsNotNull(handler);
             _logger = EnsureArg.IsNotNull(logger);
         }
 
         /// <inheritdoc/>
-        public Task PublishTo(QueueMessage message, CancellationToken cancellationToken)
+        public Task ImportFrom(QueueMessage message, CancellationToken cancellationToken)
         {
             try
             {
-                var publishRequest = new PublishRequest() { Message = message, Token = cancellationToken };
-                return _handler.Evaluate(publishRequest);
+                var importRequest = new ImportRequest() { Message = message, Token = cancellationToken };
+                return _handler.Evaluate(importRequest);
             }
             catch (Exception ex)
             {

@@ -46,8 +46,8 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IRoutingService, RoutingService>();
             builder.Services.AddSingleton<GoogleFitAuthorizationHandler>();
-            builder.Services.AddSingleton<UnknownGoogleFitAuthorizationHandler>();
-            builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(GoogleFitAuthorizationHandler), typeof(UnknownGoogleFitAuthorizationHandler)));
+            builder.Services.AddSingleton<UnknownAuthorizationHandler>();
+            builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(GoogleFitAuthorizationHandler), typeof(UnknownAuthorizationHandler)));
         }
     }
 }

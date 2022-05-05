@@ -20,23 +20,23 @@ using Xunit;
 
 namespace GoogleFitOnFhir.UnitTests
 {
-    public class GoogleFitPublishingHandlerTests
+    public class GoogleFitDataImportHandlerTests
     {
-        private readonly IResponsibilityHandler<PublishRequest, Task> _googleFitPublishingHandler;
+        private readonly IResponsibilityHandler<ImportRequest, Task> _googleFitPublishingHandler;
         private readonly IGoogleFitDataImporter _googleFitDataImporter;
         private readonly IErrorHandler _errorHandler;
-        private readonly ILogger<GoogleFitPublishingHandler> _logger;
+        private readonly ILogger<GoogleFitDataImportHandler> _logger;
 
         private static string _fakePlatform = "ACME";
         private static string _testUser = "tester";
 
-        public GoogleFitPublishingHandlerTests()
+        public GoogleFitDataImportHandlerTests()
         {
             _googleFitDataImporter = Substitute.For<IGoogleFitDataImporter>();
             _errorHandler = Substitute.For<IErrorHandler>();
-            _logger = NullLogger<GoogleFitPublishingHandler>.Instance;
+            _logger = NullLogger<GoogleFitDataImportHandler>.Instance;
 
-            _googleFitPublishingHandler = new GoogleFitPublishingHandler(_googleFitDataImporter, _errorHandler, _logger);
+            _googleFitPublishingHandler = new GoogleFitDataImportHandler(_googleFitDataImporter, _errorHandler, _logger);
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace GoogleFitOnFhir.UnitTests
         [Fact]
         public void GivenPublishRequestForGoogleFit_WhenPublishToIsCalled_TaskCompletes()
         {
-            var publishRequest = CreatePublishRequest(_testUser, GoogleFitPublishingHandler.GoogleFitPlatform);
+            var publishRequest = CreatePublishRequest(_testUser, GoogleFitDataImportHandler.GoogleFitPlatform);
             var result = _googleFitPublishingHandler.Evaluate(publishRequest);
 
             Assert.NotNull(result);
@@ -63,19 +63,19 @@ namespace GoogleFitOnFhir.UnitTests
             string exceptionMessage = "data sync error";
             _googleFitDataImporter.Import(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception(exceptionMessage));
 
-            var publishRequest = CreatePublishRequest(_testUser, GoogleFitPublishingHandler.GoogleFitPlatform);
+            var publishRequest = CreatePublishRequest(_testUser, GoogleFitDataImportHandler.GoogleFitPlatform);
             var result = _googleFitPublishingHandler.Evaluate(publishRequest);
 
-            var expectedQueueMessage = new QueueMessage() { UserId = _testUser, PlatformName = GoogleFitPublishingHandler.GoogleFitPlatform };
+            var expectedQueueMessage = new QueueMessage() { UserId = _testUser, PlatformName = GoogleFitDataImportHandler.GoogleFitPlatform };
             _errorHandler.Received(1).HandleDataSyncError(
                 Arg.Is<QueueMessage>(msg => msg.UserId == expectedQueueMessage.UserId && msg.PlatformName == expectedQueueMessage.PlatformName),
                 Arg.Is<Exception>(ex => ex.Message == exceptionMessage));
             Assert.Null(result);
         }
 
-        private PublishRequest CreatePublishRequest(string user, string platform)
+        private ImportRequest CreatePublishRequest(string user, string platform)
         {
-            return new PublishRequest() { Message = new QueueMessage() { PlatformName = platform, UserId = user }, Token = CancellationToken.None };
+            return new ImportRequest() { Message = new QueueMessage() { PlatformName = platform, UserId = user }, Token = CancellationToken.None };
         }
     }
 }

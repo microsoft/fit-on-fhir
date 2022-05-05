@@ -14,34 +14,34 @@ using Microsoft.Health.Common.Handler;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 {
-    public class GoogleFitPublishingHandler : IResponsibilityHandler<PublishRequest, Task>
+    public class GoogleFitDataImportHandler : IResponsibilityHandler<ImportRequest, Task>
     {
         private readonly IGoogleFitDataImporter _googleFitDataImporter;
         private readonly IErrorHandler _errorHandler;
-        private readonly ILogger<GoogleFitPublishingHandler> _logger;
+        private readonly ILogger<GoogleFitDataImportHandler> _logger;
 
-        private GoogleFitPublishingHandler()
+        private GoogleFitDataImportHandler()
         {
         }
 
-        public GoogleFitPublishingHandler(
+        public GoogleFitDataImportHandler(
             IGoogleFitDataImporter googleFitDataImporter,
             IErrorHandler errorHandler,
-            ILogger<GoogleFitPublishingHandler> logger)
+            ILogger<GoogleFitDataImportHandler> logger)
         {
             _googleFitDataImporter = EnsureArg.IsNotNull(googleFitDataImporter);
             _errorHandler = EnsureArg.IsNotNull(errorHandler);
             _logger = EnsureArg.IsNotNull(logger);
         }
 
-        public static IResponsibilityHandler<PublishRequest, Task> Instance { get; } = new GoogleFitPublishingHandler();
+        public static IResponsibilityHandler<ImportRequest, Task> Instance { get; } = new GoogleFitDataImportHandler();
 
         /// <summary>
-        /// String identifier for the GoogleFit platform.  Used to help identify the recipient platform for a <see cref="QueueMessage"/>.
+        /// String identifier for the GoogleFit platform.  Used to help identify the platform to import from, in a <see cref="QueueMessage"/>.
         /// </summary>
         public static string GoogleFitPlatform => "GoogleFit";
 
-        public Task Evaluate(PublishRequest request)
+        public Task Evaluate(ImportRequest request)
         {
             try
             {

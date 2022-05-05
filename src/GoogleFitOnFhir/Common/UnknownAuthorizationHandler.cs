@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 {
-    public class UnknownGoogleFitAuthorizationHandler : UnknownOperationHandlerBase<RoutingRequest, Task<IActionResult>>
+    public class UnknownAuthorizationHandler : UnknownOperationHandlerBase<RoutingRequest, Task<IActionResult>>
     {
         public override Task<IActionResult> Evaluate(RoutingRequest request)
         {

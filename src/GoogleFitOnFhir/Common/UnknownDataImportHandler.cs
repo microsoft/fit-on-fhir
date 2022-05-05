@@ -3,15 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
-using GoogleFitOnFhir.Models;
+using System.Threading.Tasks;
+using GoogleFitOnFhir.Common;
 
-namespace GoogleFitOnFhir.Common
+namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 {
-    public class PublishRequest
+    public class UnknownDataImportHandler : UnknownOperationHandlerBase<ImportRequest, Task>
     {
-        public QueueMessage Message { get; set; }
-
-        public CancellationToken Token { get; set; }
+        public override Task Evaluate(ImportRequest request)
+        {
+            return Task.CompletedTask;
+        }
     }
 }
