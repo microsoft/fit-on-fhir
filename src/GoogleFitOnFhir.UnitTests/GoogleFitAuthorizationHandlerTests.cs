@@ -28,8 +28,8 @@ namespace GoogleFitOnFhir.UnitTests
     {
         private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _googleFitAuthorizationHandler;
 
-        private readonly PathString googleFitAuthorizeRequest = "/" + GoogleFitAuthorizationHandler.GoogleFitAuthorizeRequest;
-        private readonly PathString googleFitCallbackRequest = "/" + GoogleFitAuthorizationHandler.GoogleFitCallbackRequest;
+        private readonly PathString googleFitAuthorizeRequest = "/" + Constants.GoogleFitAuthorizeRequest;
+        private readonly PathString googleFitCallbackRequest = "/" + Constants.GoogleFitCallbackRequest;
         private readonly PathString emptyGoogleFitRequest = "/api/googlefit/";
 
         private static string _fakeRedirectUri = "http://localhost";
@@ -74,7 +74,7 @@ namespace GoogleFitOnFhir.UnitTests
         [Fact]
         public async Task GivenRequestHandledAndUserExists_WhenRequestIsCallback_ReturnsOkResult()
         {
-            _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User("test user"));
+            _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User("test user", Constants.GoogleFitPlatformName));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);

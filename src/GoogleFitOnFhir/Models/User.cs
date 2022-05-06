@@ -11,11 +11,12 @@ namespace GoogleFitOnFhir.Models
 {
     public class User : ITableEntity
     {
-        public User(string userId)
+        public User(string userId, string platformName)
         {
             PartitionKey = userId;
             RowKey = userId;
             Id = userId;
+            PlatformName = platformName;
         }
 
         public User()
@@ -33,5 +34,7 @@ namespace GoogleFitOnFhir.Models
         public string Id { get; set; }
 
         public DateTimeOffset? LastSync { get; set; }
+
+        public string PlatformName { get; set; }
     }
 }

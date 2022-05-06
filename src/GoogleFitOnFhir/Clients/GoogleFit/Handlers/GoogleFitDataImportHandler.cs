@@ -7,7 +7,6 @@ using System;
 using System.Threading.Tasks;
 using EnsureThat;
 using GoogleFitOnFhir.Common;
-using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
@@ -36,16 +35,11 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 
         public static IResponsibilityHandler<ImportRequest, Task> Instance { get; } = new GoogleFitDataImportHandler();
 
-        /// <summary>
-        /// String identifier for the GoogleFit platform.  Used to help identify the platform to import from, in a <see cref="QueueMessage"/>.
-        /// </summary>
-        public static string GoogleFitPlatform => "GoogleFit";
-
         public Task Evaluate(ImportRequest request)
         {
             try
             {
-                if (request.Message.PlatformName == GoogleFitPlatform)
+                if (request.Message.PlatformName == Constants.GoogleFitPlatformName)
                 {
                     _googleFitDataImporter.Import(request.Message.UserId, request.Token);
                     return Task.CompletedTask;
@@ -58,7 +52,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                _errorHandler.HandleDataSyncError(request.Message, ex);
+                _errorHandler.HandleDataImportError(request.Message, ex);
                 return null;
             }
         }

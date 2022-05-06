@@ -18,6 +18,6 @@ namespace GoogleFitOnFhir.Services
         /// </summary>
         /// <param name="message">The <see cref="QueueMessage"/> to take action on.</param>
         /// <param name="cancellationToken">A cancellation token for graceful recovery.</param>
-        public Task ImportFrom(QueueMessage message, CancellationToken cancellationToken);
+        public Task Import(QueueMessage message, CancellationToken cancellationToken);
     }
 }

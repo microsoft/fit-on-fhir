@@ -51,7 +51,7 @@ namespace GoogleFitOnFhir.UnitTests
         [Fact]
         public void GivenPublishRequestForGoogleFit_WhenPublishToIsCalled_TaskCompletes()
         {
-            var publishRequest = CreatePublishRequest(_testUser, GoogleFitDataImportHandler.GoogleFitPlatform);
+            var publishRequest = CreatePublishRequest(_testUser, Constants.GoogleFitPlatformName);
             var result = _googleFitPublishingHandler.Evaluate(publishRequest);
 
             Assert.NotNull(result);
@@ -63,11 +63,11 @@ namespace GoogleFitOnFhir.UnitTests
             string exceptionMessage = "data sync error";
             _googleFitDataImporter.Import(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception(exceptionMessage));
 
-            var publishRequest = CreatePublishRequest(_testUser, GoogleFitDataImportHandler.GoogleFitPlatform);
+            var publishRequest = CreatePublishRequest(_testUser, Constants.GoogleFitPlatformName);
             var result = _googleFitPublishingHandler.Evaluate(publishRequest);
 
-            var expectedQueueMessage = new QueueMessage() { UserId = _testUser, PlatformName = GoogleFitDataImportHandler.GoogleFitPlatform };
-            _errorHandler.Received(1).HandleDataSyncError(
+            var expectedQueueMessage = new QueueMessage() { UserId = _testUser, PlatformName = Constants.GoogleFitPlatformName };
+            _errorHandler.Received(1).HandleDataImportError(
                 Arg.Is<QueueMessage>(msg => msg.UserId == expectedQueueMessage.UserId && msg.PlatformName == expectedQueueMessage.PlatformName),
                 Arg.Is<Exception>(ex => ex.Message == exceptionMessage));
             Assert.Null(result);

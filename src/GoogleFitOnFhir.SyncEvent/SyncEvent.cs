@@ -4,11 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
-using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Azure.WebJobs;
@@ -43,7 +41,7 @@ namespace GoogleFitOnFhir.SyncEvent
                 queueService.Add(JsonConvert.SerializeObject(new QueueMessage
                 {
                     UserId = user.Id,
-                    PlatformName = GoogleFitDataImportHandler.GoogleFitPlatform,
+                    PlatformName = user.PlatformName,
                 }));
             }
         }

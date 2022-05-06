@@ -26,7 +26,7 @@ namespace GoogleFitOnFhir.Services
         }
 
         /// <inheritdoc/>
-        public Task ImportFrom(QueueMessage message, CancellationToken cancellationToken)
+        public Task Import(QueueMessage message, CancellationToken cancellationToken)
         {
             try
             {

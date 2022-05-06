@@ -34,27 +34,17 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 
         public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitAuthorizationHandler();
 
-        /// <summary>
-        /// Path for authorization requests
-        /// </summary>
-        public static string GoogleFitAuthorizeRequest => "api/googlefit/authorize";
-
-        /// <summary>
-        /// Path for callback requests
-        /// </summary>
-        public static string GoogleFitCallbackRequest => "api/googlefit/callback";
-
         public Task<IActionResult> Evaluate(RoutingRequest request)
         {
             try
             {
                 var path = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Path.Value?[1..]);
 
-                if (path.StartsWith(GoogleFitAuthorizeRequest))
+                if (path.StartsWith(Constants.GoogleFitAuthorizeRequest))
                 {
                     return Authorize(request);
                 }
-                else if (path.StartsWith(GoogleFitCallbackRequest))
+                else if (path.StartsWith(Constants.GoogleFitCallbackRequest))
                 {
                     return Callback(request);
                 }

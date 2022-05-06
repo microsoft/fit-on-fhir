@@ -15,7 +15,7 @@ namespace GoogleFitOnFhir.Services
         }
 
         /// <inheritdoc/>
-        public void HandleDataSyncError(QueueMessage message, Exception exception)
+        public void HandleDataImportError(QueueMessage message, Exception exception)
         {
         }
     }

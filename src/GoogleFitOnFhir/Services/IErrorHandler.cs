@@ -15,6 +15,6 @@ namespace GoogleFitOnFhir.Services
         /// </summary>
         /// <param name="message">The <see cref="QueueMessage"/> which resulted in a data sync error.</param>
         /// <param name="exception">The exception thrown when the error occurred.</param>
-        void HandleDataSyncError(QueueMessage message, Exception exception);
+        void HandleDataImportError(QueueMessage message, Exception exception);
     }
 }

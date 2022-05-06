@@ -32,7 +32,7 @@ namespace GoogleFitOnFhir.PublishData
             log.LogInformation("publish-data has message: {0}", myQueueItem);
             QueueMessage message = JsonConvert.DeserializeObject<QueueMessage>(myQueueItem);
 
-            await _dataImporterService.ImportFrom(message, cancellationToken);
+            await _dataImporterService.Import(message, cancellationToken);
         }
     }
 }
