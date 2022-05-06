@@ -38,14 +38,14 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddLogging();
             builder.Services.AddSingleton(sp => new GoogleFitClientContext(googleFitClientId, googleFitClientSecret, hostName));
             builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
-            builder.Services.AddScoped(sp => new EventHubProducerClient(iomtConnectionString));
+            builder.Services.AddSingleton(sp => new EventHubProducerClient(iomtConnectionString));
             builder.Services.AddSingleton(sp => new SecretClient(new Uri(usersKeyVaultUri), new DefaultAzureCredential()));
 
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
-            builder.Services.AddScoped<IUsersService, UsersService>();
+            builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
             builder.Services.AddSingleton<IDataImporterService, DataImporterService>();
             builder.Services.AddSingleton<GoogleFitDataImportHandler>();
