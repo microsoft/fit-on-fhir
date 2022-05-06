@@ -35,7 +35,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 
             var response = new MyEmailResponse
             {
-                EmailAddress = data.EmailAddresses[0].Value,
+                EmailAddress = data.EmailAddresses != null ? data.EmailAddresses[0].Value : string.Empty,
             };
 
             return response;

@@ -41,13 +41,14 @@ namespace GoogleFitOnFhir.Services
         public async Task<User> Initiate(string authCode, CancellationToken cancellationToken)
         {
             var tokenResponse = await _authService.AuthTokensRequest(authCode, cancellationToken);
+
             if (tokenResponse == null)
             {
                 throw new Exception("Token response empty");
             }
 
             var emailResponse = await _googleFitClient.MyEmailRequest(tokenResponse.AccessToken, cancellationToken);
-            if (emailResponse == null)
+            if (string.IsNullOrEmpty(emailResponse.EmailAddress))
             {
                 throw new Exception("Email response empty");
             }
