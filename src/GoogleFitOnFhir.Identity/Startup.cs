@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using GoogleFitOnFhir.Clients.GoogleFit;
@@ -12,6 +13,7 @@ using GoogleFitOnFhir.Common;
 using GoogleFitOnFhir.Persistence;
 using GoogleFitOnFhir.Repositories;
 using GoogleFitOnFhir.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using GoogleFitClientContext = GoogleFitOnFhir.Clients.GoogleFit.GoogleFitClientContext;
@@ -43,9 +45,9 @@ namespace GoogleFitOnFhir.Identity
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IRoutingService, RoutingService>();
-            builder.Services.AddSingleton<GoogleFitHandler>();
-            builder.Services.AddSingleton<UnknownOperationHandler>();
-            builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain(typeof(GoogleFitHandler), typeof(UnknownOperationHandler)));
+            builder.Services.AddSingleton<GoogleFitAuthorizationHandler>();
+            builder.Services.AddSingleton<UnknownAuthorizationHandler>();
+            builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(GoogleFitAuthorizationHandler), typeof(UnknownAuthorizationHandler)));
         }
     }
 }

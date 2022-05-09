@@ -5,6 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Services;
 using Microsoft.Azure.WebJobs;
@@ -15,12 +16,11 @@ namespace GoogleFitOnFhir.PublishData
 {
     public class PublishData
     {
-        private readonly IGoogleFitDataImporter _googleFitDataImporter;
+        private readonly IDataImporterService _dataImporterService;
 
-        public PublishData(
-            IGoogleFitDataImporter googleFitDataImporter)
+        public PublishData(IDataImporterService dataImporterService)
         {
-            _googleFitDataImporter = googleFitDataImporter;
+            _dataImporterService = EnsureArg.IsNotNull(dataImporterService);
         }
 
         [FunctionName("publish-data")]
@@ -31,7 +31,8 @@ namespace GoogleFitOnFhir.PublishData
         {
             log.LogInformation("publish-data has message: {0}", myQueueItem);
             QueueMessage message = JsonConvert.DeserializeObject<QueueMessage>(myQueueItem);
-            await _googleFitDataImporter.Import(message.UserId, cancellationToken);
+
+            await _dataImporterService.Import(message, cancellationToken);
         }
     }
 }

@@ -15,34 +15,24 @@ using Microsoft.Health.Common.Handler;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 {
-    public class GoogleFitHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
+    public class GoogleFitAuthorizationHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
     {
         private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
-        private readonly ILogger<GoogleFitHandler> _logger;
+        private readonly ILogger<GoogleFitAuthorizationHandler> _logger;
 
-        private GoogleFitHandler()
+        private GoogleFitAuthorizationHandler()
         {
         }
 
-        public GoogleFitHandler(IGoogleFitAuthService authService, IUsersService usersService, ILogger<GoogleFitHandler> logger)
+        public GoogleFitAuthorizationHandler(IGoogleFitAuthService authService, IUsersService usersService, ILogger<GoogleFitAuthorizationHandler> logger)
         {
             _authService = EnsureArg.IsNotNull(authService);
             _usersService = EnsureArg.IsNotNull(usersService);
             _logger = EnsureArg.IsNotNull(logger);
         }
 
-        public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitHandler();
-
-        /// <summary>
-        /// Path for authorization requests
-        /// </summary>
-        public static string GoogleFitAuthorizeRequest => "api/googlefit/authorize";
-
-        /// <summary>
-        /// Path for callback requests
-        /// </summary>
-        public static string GoogleFitCallbackRequest => "api/googlefit/callback";
+        public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitAuthorizationHandler();
 
         public Task<IActionResult> Evaluate(RoutingRequest request)
         {
@@ -50,11 +40,11 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
             {
                 var path = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Path.Value?[1..]);
 
-                if (path.StartsWith(GoogleFitAuthorizeRequest))
+                if (path.StartsWith(Constants.GoogleFitAuthorizeRequest))
                 {
                     return Authorize(request);
                 }
-                else if (path.StartsWith(GoogleFitCallbackRequest))
+                else if (path.StartsWith(Constants.GoogleFitCallbackRequest))
                 {
                     return Callback(request);
                 }

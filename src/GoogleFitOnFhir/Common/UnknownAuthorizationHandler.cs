@@ -4,20 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
+using GoogleFitOnFhir.Common;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Health.Common.Handler;
 
-namespace GoogleFitOnFhir.Common
+namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
 {
-    public class UnknownOperationHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
+    public class UnknownAuthorizationHandler : UnknownOperationHandlerBase<RoutingRequest, Task<IActionResult>>
     {
-        public UnknownOperationHandler()
-        {
-        }
-
-        public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new UnknownOperationHandler();
-
-        public Task<IActionResult> Evaluate(RoutingRequest request)
+        public override Task<IActionResult> Evaluate(RoutingRequest request)
         {
             return Task.Run<IActionResult>(() => new NotFoundResult());
         }

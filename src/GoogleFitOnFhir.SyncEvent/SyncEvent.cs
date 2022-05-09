@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -42,6 +41,7 @@ namespace GoogleFitOnFhir.SyncEvent
                 queueService.Add(JsonConvert.SerializeObject(new QueueMessage
                 {
                     UserId = user.Id,
+                    PlatformName = user.PlatformName,
                 }));
             }
         }

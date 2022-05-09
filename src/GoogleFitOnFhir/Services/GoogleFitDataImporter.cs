@@ -23,21 +23,21 @@ namespace GoogleFitOnFhir.Services
         private readonly EventHubProducerClient _eventHubProducerClient;
         private readonly ILogger<GoogleFitDataImporter> _logger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
-        private readonly IAuthService _authService;
+        private readonly IGoogleFitAuthService _googleFitAuthService;
 
         public GoogleFitDataImporter(
             IUsersTableRepository usersTableRepository,
             IGoogleFitClient googleFitClient,
             EventHubProducerClient eventHubProducerClient,
             IUsersKeyVaultRepository usersKeyvaultRepository,
-            IAuthService authService,
+            IGoogleFitAuthService googleFitAuthService,
             ILogger<GoogleFitDataImporter> logger)
         {
             _usersTableRepository = usersTableRepository;
             _googleFitClient = googleFitClient;
             _eventHubProducerClient = eventHubProducerClient;
             _usersKeyvaultRepository = usersKeyvaultRepository;
-            _authService = authService;
+            _googleFitAuthService = googleFitAuthService;
             _logger = logger;
         }
 
@@ -58,7 +58,7 @@ namespace GoogleFitOnFhir.Services
             }
 
             _logger.LogInformation("Refreshing the RefreshToken");
-            AuthTokensResponse tokensResponse = await _authService.RefreshTokensRequest(refreshToken, cancellationToken);
+            AuthTokensResponse tokensResponse = await _googleFitAuthService.RefreshTokensRequest(refreshToken, cancellationToken);
 
             if (!string.IsNullOrEmpty(tokensResponse.RefreshToken))
             {

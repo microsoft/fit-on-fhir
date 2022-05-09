@@ -27,7 +27,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
             // Datasource.Type "raw" is an original datasource
             // Datasource.Type "derived" is a combination/merge of raw datasources
             var dataStreamIds = datasourceList.DataSource
-                .Where(d => d.DataType.Name == "com.google.blood_glucose" && d.Type == "raw")
+                .Where(d => d.Type == "raw")
                 .Select(d => d.DataStreamId);
 
             return new DatasourcesListResponse()
