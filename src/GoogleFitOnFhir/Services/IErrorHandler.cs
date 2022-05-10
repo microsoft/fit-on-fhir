@@ -11,9 +11,9 @@ namespace GoogleFitOnFhir.Services
     public interface IErrorHandler
     {
         /// <summary>
-        /// Method for logging and recovering gracefully from publish data sync errors.
+        /// Method for logging and recovering gracefully from data import errors.
         /// </summary>
-        /// <param name="message">The <see cref="QueueMessage"/> which resulted in a data sync error.</param>
+        /// <param name="message">The <see cref="QueueMessage"/> which resulted in a data import error.</param>
         /// <param name="exception">The exception thrown when the error occurred.</param>
         void HandleDataImportError(QueueMessage message, Exception exception);
     }

@@ -26,5 +26,10 @@ namespace GoogleFitOnFhir.Common
         /// String identifier for the GoogleFit platform.  Used to help identify the platform to import from, in a <see cref="QueueMessage"/>.
         /// </summary>
         public static string GoogleFitPlatformName => "GoogleFit";
+
+        /// <summary>
+        /// Sets the results limit of a Dataset request
+        /// </summary>
+        public static int GoogleFitDatasetRequestLimit => 10;
     }
 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using GoogleFitOnFhir.Clients.GoogleFit.Models;
 using GoogleFitOnFhir.Clients.GoogleFit.Requests;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
+using GoogleFitOnFhir.Common;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit
 {
@@ -23,9 +24,9 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
             return new DatasourcesListRequest(accessToken).ExecuteAsync(cancellationToken);
         }
 
-        public Task<IomtDataset> DatasetRequest(string accessToken, string dataStreamId, string dataSetId, CancellationToken cancellationToken)
+        public Task<IomtDataset> DatasetRequest(string accessToken, string dataStreamId, string dataSetId, CancellationToken cancellationToken, string pageToken = null)
         {
-            return new DatasetRequest(accessToken, dataStreamId, dataSetId).ExecuteAsync(cancellationToken);
+            return new DatasetRequest(accessToken, dataStreamId, dataSetId, Constants.GoogleFitDatasetRequestLimit, pageToken).ExecuteAsync(cancellationToken);
         }
     }
 }

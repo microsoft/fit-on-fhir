@@ -101,25 +101,33 @@ namespace GoogleFitOnFhir.Services
             // Get dataset for each dataSource
             foreach (var datasourceId in dataSourcesList.DatasourceIds)
             {
-                _logger.LogInformation("Query Dataset: {0}", datasourceId);
-                var dataset = await _googleFitClient.DatasetRequest(
-                    tokensResponse.AccessToken,
-                    datasourceId,
-                    datasetId,
-                    cancellationToken);
-
-                // Add user id to payload
-                dataset.UserId = user.Id;
-
-                var jsonDataset = JsonConvert.SerializeObject(dataset);
-
-                _logger.LogInformation("Push Dataset: {0}", datasourceId);
-
-                // Push dataset to IoMT connector
-                if (!eventBatch.TryAdd(new EventData(jsonDataset)))
+                string pageToken = null;
+                do
                 {
-                    throw new Exception("Event is too large for the batch and cannot be sent.");
+                    _logger.LogInformation("Query Dataset: {0}", datasourceId);
+                    var dataset = await _googleFitClient.DatasetRequest(
+                        tokensResponse.AccessToken,
+                        datasourceId,
+                        datasetId,
+                        cancellationToken,
+                        pageToken);
+
+                    pageToken = dataset.NextPageToken;
+
+                    // Add user id to payload
+                    dataset.UserId = user.Id;
+
+                    var jsonDataset = JsonConvert.SerializeObject(dataset);
+
+                    _logger.LogInformation("Push Dataset: {0}", datasourceId);
+
+                    // Push dataset to IoMT connector
+                    if (!eventBatch.TryAdd(new EventData(jsonDataset)))
+                    {
+                        throw new Exception("Event is too large for the batch and cannot be sent.");
+                    }
                 }
+                while (pageToken != null);
             }
 
             // Use the producer client to send the batch of events to the event hub

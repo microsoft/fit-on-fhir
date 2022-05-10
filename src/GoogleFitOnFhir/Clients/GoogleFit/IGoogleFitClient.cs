@@ -16,6 +16,6 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
 
         Task<DatasourcesListResponse> DatasourcesListRequest(string accessToken, CancellationToken cancellationToken);
 
-        Task<IomtDataset> DatasetRequest(string accessToken, string dataStreamId, string dataSetId, CancellationToken cancellationToken);
+        Task<IomtDataset> DatasetRequest(string accessToken, string dataStreamId, string dataSetId, CancellationToken cancellationToken, string pageToken = null);
     }
 }
