@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
@@ -75,9 +76,6 @@ namespace GoogleFitOnFhir.Services
 
             _logger.LogInformation("Create Eventhub Batch");
 
-            // Create a batch of events for IoMT eventhub
-            using EventDataBatch eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
-
             // Get user's info for LastSync date
             _logger.LogInformation("Query userInfo");
             var user = await _usersTableRepository.GetById(userId, cancellationToken);
@@ -98,41 +96,71 @@ namespace GoogleFitOnFhir.Services
             var endDate = endDateDto.ToUnixTimeMilliseconds() * 1000000;
             var datasetId = startDate + "-" + endDate;
 
-            // Get dataset for each dataSource
+            List<Task> datasetRequestTasks = new List<Task>();
+
+            // Add a task to get the Dataset for each dataSource
             foreach (var datasourceId in dataSourcesList.DatasourceIds)
             {
-                string pageToken = null;
-                do
-                {
-                    _logger.LogInformation("Query Dataset: {0}", datasourceId);
-                    var dataset = await _googleFitClient.DatasetRequest(
-                        tokensResponse.AccessToken,
-                        datasourceId,
-                        datasetId,
-                        cancellationToken,
-                        pageToken);
-
-                    pageToken = dataset.NextPageToken;
-
-                    // Add user id to payload
-                    dataset.UserId = user.Id;
-
-                    var jsonDataset = JsonConvert.SerializeObject(dataset);
-
-                    _logger.LogInformation("Push Dataset: {0}", datasourceId);
-
-                    // Push dataset to IoMT connector
-                    if (!eventBatch.TryAdd(new EventData(jsonDataset)))
+                datasetRequestTasks.Add(Task.Run(
+                    async () =>
                     {
-                        throw new Exception("Event is too large for the batch and cannot be sent.");
-                    }
-                }
-                while (pageToken != null);
+                        // Create a batch of events for IoMT eventhub
+                        var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
+                        string pageToken = null;
+
+                        // Make the Dataset requests, requesting the next page of data if necessary
+                        do
+                        {
+                            _logger.LogInformation("Query Dataset: {0}", datasourceId);
+                            var dataset = await _googleFitClient.DatasetRequest(
+                                tokensResponse.AccessToken,
+                                datasourceId,
+                                datasetId,
+                                cancellationToken,
+                                pageToken);
+
+                            // Save the NextPageToken
+                            pageToken = dataset.NextPageToken;
+
+                            // Add user id to payload
+                            dataset.UserId = user.Id;
+
+                            var jsonDataset = JsonConvert.SerializeObject(dataset);
+
+                            _logger.LogInformation("Push Dataset: {0}", datasourceId);
+
+                            // Push dataset to IoMT connector
+                            if (!eventBatch.TryAdd(new EventData(jsonDataset)))
+                            {
+                                throw new Exception("Event is too large for the batch and cannot be sent.");
+                            }
+
+                            // Use the producer client to send the batch of events to the event hub
+                            await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
+                            _logger.LogInformation("A batch of events has been published for {0}.", datasourceId);
+
+                            // Create a new EventDataBatch if there is more data incoming
+                            if (pageToken != null)
+                            {
+                                eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
+                            }
+                        }
+                        while (pageToken != null);
+                    }, cancellationToken));
             }
 
-            // Use the producer client to send the batch of events to the event hub
-            await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
-            _logger.LogInformation("A batch of events has been published.");
+            // Wait for the Dataset request tasks to finish
+            try
+            {
+                Task.WaitAll(datasetRequestTasks.ToArray(), cancellationToken);
+            }
+            catch (AggregateException ex)
+            {
+                foreach (var ie in ex.InnerExceptions)
+                {
+                    _logger.LogError("{0}: {1}", ie.GetType().Name, ie.Message);
+                }
+            }
 
             // Update LastSync column
             user.LastSync = endDateDto;
