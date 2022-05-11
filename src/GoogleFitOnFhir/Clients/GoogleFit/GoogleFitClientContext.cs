@@ -28,9 +28,17 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
             {
                 "https://www.googleapis.com/auth/userinfo.email",
                 "https://www.googleapis.com/auth/userinfo.profile",
+                FitnessService.Scope.FitnessActivityRead,
+                FitnessService.Scope.FitnessSleepRead,
+                FitnessService.Scope.FitnessReproductiveHealthRead,
+                FitnessService.Scope.FitnessOxygenSaturationRead,
+                FitnessService.Scope.FitnessNutritionRead,
+                FitnessService.Scope.FitnessLocationRead,
+                FitnessService.Scope.FitnessBodyTemperatureRead,
+                FitnessService.Scope.FitnessBodyRead,
+                FitnessService.Scope.FitnessBloodPressureRead,
                 FitnessService.Scope.FitnessBloodGlucoseRead,
                 FitnessService.Scope.FitnessHeartRateRead,
-                FitnessService.Scope.FitnessBloodPressureRead,
             };
         }
 

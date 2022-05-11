@@ -23,7 +23,6 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
             var listRequest = new UsersResource.DataSourcesResource.ListRequest(FitnessService, "me");
             var datasourceList = await listRequest.ExecuteAsync(cancellationToken);
 
-            // Filter by dataType, first example using com.google.blood_glucose
             // Datasource.Type "raw" is an original datasource
             // Datasource.Type "derived" is a combination/merge of raw datasources
             var dataStreamIds = datasourceList.DataSource

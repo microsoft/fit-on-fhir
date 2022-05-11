@@ -13,15 +13,15 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class DatasetRequest : BaseFitnessRequest
     {
-        private readonly string _dataStreamId;
+        private readonly string _dataSourceId;
         private readonly string _datasetId;
         private readonly string _pageToken;
         private readonly int _limit;
 
-        public DatasetRequest(string accessToken, string dataStreamId, string datasetId, int limit, string pageToken = null)
+        public DatasetRequest(string accessToken, string dataSourceId, string datasetId, int limit, string pageToken = null)
         : base(accessToken)
         {
-            _dataStreamId = dataStreamId;
+            _dataSourceId = dataSourceId;
             _datasetId = datasetId;
             _limit = limit;
             _pageToken = pageToken;
@@ -34,7 +34,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
             var datasourceRequest = new UsersResource.DataSourcesResource.DatasetsResource.GetRequest(
                 FitnessService,
                 "me",
-                _dataStreamId,
+                _dataSourceId,
                 _datasetId) { Limit = _limit, PageToken = _pageToken };
 
             var result = await datasourceRequest.ExecuteAsync(cancellationToken);
