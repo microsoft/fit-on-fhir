@@ -104,8 +104,6 @@ namespace GoogleFitOnFhir.Services
                 datasetRequestTasks.Add(Task.Run(
                     async () =>
                     {
-                        // Create a batch of events for IoMT eventhub
-                        var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
                         string pageToken = null;
 
                         // Make the Dataset requests, requesting the next page of data if necessary
@@ -129,6 +127,9 @@ namespace GoogleFitOnFhir.Services
 
                             _logger.LogInformation("Push Dataset: {0}", datasourceId);
 
+                            // Create a batch of events for IoMT eventhub
+                            using var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
+
                             // Push dataset to IoMT connector
                             if (!eventBatch.TryAdd(new EventData(jsonDataset)))
                             {
@@ -138,12 +139,6 @@ namespace GoogleFitOnFhir.Services
                             // Use the producer client to send the batch of events to the event hub
                             await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
                             _logger.LogInformation("A batch of events has been published for {0}.", datasourceId);
-
-                            // Create a new EventDataBatch if there is more data incoming
-                            if (pageToken != null)
-                            {
-                                eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
-                            }
                         }
                         while (pageToken != null);
                     }, cancellationToken));
