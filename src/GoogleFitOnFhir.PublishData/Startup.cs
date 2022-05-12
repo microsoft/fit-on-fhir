@@ -19,7 +19,7 @@ using GoogleFitOnFhir.Repositories;
 using GoogleFitOnFhir.Services;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-
+using Microsoft.Health.Logging.Telemetry;
 using GoogleFitClientContext = GoogleFitOnFhir.Clients.GoogleFit.GoogleFitClientContext;
 
 [assembly: FunctionsStartup(typeof(GoogleFitOnFhir.PublishData.Startup))]
@@ -55,6 +55,7 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddSingleton<GoogleFitImportService>();
             builder.Services.AddSingleton<GoogleFitImportOptions>();
             builder.Services.AddSingleton<GoogleFitExceptionTelemetryProcessor>();
+            builder.Services.AddSingleton<ITelemetryLogger, GoogleFitTelemetryLogger>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<ImportRequest, Task>(typeof(GoogleFitDataImportHandler), typeof(UnknownDataImportHandler)));
         }

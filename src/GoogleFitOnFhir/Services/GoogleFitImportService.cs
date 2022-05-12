@@ -17,6 +17,7 @@ using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Service;
+using Microsoft.Health.Logging.Telemetry;
 using Newtonsoft.Json;
 
 namespace GoogleFitOnFhir.Services
@@ -26,17 +27,20 @@ namespace GoogleFitOnFhir.Services
         private readonly IGoogleFitClient _googleFitClient;
         private readonly EventHubProducerClient _eventHubProducerClient;
         private readonly ILogger<GoogleFitImportService> _logger;
+        private readonly ITelemetryLogger _telemetryLogger;
 
         public GoogleFitImportService(
             IGoogleFitClient googleFitClient,
             EventHubProducerClient eventHubProducerClient,
             GoogleFitImportOptions options,
-            ILogger<GoogleFitImportService> logger)
+            ILogger<GoogleFitImportService> logger,
+            ITelemetryLogger telemetryLogger)
             : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
         {
             _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
             _eventHubProducerClient = EnsureArg.IsNotNull(eventHubProducerClient, nameof(eventHubProducerClient));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
         }
 
         public async Task ProcessDatasetRequests(
@@ -52,40 +56,50 @@ namespace GoogleFitOnFhir.Services
                 {
                     string pageToken = null;
 
-                    // Make the Dataset requests, requesting the next page of data if necessary
-                    do
+                    try
                     {
-                        _logger.LogInformation("Query Dataset: {0}", datasourceId);
-                        var dataset = await _googleFitClient.DatasetRequest(
-                            tokensResponse.AccessToken,
-                            datasourceId,
-                            datasetId,
-                            cancellationToken,
-                            pageToken);
-
-                        // Save the NextPageToken
-                        pageToken = dataset.NextPageToken;
-
-                        // Add user id to payload
-                        dataset.UserId = user.Id;
-
-                        var jsonDataset = JsonConvert.SerializeObject(dataset);
-
-                        // Create a batch of events for IoMT eventhub
-                        using var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
-                        _logger.LogInformation("Create Eventhub Batch");
-
-                        // Push dataset to IoMT connector
-                        if (!eventBatch.TryAdd(new EventData(jsonDataset)))
+                        // Make the Dataset requests, requesting the next page of data if necessary
+                        do
                         {
-                            throw new Exception("Event is too large for the batch and cannot be sent.");
-                        }
+                            _logger.LogInformation("Query Dataset: {0}", datasourceId);
+                            var dataset = await _googleFitClient.DatasetRequest(
+                                tokensResponse.AccessToken,
+                                datasourceId,
+                                datasetId,
+                                cancellationToken,
+                                pageToken);
 
-                        // Use the producer client to send the batch of events to the event hub
-                        await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
-                        _logger.LogInformation("Push Dataset: {0}", datasourceId);
+                            // Save the NextPageToken
+                            pageToken = dataset.NextPageToken;
+
+                            // Add user id to payload
+                            dataset.UserId = user.Id;
+
+                            var jsonDataset = JsonConvert.SerializeObject(dataset);
+
+                            // Create a batch of events for IoMT eventhub
+                            using var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
+                            _logger.LogInformation("Create Eventhub Batch");
+
+                            // Push dataset to IoMT connector
+                            if (!eventBatch.TryAdd(new EventData(jsonDataset)))
+                            {
+                                throw new Exception("Event is too large for the batch and cannot be sent.");
+                            }
+
+                            // Use the producer client to send the batch of events to the event hub
+                            await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
+                            _logger.LogInformation("Push Dataset: {0}", datasourceId);
+                        }
+                        while (pageToken != null);
                     }
-                    while (pageToken != null);
+                    catch (Exception ex)
+                    {
+                        if (!Options.ExceptionService.HandleException(ex, _telemetryLogger))
+                        {
+                            throw;
+                        }
+                    }
                 }));
 
             // Wait for the Dataset request tasks to finish

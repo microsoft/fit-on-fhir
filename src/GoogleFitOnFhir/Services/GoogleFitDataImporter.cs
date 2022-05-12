@@ -96,7 +96,14 @@ namespace GoogleFitOnFhir.Services
             var datasetId = startDate + "-" + endDate;
 
             // Request the datasets from each datasource, based on the datasetId
-            await _googleFitImportService.ProcessDatasetRequests(user, dataSourcesList.DatasourceIds, datasetId, tokensResponse, cancellationToken);
+            try
+            {
+                await _googleFitImportService.ProcessDatasetRequests(user, dataSourcesList.DatasourceIds, datasetId, tokensResponse, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
 
             // Update LastSync column
             user.LastSync = endDateDto;
