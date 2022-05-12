@@ -16,11 +16,11 @@ namespace GoogleFitOnFhir.PublishData
 {
     public class PublishData
     {
-        private readonly IDataImporterService _dataImporterService;
+        private readonly IImporterService _importerService;
 
-        public PublishData(IDataImporterService dataImporterService)
+        public PublishData(IImporterService importerService)
         {
-            _dataImporterService = EnsureArg.IsNotNull(dataImporterService);
+            _importerService = EnsureArg.IsNotNull(importerService);
         }
 
         [FunctionName("publish-data")]
@@ -32,7 +32,7 @@ namespace GoogleFitOnFhir.PublishData
             log.LogInformation("publish-data has message: {0}", myQueueItem);
             QueueMessage message = JsonConvert.DeserializeObject<QueueMessage>(myQueueItem);
 
-            await _dataImporterService.Import(message, cancellationToken);
+            await _importerService.Import(message, cancellationToken);
         }
     }
 }

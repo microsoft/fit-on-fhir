@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using GoogleFitOnFhir.Clients.GoogleFit.Models;
 using GoogleFitOnFhir.Clients.GoogleFit.Requests;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
-using GoogleFitOnFhir.Common;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit
 {

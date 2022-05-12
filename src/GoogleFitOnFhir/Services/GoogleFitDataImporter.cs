@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
+using EnsureThat;
 using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Repositories;
@@ -17,11 +18,11 @@ using Newtonsoft.Json;
 
 namespace GoogleFitOnFhir.Services
 {
-    public class GoogleFitDataImporter : IGoogleFitDataImporter, IAsyncDisposable
+    public class GoogleFitDataImporter : IGoogleFitDataImporter
     {
         private readonly IUsersTableRepository _usersTableRepository;
         private readonly IGoogleFitClient _googleFitClient;
-        private readonly EventHubProducerClient _eventHubProducerClient;
+        private readonly GoogleFitImportService _googleFitImportService;
         private readonly ILogger<GoogleFitDataImporter> _logger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
         private readonly IGoogleFitAuthService _googleFitAuthService;
@@ -29,17 +30,17 @@ namespace GoogleFitOnFhir.Services
         public GoogleFitDataImporter(
             IUsersTableRepository usersTableRepository,
             IGoogleFitClient googleFitClient,
-            EventHubProducerClient eventHubProducerClient,
+            GoogleFitImportService googleFitImportService,
             IUsersKeyVaultRepository usersKeyvaultRepository,
             IGoogleFitAuthService googleFitAuthService,
             ILogger<GoogleFitDataImporter> logger)
         {
-            _usersTableRepository = usersTableRepository;
-            _googleFitClient = googleFitClient;
-            _eventHubProducerClient = eventHubProducerClient;
-            _usersKeyvaultRepository = usersKeyvaultRepository;
-            _googleFitAuthService = googleFitAuthService;
-            _logger = logger;
+            _usersTableRepository = EnsureArg.IsNotNull(usersTableRepository, nameof(usersTableRepository));
+            _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
+            _googleFitImportService = EnsureArg.IsNotNull(googleFitImportService, nameof(googleFitImportService));
+            _usersKeyvaultRepository = EnsureArg.IsNotNull(usersKeyvaultRepository, nameof(usersKeyvaultRepository));
+            _googleFitAuthService = EnsureArg.IsNotNull(googleFitAuthService, nameof(googleFitAuthService));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         public async Task Import(string userId, CancellationToken cancellationToken)
@@ -74,8 +75,6 @@ namespace GoogleFitOnFhir.Services
             _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
             var dataSourcesList = await _googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken, cancellationToken);
 
-            _logger.LogInformation("Create Eventhub Batch");
-
             // Get user's info for LastSync date
             _logger.LogInformation("Query userInfo");
             var user = await _usersTableRepository.GetById(userId, cancellationToken);
@@ -96,75 +95,12 @@ namespace GoogleFitOnFhir.Services
             var endDate = endDateDto.ToUnixTimeMilliseconds() * 1000000;
             var datasetId = startDate + "-" + endDate;
 
-            List<Task> datasetRequestTasks = new List<Task>();
-
-            // Add a task to get the Dataset for each dataSource
-            foreach (var datasourceId in dataSourcesList.DatasourceIds)
-            {
-                datasetRequestTasks.Add(Task.Run(
-                    async () =>
-                    {
-                        string pageToken = null;
-
-                        // Make the Dataset requests, requesting the next page of data if necessary
-                        do
-                        {
-                            _logger.LogInformation("Query Dataset: {0}", datasourceId);
-                            var dataset = await _googleFitClient.DatasetRequest(
-                                tokensResponse.AccessToken,
-                                datasourceId,
-                                datasetId,
-                                cancellationToken,
-                                pageToken);
-
-                            // Save the NextPageToken
-                            pageToken = dataset.NextPageToken;
-
-                            // Add user id to payload
-                            dataset.UserId = user.Id;
-
-                            var jsonDataset = JsonConvert.SerializeObject(dataset);
-
-                            _logger.LogInformation("Push Dataset: {0}", datasourceId);
-
-                            // Create a batch of events for IoMT eventhub
-                            using var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
-
-                            // Push dataset to IoMT connector
-                            if (!eventBatch.TryAdd(new EventData(jsonDataset)))
-                            {
-                                throw new Exception("Event is too large for the batch and cannot be sent.");
-                            }
-
-                            // Use the producer client to send the batch of events to the event hub
-                            await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
-                            _logger.LogInformation("A batch of events has been published for {0}.", datasourceId);
-                        }
-                        while (pageToken != null);
-                    }, cancellationToken));
-            }
-
-            // Wait for the Dataset request tasks to finish
-            try
-            {
-                Task.WaitAll(datasetRequestTasks.ToArray(), cancellationToken);
-            }
-            catch (AggregateException ex)
-            {
-                foreach (var ie in ex.InnerExceptions)
-                {
-                    _logger.LogError("{0}: {1}", ie.GetType().Name, ie.Message);
-                }
-            }
+            // Request the datasets from each datasource, based on the datasetId
+            await _googleFitImportService.ProcessDatasetRequests(user, dataSourcesList.DatasourceIds, datasetId, tokensResponse, cancellationToken);
 
             // Update LastSync column
             user.LastSync = endDateDto;
             await _usersTableRepository.Update(user, cancellationToken);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await _eventHubProducerClient.DisposeAsync();
         }
     }
 }

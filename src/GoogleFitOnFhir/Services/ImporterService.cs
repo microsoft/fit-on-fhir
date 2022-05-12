@@ -14,12 +14,12 @@ using Microsoft.Health.Common.Handler;
 
 namespace GoogleFitOnFhir.Services
 {
-    public class DataImporterService : IDataImporterService
+    public class ImporterService : IImporterService
     {
         private readonly IResponsibilityHandler<ImportRequest, Task> _handler;
         private readonly ILogger _logger;
 
-        public DataImporterService(IResponsibilityHandler<ImportRequest, Task> handler, ILogger<DataImporterService> logger)
+        public ImporterService(IResponsibilityHandler<ImportRequest, Task> handler, ILogger<ImporterService> logger)
         {
             _handler = EnsureArg.IsNotNull(handler);
             _logger = EnsureArg.IsNotNull(logger);
