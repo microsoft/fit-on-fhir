@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Apis.Fitness.v1;
+using GoogleFitOnFhir.Clients.GoogleFit.Models;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
@@ -18,21 +19,17 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
         {
         }
 
-        public async Task<DatasourcesListResponse> ExecuteAsync(CancellationToken cancellationToken)
+        public async Task<DataSourcesListResponse> ExecuteAsync(CancellationToken cancellationToken)
         {
             var listRequest = new UsersResource.DataSourcesResource.ListRequest(FitnessService, "me");
             var datasourceList = await listRequest.ExecuteAsync(cancellationToken);
 
-            // Filter by dataType, first example using com.google.blood_glucose
-            // Datasource.Type "raw" is an original datasource
-            // Datasource.Type "derived" is a combination/merge of raw datasources
-            var dataStreamIds = datasourceList.DataSource
-                .Where(d => d.Type == "raw")
-                .Select(d => d.DataStreamId);
+            // Extract the DataStreamIds Device.Uids and Application.PackageNames from the response.
+            var dataSources = datasourceList.DataSource.Select(d => new DataSource(d.DataStreamId, d.Device?.Uid, d.Application?.PackageName));
 
-            return new DatasourcesListResponse()
+            return new DataSourcesListResponse()
             {
-                DatasourceIds = dataStreamIds,
+                DataSources = dataSources,
             };
         }
     }

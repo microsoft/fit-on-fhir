@@ -526,18 +526,41 @@ resource hw_basename_hi_basename 'Microsoft.HealthcareApis/workspaces/iotconnect
         templateType: 'CollectionContent'
         template: [
           {
-            templateType: 'JsonPathContent'
+            templateType: 'CalculatedContent'
             template: {
-              typeName: 'bloodglucose'
-              typeMatchExpression: '$..[?(@.point[0].value[0].fpVal)]'
-              timestampExpression: '$.point[0].endTimeISO8601'
-              deviceIdExpression: '$.dataSourceId'
-              patientIdExpression: '$.userId'
+              typeName: 'com.google.blood_glucose'
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.blood_glucose\' && $.dataSourceId =~ /com.google.android.apps.fitness/))]'
+              deviceIdExpression: '$.deviceIdentifier'
+              patientIdExpression: '$.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
               values: [
                 {
-                  valueName: 'Blood Glucose'
-                  valueExpression: '$.point[0].value[0].fpVal'
-                  required: true
+                  required: 'true'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  valueName: 'blood_glucose_level'
+                }
+                {
+                  required: 'false'
+                  valueExpression: 'matchedToken.value[1].intVal'
+                  valueName: 'temporal_relation_to_meal'
+                }
+                {
+                  required: 'false'
+                  valueExpression: 'matchedToken.value[2].intVal'
+                  valueName: 'meal_type'
+                }
+                {
+                  required: 'false'
+                  valueExpression: 'matchedToken.value[3].intVal'
+                  valueName: 'temporal_relation_to_sleep'
+                }
+                {
+                  required: 'false'
+                  valueExpression: 'matchedToken.value[4].intVal'
+                  valueName: 'blood_glucose_specimen_source'
                 }
               ]
             }
@@ -586,11 +609,10 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
           {
             templateType: 'CodeValueFhir'
             template: {
-              typeName: 'bloodglucose'
+              typeName: 'com.google.blood_glucose'
               value: {
-                valueName: 'Blood Glucose'
+                valueName: 'blood_glucose_level'
                 valueType: 'Quantity'
-                defaultPeriod: '5000'
                 unit: 'mmol/L'
                 system: 'http://loinc.org'
               }

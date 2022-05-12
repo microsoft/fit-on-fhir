@@ -14,8 +14,8 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
     {
         Task<MyEmailResponse> MyEmailRequest(string accessToken, CancellationToken cancellationToken);
 
-        Task<DatasourcesListResponse> DatasourcesListRequest(string accessToken, CancellationToken cancellationToken);
+        Task<DataSourcesListResponse> DataSourcesListRequest(string accessToken, CancellationToken cancellationToken);
 
-        Task<IomtDataset> DatasetRequest(string accessToken, string dataStreamId, string dataSetId, CancellationToken cancellationToken);
+        Task<MedTechDataset> DatasetRequest(string accessToken, DataSource dataSource, string dataSetId, CancellationToken cancellationToken);
     }
 }

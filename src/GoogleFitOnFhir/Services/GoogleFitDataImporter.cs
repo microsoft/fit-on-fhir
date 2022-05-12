@@ -6,13 +6,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace GoogleFitOnFhir.Services
 {
@@ -71,7 +69,7 @@ namespace GoogleFitOnFhir.Services
             }
 
             _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
-            var dataSourcesList = await _googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken, cancellationToken);
+            var dataSourcesList = await _googleFitClient.DataSourcesListRequest(tokensResponse.AccessToken, cancellationToken);
 
             _logger.LogInformation("Create Eventhub Batch");
 
@@ -99,24 +97,20 @@ namespace GoogleFitOnFhir.Services
             var datasetId = startDate + "-" + endDate;
 
             // Get dataset for each dataSource
-            foreach (var datasourceId in dataSourcesList.DatasourceIds)
+            foreach (var dataSource in dataSourcesList.DataSources)
             {
-                _logger.LogInformation("Query Dataset: {0}", datasourceId);
+                _logger.LogInformation("Query Dataset: {0}", dataSource.DataStreamId);
+
                 var dataset = await _googleFitClient.DatasetRequest(
                     tokensResponse.AccessToken,
-                    datasourceId,
+                    dataSource,
                     datasetId,
                     cancellationToken);
 
-                // Add user id to payload
-                dataset.UserId = user.Id;
-
-                var jsonDataset = JsonConvert.SerializeObject(dataset);
-
-                _logger.LogInformation("Push Dataset: {0}", datasourceId);
+                _logger.LogInformation("Push Dataset: {0}", dataSource.DataStreamId);
 
                 // Push dataset to IoMT connector
-                if (!eventBatch.TryAdd(new EventData(jsonDataset)))
+                if (!eventBatch.TryAdd(dataset.ToEventData(userId)))
                 {
                     throw new Exception("Event is too large for the batch and cannot be sent.");
                 }
