@@ -4,11 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using GoogleFitOnFhir.Clients.GoogleFit.Models;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit.Responses
 {
-    public class DatasourcesListResponse
+    public class DataSourcesListResponse
     {
-        public IEnumerable<string> DatasourceIds { get; set; }
+        public IEnumerable<DataSource> DataSources { get; set; }
     }
 }

@@ -3,9 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Google.Apis.Fitness.v1;
 using GoogleFitOnFhir.Clients.GoogleFit.Models;
 
@@ -13,32 +14,36 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
 {
     public class DatasetRequest : BaseFitnessRequest
     {
-        private readonly string _dataSourceId;
+        private readonly DataSource _dataSource;
         private readonly string _datasetId;
         private readonly string _pageToken;
         private readonly int _limit;
 
-        public DatasetRequest(string accessToken, string dataSourceId, string datasetId, int limit, string pageToken = null)
+        public DatasetRequest(string accessToken, DataSource dataSource, string datasetId, int limit, string pageToken = null)
         : base(accessToken)
         {
-            _dataSourceId = dataSourceId;
-            _datasetId = datasetId;
+            _dataSource = EnsureArg.IsNotNull(dataSource, nameof(dataSource));
+            _datasetId = EnsureArg.IsNotNullOrWhiteSpace(datasetId, nameof(datasetId));
             _limit = limit;
             _pageToken = pageToken;
         }
 
-        public async Task<IomtDataset> ExecuteAsync(CancellationToken cancellationToken)
+        public async Task<MedTechDataset> ExecuteAsync(CancellationToken cancellationToken)
         {
-            IList<IomtDataset> iomtDatasets = new List<IomtDataset>();
-
             var datasourceRequest = new UsersResource.DataSourcesResource.DatasetsResource.GetRequest(
                 FitnessService,
                 "me",
-                _dataSourceId,
+                _dataSource.DataStreamId,
                 _datasetId) { Limit = _limit, PageToken = _pageToken };
 
-            var result = await datasourceRequest.ExecuteAsync(cancellationToken);
-            return new IomtDataset(result);
+            var dataset = await datasourceRequest.ExecuteAsync(cancellationToken);
+
+            if (dataset == null || !dataset.Point.Any())
+            {
+                return null;
+            }
+
+            return new MedTechDataset(dataset, _dataSource);
         }
     }
 }

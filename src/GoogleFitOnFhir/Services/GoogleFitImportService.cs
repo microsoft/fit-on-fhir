@@ -13,6 +13,7 @@ using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
 using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Clients.GoogleFit.Config;
+using GoogleFitOnFhir.Clients.GoogleFit.Models;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Models;
 using Microsoft.Extensions.Logging;
@@ -45,15 +46,16 @@ namespace GoogleFitOnFhir.Services
 
         public async Task ProcessDatasetRequests(
             User user,
-            IEnumerable<string> dataSourceIds,
+            IEnumerable<DataSource> dataSources,
             string datasetId,
             AuthTokensResponse tokensResponse,
             CancellationToken cancellationToken)
         {
-            var workItems = dataSourceIds.Select(
-                datasourceId => new Func<Task>(
+            var workItems = dataSources.Select(
+                dataSource => new Func<Task>(
                 async () =>
                 {
+                    var dataStreamId = dataSource.DataStreamId;
                     string pageToken = null;
 
                     try
@@ -61,35 +63,38 @@ namespace GoogleFitOnFhir.Services
                         // Make the Dataset requests, requesting the next page of data if necessary
                         do
                         {
-                            _logger.LogInformation("Query Dataset: {0}", datasourceId);
-                            var dataset = await _googleFitClient.DatasetRequest(
+                            _logger.LogInformation("Query Dataset: {0}", dataStreamId);
+                            var medTechDataset = await _googleFitClient.DatasetRequest(
                                 tokensResponse.AccessToken,
-                                datasourceId,
+                                dataSource,
                                 datasetId,
                                 cancellationToken,
                                 pageToken);
 
+                            if (medTechDataset == null)
+                            {
+                                _logger.LogInformation("No Dataset for: {0}", dataStreamId);
+                                continue;
+                            }
+
                             // Save the NextPageToken
-                            pageToken = dataset.NextPageToken;
+                            pageToken = medTechDataset.GetDataset().NextPageToken;
 
-                            // Add user id to payload
-                            dataset.UserId = user.Id;
-
-                            var jsonDataset = JsonConvert.SerializeObject(dataset);
+                            _logger.LogInformation("Create Eventhub Batch");
 
                             // Create a batch of events for IoMT eventhub
                             using var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
-                            _logger.LogInformation("Create Eventhub Batch");
+
+                            _logger.LogInformation("Push Dataset: {0}", dataStreamId);
 
                             // Push dataset to IoMT connector
-                            if (!eventBatch.TryAdd(new EventData(jsonDataset)))
+                            if (!eventBatch.TryAdd(medTechDataset.ToEventData(user.Id)))
                             {
                                 throw new Exception("Event is too large for the batch and cannot be sent.");
                             }
 
                             // Use the producer client to send the batch of events to the event hub
                             await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
-                            _logger.LogInformation("Push Dataset: {0}", datasourceId);
                         }
                         while (pageToken != null);
                     }

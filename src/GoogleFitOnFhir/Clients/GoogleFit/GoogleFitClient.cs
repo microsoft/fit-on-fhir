@@ -20,15 +20,15 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
         }
 
         /// <inheritdoc/>
-        public Task<DatasourcesListResponse> DatasourcesListRequest(string accessToken, CancellationToken cancellationToken)
+        public Task<DataSourcesListResponse> DataSourcesListRequest(string accessToken, CancellationToken cancellationToken)
         {
             return new DatasourcesListRequest(accessToken).ExecuteAsync(cancellationToken);
         }
 
         /// <inheritdoc/>
-        public Task<IomtDataset> DatasetRequest(string accessToken, string dataSourceId, string dataSetId, CancellationToken cancellationToken, string pageToken = null)
+        public Task<MedTechDataset> DatasetRequest(string accessToken, DataSource dataSource, string dataSetId, CancellationToken cancellationToken, string pageToken = null)
         {
-            return new DatasetRequest(accessToken, dataSourceId, dataSetId, GoogleFitDataImporterContext.GoogleFitDatasetRequestLimit, pageToken).ExecuteAsync(cancellationToken);
+            return new DatasetRequest(accessToken, dataSource, dataSetId, GoogleFitDataImporterContext.GoogleFitDatasetRequestLimit, pageToken).ExecuteAsync(cancellationToken);
         }
     }
 }

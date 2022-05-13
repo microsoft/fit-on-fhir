@@ -4,17 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Messaging.EventHubs;
-using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
 using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace GoogleFitOnFhir.Services
 {
@@ -73,7 +70,7 @@ namespace GoogleFitOnFhir.Services
             }
 
             _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
-            var dataSourcesList = await _googleFitClient.DatasourcesListRequest(tokensResponse.AccessToken, cancellationToken);
+            var dataSourcesList = await _googleFitClient.DataSourcesListRequest(tokensResponse.AccessToken, cancellationToken);
 
             // Get user's info for LastSync date
             _logger.LogInformation("Query userInfo");
@@ -98,7 +95,7 @@ namespace GoogleFitOnFhir.Services
             // Request the datasets from each datasource, based on the datasetId
             try
             {
-                await _googleFitImportService.ProcessDatasetRequests(user, dataSourcesList.DatasourceIds, datasetId, tokensResponse, cancellationToken);
+                await _googleFitImportService.ProcessDatasetRequests(user, dataSourcesList.DataSources, datasetId, tokensResponse, cancellationToken);
             }
             catch (Exception ex)
             {
