@@ -25,8 +25,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Health.Common" Version="1.0.0-20220411.2" />
+    <PackageReference Include="Microsoft.Health.Common" Version="1.0.0-20220502.1" />
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="2.2.95" />
+    <PackageReference Include="Microsoft.Health.Logging" Version="1.0.0-20220502.1" />
     <PackageReference Include="SimpleBase" Version="3.1.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

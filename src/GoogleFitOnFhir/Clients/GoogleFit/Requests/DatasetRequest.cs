@@ -16,12 +16,16 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
     {
         private readonly DataSource _dataSource;
         private readonly string _datasetId;
+        private readonly string _pageToken;
+        private readonly int _limit;
 
-        public DatasetRequest(string accessToken, DataSource dataSource, string datasetId)
+        public DatasetRequest(string accessToken, DataSource dataSource, string datasetId, int limit, string pageToken = null)
         : base(accessToken)
         {
             _dataSource = EnsureArg.IsNotNull(dataSource, nameof(dataSource));
             _datasetId = EnsureArg.IsNotNullOrWhiteSpace(datasetId, nameof(datasetId));
+            _limit = limit;
+            _pageToken = pageToken;
         }
 
         public async Task<MedTechDataset> ExecuteAsync(CancellationToken cancellationToken)
@@ -30,7 +34,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
                 FitnessService,
                 "me",
                 _dataSource.DataStreamId,
-                _datasetId);
+                _datasetId) { Limit = _limit, PageToken = _pageToken };
 
             var dataset = await datasourceRequest.ExecuteAsync(cancellationToken);
 

@@ -41,6 +41,15 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Models
         }
 
         /// <summary>
+        /// Accessor to the <see cref="Dataset"/>
+        /// </summary>
+        /// <returns>The current Dataset value.</returns>
+        public Dataset GetDataset()
+        {
+            return _dataset;
+        }
+
+        /// <summary>
         /// Generates a unique device identifier for the dataset.
         /// <remarks>
         /// Datasets and DataSources do not contain a globally unique identifier.

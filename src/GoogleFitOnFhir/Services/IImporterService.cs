@@ -10,7 +10,7 @@ using Microsoft.Health.Common.Handler;
 
 namespace GoogleFitOnFhir.Services
 {
-    public interface IDataImporterService
+    public interface IImporterService
     {
         /// <summary>
         /// Passes along a <see cref="QueueMessage"/> to an <see cref="IResponsibilityHandler{TRequest,TResult}"/>, which

@@ -9,7 +9,9 @@ using Azure.Identity;
 using Azure.Messaging.EventHubs.Producer;
 using Azure.Security.KeyVault.Secrets;
 using GoogleFitOnFhir.Clients.GoogleFit;
+using GoogleFitOnFhir.Clients.GoogleFit.Config;
 using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
+using GoogleFitOnFhir.Clients.GoogleFit.Telemetry;
 using GoogleFitOnFhir.Common;
 using GoogleFitOnFhir.Identity;
 using GoogleFitOnFhir.Persistence;
@@ -17,7 +19,7 @@ using GoogleFitOnFhir.Repositories;
 using GoogleFitOnFhir.Services;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-
+using Microsoft.Health.Logging.Telemetry;
 using GoogleFitClientContext = GoogleFitOnFhir.Clients.GoogleFit.GoogleFitClientContext;
 
 [assembly: FunctionsStartup(typeof(GoogleFitOnFhir.PublishData.Startup))]
@@ -47,9 +49,13 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
-            builder.Services.AddSingleton<IDataImporterService, DataImporterService>();
+            builder.Services.AddSingleton<IImporterService, ImporterService>();
             builder.Services.AddSingleton<GoogleFitDataImportHandler>();
             builder.Services.AddSingleton<UnknownDataImportHandler>();
+            builder.Services.AddSingleton<GoogleFitImportService>();
+            builder.Services.AddSingleton<GoogleFitImportOptions>();
+            builder.Services.AddSingleton<GoogleFitExceptionTelemetryProcessor>();
+            builder.Services.AddSingleton<ITelemetryLogger, TelemetryLogger>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<ImportRequest, Task>(typeof(GoogleFitDataImportHandler), typeof(UnknownDataImportHandler)));
         }
