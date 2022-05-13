@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -32,6 +33,11 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Requests
                 _datasetId);
 
             var dataset = await datasourceRequest.ExecuteAsync(cancellationToken);
+
+            if (dataset == null || !dataset.Point.Any())
+            {
+                return null;
+            }
 
             return new MedTechDataset(dataset, _dataSource);
         }

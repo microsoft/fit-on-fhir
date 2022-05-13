@@ -107,6 +107,12 @@ namespace GoogleFitOnFhir.Services
                     datasetId,
                     cancellationToken);
 
+                if (dataset == null)
+                {
+                    _logger.LogInformation("No Dataset for: {0}", dataSource.DataStreamId);
+                    continue;
+                }
+
                 _logger.LogInformation("Push Dataset: {0}", dataSource.DataStreamId);
 
                 // Push dataset to IoMT connector

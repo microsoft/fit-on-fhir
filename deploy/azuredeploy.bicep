@@ -529,7 +529,7 @@ resource hw_basename_hi_basename 'Microsoft.HealthcareApis/workspaces/iotconnect
             templateType: 'CalculatedContent'
             template: {
               typeName: 'com.google.blood_glucose'
-              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.blood_glucose\' && $.dataSourceId =~ /com.google.android.apps.fitness/))]'
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.blood_glucose\' && $.dataSourceId =~ /com.google.android.apps.fitness/)]'
               deviceIdExpression: '$.deviceIdentifier'
               patientIdExpression: '$.patientIdentifier'
               timestampExpression: {
