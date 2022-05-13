@@ -21,7 +21,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Telemetry
             EnsureArg.IsNotNull(ex, nameof(ex));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            return HandleException(ex, logger);
+            return base.HandleException(ex, logger);
         }
     }
 }

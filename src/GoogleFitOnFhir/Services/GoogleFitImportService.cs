@@ -15,6 +15,7 @@ using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Clients.GoogleFit.Config;
 using GoogleFitOnFhir.Clients.GoogleFit.Models;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
+using GoogleFitOnFhir.Common;
 using GoogleFitOnFhir.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Service;
@@ -80,17 +81,17 @@ namespace GoogleFitOnFhir.Services
                             // Save the NextPageToken
                             pageToken = medTechDataset.GetDataset().NextPageToken;
 
-                            _logger.LogInformation("Create Eventhub Batch");
-
-                            // Create a batch of events for IoMT eventhub
+                            // Create a batch of events for MedTech Service
                             using var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
+                            _logger.LogInformation("Created Eventhub Batch (size {0}, count {1})", eventBatch.SizeInBytes, eventBatch.Count);
 
                             _logger.LogInformation("Push Dataset: {0}", dataStreamId);
 
-                            // Push dataset to IoMT connector
+                            // Push dataset to MedTech Service
                             if (!eventBatch.TryAdd(medTechDataset.ToEventData(user.Id)))
                             {
-                                throw new Exception("Event is too large for the batch and cannot be sent.");
+                                var eventBatchException = new EventBatchException("Event is too large for the batch and cannot be sent.");
+                                _logger.LogError(eventBatchException, eventBatchException.Message);
                             }
 
                             // Use the producer client to send the batch of events to the event hub
@@ -108,7 +109,7 @@ namespace GoogleFitOnFhir.Services
                 }));
 
             // Wait for the Dataset request tasks to finish
-            await StartWorker(workItems).ConfigureAwait(false);
+            await StartWorker(workItems);
         }
 
         public async ValueTask DisposeAsync()

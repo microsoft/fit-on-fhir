@@ -9,13 +9,13 @@ using Microsoft.ApplicationInsights;
 using Microsoft.Health.Logging.Telemetry;
 using Metric = Microsoft.Health.Common.Telemetry.Metric;
 
-namespace GoogleFitOnFhir.Clients.GoogleFit
+namespace GoogleFitOnFhir.Common
 {
-    public class GoogleFitTelemetryLogger : ITelemetryLogger
+    public class TelemetryLogger : ITelemetryLogger
     {
         private readonly TelemetryClient _telemetryClient;
 
-        public GoogleFitTelemetryLogger(TelemetryClient telemetryClient)
+        public TelemetryLogger(TelemetryClient telemetryClient)
         {
             _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         }

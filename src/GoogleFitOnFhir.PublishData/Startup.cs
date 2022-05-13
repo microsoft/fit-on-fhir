@@ -55,7 +55,7 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddSingleton<GoogleFitImportService>();
             builder.Services.AddSingleton<GoogleFitImportOptions>();
             builder.Services.AddSingleton<GoogleFitExceptionTelemetryProcessor>();
-            builder.Services.AddSingleton<ITelemetryLogger, GoogleFitTelemetryLogger>();
+            builder.Services.AddSingleton<ITelemetryLogger, TelemetryLogger>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<ImportRequest, Task>(typeof(GoogleFitDataImportHandler), typeof(UnknownDataImportHandler)));
         }

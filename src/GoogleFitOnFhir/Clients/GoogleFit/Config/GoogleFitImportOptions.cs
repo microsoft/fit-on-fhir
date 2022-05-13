@@ -11,7 +11,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Config
 {
     public class GoogleFitImportOptions
     {
-        public virtual ParallelTaskOptions ParallelTaskOptions { get; } = new ParallelTaskOptions { MaxConcurrency = 10 };
+        public virtual ParallelTaskOptions ParallelTaskOptions { get; } = new ParallelTaskOptions { MaxConcurrency = GoogleFitDataImporterContext.MaxConcurrency };
 
         public virtual IExceptionTelemetryProcessor ExceptionService { get; } = new GoogleFitExceptionTelemetryProcessor();
     }
