@@ -18,14 +18,14 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
             return new MyEmailRequest(accessToken).ExecuteAsync(cancellationToken);
         }
 
-        public Task<DatasourcesListResponse> DatasourcesListRequest(string accessToken, CancellationToken cancellationToken)
+        public Task<DataSourcesListResponse> DataSourcesListRequest(string accessToken, CancellationToken cancellationToken)
         {
             return new DatasourcesListRequest(accessToken).ExecuteAsync(cancellationToken);
         }
 
-        public Task<IomtDataset> DatasetRequest(string accessToken, string dataStreamId, string dataSetId, CancellationToken cancellationToken)
+        public Task<MedTechDataset> DatasetRequest(string accessToken, DataSource dataSource, string dataSetId, CancellationToken cancellationToken)
         {
-            return new DatasetRequest(accessToken, dataStreamId, dataSetId).ExecuteAsync(cancellationToken);
+            return new DatasetRequest(accessToken, dataSource, dataSetId).ExecuteAsync(cancellationToken);
         }
     }
 }

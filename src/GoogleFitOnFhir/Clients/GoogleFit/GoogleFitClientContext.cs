@@ -4,8 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Text;
+using EnsureThat;
 using Google.Apis.Fitness.v1;
+using GoogleFitOnFhir.Common;
 
 namespace GoogleFitOnFhir.Clients.GoogleFit
 {
@@ -13,25 +14,27 @@ namespace GoogleFitOnFhir.Clients.GoogleFit
     {
         public GoogleFitClientContext(string clientId, string clientSecret, string hostName)
         {
-            ClientId = clientId;
-            ClientSecret = clientSecret;
-
-            StringBuilder stringBuilder = new StringBuilder("https");
-            stringBuilder.Append("://")
-                .Append(hostName)
-                .Append("/api/googlefit/callback");
-
-            CallbackUri = stringBuilder.ToString();
+            ClientId = EnsureArg.IsNotNullOrWhiteSpace(clientId, nameof(clientId));
+            ClientSecret = EnsureArg.IsNotNullOrWhiteSpace(clientSecret, nameof(clientSecret));
+            EnsureArg.IsNotNullOrWhiteSpace(hostName, nameof(hostName));
+            CallbackUri = $"https://{hostName}/{Constants.GoogleFitCallbackRequest}";
 
             // these are not the final default values
             DefaultScopes = new[]
             {
                 "https://www.googleapis.com/auth/userinfo.email",
                 "https://www.googleapis.com/auth/userinfo.profile",
+                FitnessService.Scope.FitnessActivityRead,
+                FitnessService.Scope.FitnessSleepRead,
+                FitnessService.Scope.FitnessReproductiveHealthRead,
+                FitnessService.Scope.FitnessOxygenSaturationRead,
+                FitnessService.Scope.FitnessNutritionRead,
+                FitnessService.Scope.FitnessLocationRead,
+                FitnessService.Scope.FitnessBodyTemperatureRead,
+                FitnessService.Scope.FitnessBodyRead,
+                FitnessService.Scope.FitnessBloodPressureRead,
                 FitnessService.Scope.FitnessBloodGlucoseRead,
-                FitnessService.Scope.FitnessBloodGlucoseWrite,
                 FitnessService.Scope.FitnessHeartRateRead,
-                FitnessService.Scope.FitnessHeartRateWrite,
             };
         }
 

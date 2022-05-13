@@ -15,16 +15,26 @@ namespace GoogleFitOnFhir.Common
         /// <summary>
         /// GoogleFit authorize endpoint
         /// </summary>
-        public static string GoogleFitAuthorizeRequest => "api/googlefit/authorize";
+        public const string GoogleFitAuthorizeRequest = "api/googlefit/authorize";
 
         /// <summary>
         /// GoogleFit callback endpoint
         /// </summary>
-        public static string GoogleFitCallbackRequest => "api/googlefit/callback";
+        public const string GoogleFitCallbackRequest = "api/googlefit/callback";
 
         /// <summary>
         /// String identifier for the GoogleFit platform.  Used to help identify the platform to import from, in a <see cref="QueueMessage"/>.
         /// </summary>
-        public static string GoogleFitPlatformName => "GoogleFit";
+        public const string GoogleFitPlatformName = "GoogleFit";
+
+        /// <summary>
+        /// The key in a JSON payload sent to an Event Hub for a globally unique patient identifier.
+        /// </summary>
+        public const string PatientIdentifier = "patientIdentifier";
+
+        /// <summary>
+        /// The key in a JSON payload sent to an Event Hub for a globally unique device identifier.
+        /// </summary>
+        public const string DeviceIdentifier = "deviceIdentifier";
     }
 }
