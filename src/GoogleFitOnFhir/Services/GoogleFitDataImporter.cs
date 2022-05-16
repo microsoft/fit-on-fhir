@@ -19,7 +19,7 @@ namespace GoogleFitOnFhir.Services
     {
         private readonly IUsersTableRepository _usersTableRepository;
         private readonly IGoogleFitClient _googleFitClient;
-        private readonly GoogleFitImportService _googleFitImportService;
+        private readonly IGoogleFitImportService _googleFitImportService;
         private readonly ILogger<GoogleFitDataImporter> _logger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
         private readonly IGoogleFitAuthService _googleFitAuthService;
@@ -27,7 +27,7 @@ namespace GoogleFitOnFhir.Services
         public GoogleFitDataImporter(
             IUsersTableRepository usersTableRepository,
             IGoogleFitClient googleFitClient,
-            GoogleFitImportService googleFitImportService,
+            IGoogleFitImportService googleFitImportService,
             IUsersKeyVaultRepository usersKeyvaultRepository,
             IGoogleFitAuthService googleFitAuthService,
             ILogger<GoogleFitDataImporter> logger)
@@ -52,7 +52,7 @@ namespace GoogleFitOnFhir.Services
             }
             catch (AggregateException ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
                 return;
             }
 
@@ -99,7 +99,7 @@ namespace GoogleFitOnFhir.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
             }
 
             // Update LastSync column

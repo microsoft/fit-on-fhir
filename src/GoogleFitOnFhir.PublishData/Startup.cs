@@ -52,7 +52,7 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddSingleton<IImporterService, ImporterService>();
             builder.Services.AddSingleton<GoogleFitDataImportHandler>();
             builder.Services.AddSingleton<UnknownDataImportHandler>();
-            builder.Services.AddSingleton<GoogleFitImportService>();
+            builder.Services.AddSingleton<IGoogleFitImportService, GoogleFitImportService>();
             builder.Services.AddSingleton<GoogleFitImportOptions>();
             builder.Services.AddSingleton<GoogleFitExceptionTelemetryProcessor>();
             builder.Services.AddSingleton<ITelemetryLogger, TelemetryLogger>();

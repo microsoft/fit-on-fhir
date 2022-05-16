@@ -51,7 +51,7 @@ namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
                 _errorHandler.HandleDataImportError(request.Message, ex);
                 return null;
             }
