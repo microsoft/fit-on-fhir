@@ -57,6 +57,7 @@ namespace GoogleFitOnFhir.PublishData
             builder.Services.AddSingleton<GoogleFitExceptionTelemetryProcessor>();
             builder.Services.AddSingleton<ITelemetryLogger, TelemetryLogger>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
+            builder.Services.AddSingleton(typeof(Func<DateTimeOffset>), () => DateTimeOffset.UtcNow);
             builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<ImportRequest, Task>(typeof(GoogleFitDataImportHandler), typeof(UnknownDataImportHandler)));
         }
     }

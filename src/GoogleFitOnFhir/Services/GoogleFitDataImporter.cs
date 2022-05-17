@@ -30,6 +30,7 @@ namespace GoogleFitOnFhir.Services
             IGoogleFitImportService googleFitImportService,
             IUsersKeyVaultRepository usersKeyvaultRepository,
             IGoogleFitAuthService googleFitAuthService,
+            Func<DateTimeOffset> utcNowFunc,
             ILogger<GoogleFitDataImporter> logger)
         {
             _usersTableRepository = EnsureArg.IsNotNull(usersTableRepository, nameof(usersTableRepository));
@@ -37,8 +38,11 @@ namespace GoogleFitOnFhir.Services
             _googleFitImportService = EnsureArg.IsNotNull(googleFitImportService, nameof(googleFitImportService));
             _usersKeyvaultRepository = EnsureArg.IsNotNull(usersKeyvaultRepository, nameof(usersKeyvaultRepository));
             _googleFitAuthService = EnsureArg.IsNotNull(googleFitAuthService, nameof(googleFitAuthService));
+            UtcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
+
+        protected Func<DateTimeOffset> UtcNowFunc { get; }
 
         public async Task Import(string userId, CancellationToken cancellationToken)
         {
@@ -77,15 +81,14 @@ namespace GoogleFitOnFhir.Services
             var user = await _usersTableRepository.GetById(userId, cancellationToken);
 
             // Generating datasetId based on event type
-            DateTime startDateDt = DateTime.Now.AddDays(-30);
-            DateTimeOffset startDateDto = new DateTimeOffset(startDateDt);
+            DateTimeOffset startDateDto = UtcNowFunc().AddDays(-30);
             if (user.LastSync != null)
             {
                 startDateDto = user.LastSync.Value;
             }
 
             // Convert to DateTimeOffset to so .NET unix conversion is usable
-            DateTimeOffset endDateDto = new DateTimeOffset(DateTime.Now);
+            DateTimeOffset endDateDto = UtcNowFunc();
 
             // .NET unix conversion only goes as small as milliseconds, multiplying to get nanoseconds
             var startDate = startDateDto.ToUnixTimeMilliseconds() * 1000000;
