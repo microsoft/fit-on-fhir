@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
 using GoogleFitOnFhir.Clients.GoogleFit;
@@ -20,11 +19,10 @@ using GoogleFitOnFhir.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Service;
 using Microsoft.Health.Logging.Telemetry;
-using Newtonsoft.Json;
 
 namespace GoogleFitOnFhir.Services
 {
-    public class GoogleFitImportService : ParallelTaskWorker<GoogleFitImportOptions>, IAsyncDisposable
+    public class GoogleFitImportService : ParallelTaskWorker<GoogleFitImportOptions>, IGoogleFitImportService, IAsyncDisposable
     {
         private readonly IGoogleFitClient _googleFitClient;
         private readonly EventHubProducerClient _eventHubProducerClient;
@@ -45,6 +43,7 @@ namespace GoogleFitOnFhir.Services
             _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
         }
 
+        /// <inheritdoc/>
         public async Task ProcessDatasetRequests(
             User user,
             IEnumerable<DataSource> dataSources,

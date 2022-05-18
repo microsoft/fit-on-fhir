@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -19,17 +18,19 @@ namespace GoogleFitOnFhir.Services
     {
         private readonly IUsersTableRepository _usersTableRepository;
         private readonly IGoogleFitClient _googleFitClient;
-        private readonly GoogleFitImportService _googleFitImportService;
+        private readonly IGoogleFitImportService _googleFitImportService;
         private readonly ILogger<GoogleFitDataImporter> _logger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
         private readonly IGoogleFitAuthService _googleFitAuthService;
+        private readonly Func<DateTimeOffset> _utcNowFunc;
 
         public GoogleFitDataImporter(
             IUsersTableRepository usersTableRepository,
             IGoogleFitClient googleFitClient,
-            GoogleFitImportService googleFitImportService,
+            IGoogleFitImportService googleFitImportService,
             IUsersKeyVaultRepository usersKeyvaultRepository,
             IGoogleFitAuthService googleFitAuthService,
+            Func<DateTimeOffset> utcNowFunc,
             ILogger<GoogleFitDataImporter> logger)
         {
             _usersTableRepository = EnsureArg.IsNotNull(usersTableRepository, nameof(usersTableRepository));
@@ -37,6 +38,7 @@ namespace GoogleFitOnFhir.Services
             _googleFitImportService = EnsureArg.IsNotNull(googleFitImportService, nameof(googleFitImportService));
             _usersKeyvaultRepository = EnsureArg.IsNotNull(usersKeyvaultRepository, nameof(usersKeyvaultRepository));
             _googleFitAuthService = EnsureArg.IsNotNull(googleFitAuthService, nameof(googleFitAuthService));
+            _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
@@ -52,7 +54,7 @@ namespace GoogleFitOnFhir.Services
             }
             catch (AggregateException ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
                 return;
             }
 
@@ -77,15 +79,14 @@ namespace GoogleFitOnFhir.Services
             var user = await _usersTableRepository.GetById(userId, cancellationToken);
 
             // Generating datasetId based on event type
-            DateTime startDateDt = DateTime.Now.AddDays(-30);
-            DateTimeOffset startDateDto = new DateTimeOffset(startDateDt);
+            DateTimeOffset startDateDto = _utcNowFunc().AddDays(-30);
             if (user.LastSync != null)
             {
                 startDateDto = user.LastSync.Value;
             }
 
             // Convert to DateTimeOffset to so .NET unix conversion is usable
-            DateTimeOffset endDateDto = new DateTimeOffset(DateTime.Now);
+            DateTimeOffset endDateDto = _utcNowFunc();
 
             // .NET unix conversion only goes as small as milliseconds, multiplying to get nanoseconds
             var startDate = startDateDto.ToUnixTimeMilliseconds() * 1000000;
@@ -99,7 +100,7 @@ namespace GoogleFitOnFhir.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
             }
 
             // Update LastSync column
