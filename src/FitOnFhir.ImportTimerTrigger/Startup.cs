@@ -4,14 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using FitOnFhir.ImportTimerTrigger;
 using GoogleFitOnFhir.Persistence;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
-[assembly: FunctionsStartup(typeof(GoogleFitOnFhir.SyncEvent.Startup))]
+[assembly: FunctionsStartup(typeof(Startup))]
 
-namespace GoogleFitOnFhir.SyncEvent
+namespace FitOnFhir.ImportTimerTrigger
 {
     public class Startup : FunctionsStartup
     {

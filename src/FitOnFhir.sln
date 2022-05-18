@@ -6,13 +6,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir", "GoogleFi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir.UnitTests", "GoogleFitOnFhir.UnitTests\GoogleFitOnFhir.UnitTests.csproj", "{73D0524A-64D3-4402-88BE-2AF76C1DA5EE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir.Identity", "GoogleFitOnFhir.Identity\GoogleFitOnFhir.Identity.csproj", "{8C9D9AF2-27BB-4DC1-8208-99EB96DEAA78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.Authorization", "FitOnFhir.Authorization\FitOnFhir.Authorization.csproj", "{8C9D9AF2-27BB-4DC1-8208-99EB96DEAA78}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir.PublishData", "GoogleFitOnFhir.PublishData\GoogleFitOnFhir.PublishData.csproj", "{189B4B7D-578E-4403-AAD8-72768BE04265}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.Import", "FitOnFhir.Import\FitOnFhir.Import.csproj", "{189B4B7D-578E-4403-AAD8-72768BE04265}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir.SyncEvent", "GoogleFitOnFhir.SyncEvent\GoogleFitOnFhir.SyncEvent.csproj", "{0E3C0AA4-816C-46F5-ACCB-1507CEC7A605}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.ImportTimerTrigger", "FitOnFhir.ImportTimerTrigger\FitOnFhir.ImportTimerTrigger.csproj", "{0E3C0AA4-816C-46F5-ACCB-1507CEC7A605}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitOnFhir.Common", "FitOnFhir.Common\FitOnFhir.Common.csproj", "{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.Common", "FitOnFhir.Common\FitOnFhir.Common.csproj", "{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

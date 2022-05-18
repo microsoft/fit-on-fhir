@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
 using FitOnFhir.Common.Requests;
-using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
-using GoogleFitOnFhir.Identity;
 using GoogleFitOnFhir.UnitTests.Mocks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;

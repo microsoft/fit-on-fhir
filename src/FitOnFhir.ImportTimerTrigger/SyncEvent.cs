@@ -13,7 +13,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace GoogleFitOnFhir.SyncEvent
+namespace FitOnFhir.ImportTimerTrigger
 {
     public class SyncEvent
     {
@@ -27,7 +27,7 @@ namespace GoogleFitOnFhir.SyncEvent
         [FunctionName("SyncEvent")]
         public async Task Run(
             [TimerTrigger("0 0 * * * *")] TimerInfo myTimer,
-            [Queue("publish-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService,
+            [Queue("import-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService,
             ILogger logger,
             CancellationToken cancellationToken)
         {

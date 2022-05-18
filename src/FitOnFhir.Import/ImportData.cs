@@ -12,24 +12,24 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace GoogleFitOnFhir.PublishData
+namespace FitOnFhir.Import
 {
-    public class PublishData
+    public class ImportData
     {
         private readonly IImporterService _importerService;
 
-        public PublishData(IImporterService importerService)
+        public ImportData(IImporterService importerService)
         {
             _importerService = EnsureArg.IsNotNull(importerService);
         }
 
-        [FunctionName("publish-data")]
+        [FunctionName("import-data")]
         public async Task Run(
-            [QueueTrigger("publish-data")] string myQueueItem,
+            [QueueTrigger("import-data")] string myQueueItem,
             ILogger log,
             CancellationToken cancellationToken)
         {
-            log.LogInformation("publish-data has message: {0}", myQueueItem);
+            log.LogInformation("import-data has message: {0}", myQueueItem);
             QueueMessage message = JsonConvert.DeserializeObject<QueueMessage>(myQueueItem);
 
             await _importerService.Import(message, cancellationToken);

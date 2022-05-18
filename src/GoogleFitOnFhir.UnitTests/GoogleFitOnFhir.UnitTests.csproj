@@ -38,7 +38,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GoogleFitOnFhir\GoogleFitOnFhir.csproj" />
-    <ProjectReference Include="..\GoogleFitOnFhir.Identity\GoogleFitOnFhir.Identity.csproj" />
+    <ProjectReference Include="..\GoogleFitOnFhir.Identity\FitOnFhir.Authorization.csproj" />
   </ItemGroup>
 
 </Project>

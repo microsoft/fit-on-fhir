@@ -13,14 +13,14 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
-namespace GoogleFitOnFhir.Identity
+namespace FitOnFhir.Authorization
 {
-    public class IdentityFunction
+    public class AuthorizeFunction
     {
         private readonly IRoutingService _routingService;
         private readonly ILogger _logger;
 
-        public IdentityFunction(IRoutingService routingService, ILogger<IdentityFunction> logger)
+        public AuthorizeFunction(IRoutingService routingService, ILogger<AuthorizeFunction> logger)
         {
             _routingService = EnsureArg.IsNotNull(routingService);
             _logger = EnsureArg.IsNotNull(logger);
