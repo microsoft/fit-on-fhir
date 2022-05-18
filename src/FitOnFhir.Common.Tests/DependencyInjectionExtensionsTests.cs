@@ -3,17 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading.Tasks;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
 using FitOnFhir.Common.Requests;
-using GoogleFitOnFhir.UnitTests.Mocks;
+using FitOnFhir.Common.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace GoogleFitOnFhir.UnitTests
+namespace FitOnFhir.Common.Tests
 {
     public class DependencyInjectionExtensionsTests
     {

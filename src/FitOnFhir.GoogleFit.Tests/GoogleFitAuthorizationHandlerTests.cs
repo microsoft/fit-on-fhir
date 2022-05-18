@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Clients.GoogleFit.Handlers;
@@ -23,7 +20,7 @@ using NSubstitute.ExceptionExtensions;
 using Xunit;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
-namespace GoogleFitOnFhir.UnitTests
+namespace FitOnFhir.GoogleFit.Tests
 {
     public class GoogleFitAuthorizationHandlerTests
     {

@@ -3,24 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using FitOnFhir.Common.Models;
+using FitOnFhir.Common.Tests.Mocks;
 using FitOnFhir.GoogleFit.Clients.GoogleFit;
 using FitOnFhir.GoogleFit.Clients.GoogleFit.Models;
 using FitOnFhir.GoogleFit.Clients.GoogleFit.Responses;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.GoogleFit.Services;
-using GoogleFitOnFhir.UnitTests.Mocks;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
-namespace GoogleFitOnFhir.UnitTests
+namespace FitOnFhir.GoogleFit.Tests
 {
     public class GoogleFitDataImporterTests
     {

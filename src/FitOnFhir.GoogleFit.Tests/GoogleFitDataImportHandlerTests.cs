@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Clients.GoogleFit.Handlers;
@@ -16,10 +13,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Common.Handler;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using NSubstitute.ReceivedExtensions;
 using Xunit;
 
-namespace GoogleFitOnFhir.UnitTests
+namespace FitOnFhir.GoogleFit.Tests
 {
     public class GoogleFitDataImportHandlerTests
     {

@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Services;
 using Microsoft.AspNetCore.Http;
@@ -19,7 +16,7 @@ using NSubstitute.ExceptionExtensions;
 using Xunit;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
-namespace GoogleFitOnFhir.UnitTests
+namespace FitOnFhir.Common.Tests
 {
     public class RoutingServiceTests
     {

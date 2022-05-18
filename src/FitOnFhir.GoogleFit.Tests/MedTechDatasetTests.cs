@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Text;
 using Azure.Messaging.EventHubs;
 using FitOnFhir.GoogleFit.Clients.GoogleFit.Models;
@@ -14,7 +12,7 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using DataSource = FitOnFhir.GoogleFit.Clients.GoogleFit.Models.DataSource;
 
-namespace GoogleFitOnFhir.UnitTests
+namespace FitOnFhir.GoogleFit.Tests
 {
     public class MedTechDatasetTests
     {

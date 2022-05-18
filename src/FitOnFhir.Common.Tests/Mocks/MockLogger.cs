@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using Microsoft.Extensions.Logging;
 
-namespace GoogleFitOnFhir.UnitTests.Mocks
+namespace FitOnFhir.Common.Tests.Mocks
 {
     public abstract class MockLogger<T> : ILogger<T>
     {

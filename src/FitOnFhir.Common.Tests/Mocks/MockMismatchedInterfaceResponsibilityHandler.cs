@@ -3,12 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Common.Handler;
 
-namespace GoogleFitOnFhir.UnitTests.Mocks
+namespace FitOnFhir.Common.Tests.Mocks
 {
     internal class MockMismatchedInterfaceResponsibilityHandler : IResponsibilityHandler<HttpRequest, Task<IActionResult>>
     {
