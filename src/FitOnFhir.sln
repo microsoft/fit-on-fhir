@@ -16,7 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GoogleFit", "GoogleFit", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitOnFhir.Common.Tests", "FitOnFhir.Common.Tests\FitOnFhir.Common.Tests.csproj", "{A9088ABB-4F50-4887-BB04-7DFC11647168}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitOnFhir.GoogleFit.Tests", "FitOnFhir.GoogleFit.Tests\FitOnFhir.GoogleFit.Tests.csproj", "{A064C40E-5E45-4FD3-B5C4-B93F7888F01B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitOnFhir.GoogleFit.Tests", "GoogleFit\FitOnFhir.GoogleFit.Tests\FitOnFhir.GoogleFit.Tests.csproj", "{A064C40E-5E45-4FD3-B5C4-B93F7888F01B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

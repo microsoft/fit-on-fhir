@@ -25,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FitOnFhir.Common.Tests\FitOnFhir.Common.Tests.csproj" />
-    <ProjectReference Include="..\GoogleFit\FitOnFhir.GoogleFit\FitOnFhir.GoogleFit.csproj" />
+    <ProjectReference Include="..\..\FitOnFhir.Common.Tests\FitOnFhir.Common.Tests.csproj" />
+    <ProjectReference Include="..\..\GoogleFit\FitOnFhir.GoogleFit\FitOnFhir.GoogleFit.csproj" />
   </ItemGroup>
 
 </Project>
