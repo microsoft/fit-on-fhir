@@ -7,11 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Azure.Messaging.EventHubs;
+using FitOnFhir.GoogleFit.Clients.GoogleFit.Models;
+using FitOnFhir.GoogleFit.Common;
 using Google.Apis.Fitness.v1.Data;
-using GoogleFitOnFhir.Clients.GoogleFit.Models;
-using GoogleFitOnFhir.Common;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using DataSource = FitOnFhir.GoogleFit.Clients.GoogleFit.Models.DataSource;
 
 namespace GoogleFitOnFhir.UnitTests
 {
@@ -114,7 +115,7 @@ namespace GoogleFitOnFhir.UnitTests
                 MaxEndTimeNs = 1652307998308000000,
             };
 
-            var dataSource = new Clients.GoogleFit.Models.DataSource(DataSourceId, deviceUid, packageName);
+            var dataSource = new DataSource(DataSourceId, deviceUid, packageName);
 
             return new MedTechDataset(dataset, dataSource);
         }

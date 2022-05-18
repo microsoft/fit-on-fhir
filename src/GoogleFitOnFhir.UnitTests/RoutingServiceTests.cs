@@ -7,7 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FitOnFhir.Common.Requests;
-using GoogleFitOnFhir.Services;
+using FitOnFhir.GoogleFit.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

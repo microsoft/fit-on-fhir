@@ -31,6 +31,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GoogleFitOnFhir\GoogleFitOnFhir.csproj" />
+    <ProjectReference Include="..\GoogleFitOnFhir\FitOnFhir.GoogleFit.csproj" />
+    <ProjectReference Include="..\GoogleFit\FitOnFhir.GoogleFit\FitOnFhir.GoogleFit.csproj" />
   </ItemGroup>
 </Project>

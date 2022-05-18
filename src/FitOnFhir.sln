@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32505.173
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir", "GoogleFitOnFhir\GoogleFitOnFhir.csproj", "{68114D4D-03B6-4640-9678-42A6BBA52934}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.GoogleFit", "GoogleFit\FitOnFhir.GoogleFit\FitOnFhir.GoogleFit.csproj", "{68114D4D-03B6-4640-9678-42A6BBA52934}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir.UnitTests", "GoogleFitOnFhir.UnitTests\GoogleFitOnFhir.UnitTests.csproj", "{73D0524A-64D3-4402-88BE-2AF76C1DA5EE}"
 EndProject
@@ -13,6 +13,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.ImportTimerTrigger", "FitOnFhir.ImportTimerTrigger\FitOnFhir.ImportTimerTrigger.csproj", "{0E3C0AA4-816C-46F5-ACCB-1507CEC7A605}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.Common", "FitOnFhir.Common\FitOnFhir.Common.csproj", "{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GoogleFit", "GoogleFit", "{E05034C2-99D3-41DD-A416-9FA2ECB3867D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +101,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{68114D4D-03B6-4640-9678-42A6BBA52934} = {E05034C2-99D3-41DD-A416-9FA2ECB3867D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {16425D06-2704-4306-B7F4-A32B4C586337}

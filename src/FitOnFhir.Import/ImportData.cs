@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FitOnFhir.Common.Models;
-using GoogleFitOnFhir.Services;
+using FitOnFhir.GoogleFit.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;

@@ -12,18 +12,18 @@ using FitOnFhir.Common;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
 using FitOnFhir.Common.Requests;
+using FitOnFhir.GoogleFit.Clients.GoogleFit;
+using FitOnFhir.GoogleFit.Clients.GoogleFit.Config;
+using FitOnFhir.GoogleFit.Clients.GoogleFit.Handlers;
+using FitOnFhir.GoogleFit.Clients.GoogleFit.Telemetry;
+using FitOnFhir.GoogleFit.Persistence;
+using FitOnFhir.GoogleFit.Repositories;
+using FitOnFhir.GoogleFit.Services;
 using FitOnFhir.Import;
-using GoogleFitOnFhir.Clients.GoogleFit;
-using GoogleFitOnFhir.Clients.GoogleFit.Config;
-using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
-using GoogleFitOnFhir.Clients.GoogleFit.Telemetry;
-using GoogleFitOnFhir.Persistence;
-using GoogleFitOnFhir.Repositories;
-using GoogleFitOnFhir.Services;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Logging.Telemetry;
-using GoogleFitClientContext = GoogleFitOnFhir.Clients.GoogleFit.GoogleFitClientContext;
+using GoogleFitClientContext = FitOnFhir.GoogleFit.Clients.GoogleFit.GoogleFitClientContext;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 

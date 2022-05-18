@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using FitOnFhir.GoogleFit;
 using Xunit;
 
 namespace GoogleFitOnFhir.UnitTests
@@ -14,7 +15,7 @@ namespace GoogleFitOnFhir.UnitTests
         [InlineData("coolpersonemail@gmail.com", "h1cvxtdGQs6hDFxxgWLDebuFKpQ11pNHR6")]
         public void TestBase58StringBase58sTheString(string stringToBase58, string base58d)
         {
-            Assert.Equal(GoogleFitOnFhir.Utility.Base58String(stringToBase58), base58d);
+            Assert.Equal(Utility.Base58String(stringToBase58), base58d);
         }
     }
 }

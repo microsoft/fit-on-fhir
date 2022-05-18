@@ -11,15 +11,14 @@ using FitOnFhir.Authorization;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
 using FitOnFhir.Common.Requests;
-using GoogleFitOnFhir.Clients.GoogleFit;
-using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
-using GoogleFitOnFhir.Persistence;
-using GoogleFitOnFhir.Repositories;
-using GoogleFitOnFhir.Services;
+using FitOnFhir.GoogleFit.Clients.GoogleFit;
+using FitOnFhir.GoogleFit.Clients.GoogleFit.Handlers;
+using FitOnFhir.GoogleFit.Persistence;
+using FitOnFhir.GoogleFit.Repositories;
+using FitOnFhir.GoogleFit.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using GoogleFitClientContext = GoogleFitOnFhir.Clients.GoogleFit.GoogleFitClientContext;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 

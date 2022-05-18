@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using FitOnFhir.Common.Models;
-using GoogleFitOnFhir.Repositories;
+using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
