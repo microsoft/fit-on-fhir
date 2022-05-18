@@ -7,8 +7,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using GoogleFitOnFhir.Common;
-using GoogleFitOnFhir.Models;
+using FitOnFhir.Common.Models;
+using FitOnFhir.Common.Requests;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
 

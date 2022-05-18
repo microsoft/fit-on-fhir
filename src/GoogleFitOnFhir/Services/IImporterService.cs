@@ -5,7 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using GoogleFitOnFhir.Models;
+using FitOnFhir.Common.Models;
 using Microsoft.Health.Common.Handler;
 
 namespace GoogleFitOnFhir.Services

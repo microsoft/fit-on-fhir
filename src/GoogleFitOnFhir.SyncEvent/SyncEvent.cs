@@ -7,7 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
-using GoogleFitOnFhir.Models;
+using FitOnFhir.Common.Models;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;

@@ -6,6 +6,7 @@
 using System;
 using System.Threading.Tasks;
 using EnsureThat;
+using FitOnFhir.Common.Requests;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Common;
 using GoogleFitOnFhir.Services;

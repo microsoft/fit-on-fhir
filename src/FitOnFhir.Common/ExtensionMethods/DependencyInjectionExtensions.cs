@@ -3,12 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Common.Handler;
 
-namespace GoogleFitOnFhir.Identity
+namespace FitOnFhir.Common.ExtensionMethods
 {
     /// <summary>
     /// Provides a set of extension methods for dependency injection methods for the Identity function.

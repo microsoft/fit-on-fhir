@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
-using GoogleFitOnFhir.Common;
+using FitOnFhir.Common.Requests;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Common.Handler;
 

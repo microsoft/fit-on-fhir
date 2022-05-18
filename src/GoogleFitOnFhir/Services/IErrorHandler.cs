@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using GoogleFitOnFhir.Models;
+using FitOnFhir.Common.Models;
 
 namespace GoogleFitOnFhir.Services
 {

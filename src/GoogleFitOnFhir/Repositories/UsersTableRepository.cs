@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Data.Tables;
-using GoogleFitOnFhir.Models;
+using FitOnFhir.Common.Models;
 using GoogleFitOnFhir.Persistence;
 using Microsoft.Extensions.Logging;
 

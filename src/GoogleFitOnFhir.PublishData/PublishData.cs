@@ -6,7 +6,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using GoogleFitOnFhir.Models;
+using FitOnFhir.Common.Models;
 using GoogleFitOnFhir.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;

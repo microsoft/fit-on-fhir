@@ -6,9 +6,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using FitOnFhir.Common.Models;
 using GoogleFitOnFhir.Clients.GoogleFit;
 using GoogleFitOnFhir.Common;
-using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Repositories;
 using Microsoft.Extensions.Logging;
 

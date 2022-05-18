@@ -1,16 +1,18 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.6.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32505.173
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleFitOnFhir", "GoogleFitOnFhir\GoogleFitOnFhir.csproj", "{68114D4D-03B6-4640-9678-42A6BBA52934}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir", "GoogleFitOnFhir\GoogleFitOnFhir.csproj", "{68114D4D-03B6-4640-9678-42A6BBA52934}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleFitOnFhir.UnitTests", "GoogleFitOnFhir.UnitTests\GoogleFitOnFhir.UnitTests.csproj", "{73D0524A-64D3-4402-88BE-2AF76C1DA5EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir.UnitTests", "GoogleFitOnFhir.UnitTests\GoogleFitOnFhir.UnitTests.csproj", "{73D0524A-64D3-4402-88BE-2AF76C1DA5EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleFitOnFhir.Identity", "GoogleFitOnFhir.Identity\GoogleFitOnFhir.Identity.csproj", "{8C9D9AF2-27BB-4DC1-8208-99EB96DEAA78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir.Identity", "GoogleFitOnFhir.Identity\GoogleFitOnFhir.Identity.csproj", "{8C9D9AF2-27BB-4DC1-8208-99EB96DEAA78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleFitOnFhir.PublishData", "GoogleFitOnFhir.PublishData\GoogleFitOnFhir.PublishData.csproj", "{189B4B7D-578E-4403-AAD8-72768BE04265}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir.PublishData", "GoogleFitOnFhir.PublishData\GoogleFitOnFhir.PublishData.csproj", "{189B4B7D-578E-4403-AAD8-72768BE04265}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoogleFitOnFhir.SyncEvent", "GoogleFitOnFhir.SyncEvent\GoogleFitOnFhir.SyncEvent.csproj", "{0E3C0AA4-816C-46F5-ACCB-1507CEC7A605}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleFitOnFhir.SyncEvent", "GoogleFitOnFhir.SyncEvent\GoogleFitOnFhir.SyncEvent.csproj", "{0E3C0AA4-816C-46F5-ACCB-1507CEC7A605}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitOnFhir.Common", "FitOnFhir.Common\FitOnFhir.Common.csproj", "{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,9 +22,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{68114D4D-03B6-4640-9678-42A6BBA52934}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -85,5 +84,23 @@ Global
 		{0E3C0AA4-816C-46F5-ACCB-1507CEC7A605}.Release|x64.Build.0 = Release|Any CPU
 		{0E3C0AA4-816C-46F5-ACCB-1507CEC7A605}.Release|x86.ActiveCfg = Release|Any CPU
 		{0E3C0AA4-816C-46F5-ACCB-1507CEC7A605}.Release|x86.Build.0 = Release|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Debug|x64.Build.0 = Debug|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Debug|x86.Build.0 = Debug|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Release|x64.ActiveCfg = Release|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Release|x64.Build.0 = Release|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Release|x86.ActiveCfg = Release|Any CPU
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {16425D06-2704-4306-B7F4-A32B4C586337}
 	EndGlobalSection
 EndGlobal

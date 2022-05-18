@@ -3,11 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using Azure;
 using Azure.Data.Tables;
 
-namespace GoogleFitOnFhir.Models
+namespace FitOnFhir.Common.Models
 {
     public class User : ITableEntity
     {

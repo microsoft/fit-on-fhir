@@ -51,6 +51,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FitOnFhir.Common\FitOnFhir.Common.csproj" />
     <ProjectReference Include="..\GoogleFitOnFhir\GoogleFitOnFhir.csproj" />
   </ItemGroup>
   <PropertyGroup>

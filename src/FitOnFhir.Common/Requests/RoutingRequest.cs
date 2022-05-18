@@ -3,17 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using Microsoft.Health.Common.Handler;
+using System.Threading;
+using Microsoft.AspNetCore.Http;
+using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
-namespace GoogleFitOnFhir.Common
+namespace FitOnFhir.Common.Requests
 {
-    public class UnknownOperationHandlerBase<TRequest, TResult> : IResponsibilityHandler<TRequest, TResult>
-    where TResult : class
+    public class RoutingRequest
     {
-        public virtual TResult Evaluate(TRequest request)
-        {
-            throw new NotImplementedException();
-        }
+        public HttpRequest HttpRequest { get; set; }
+
+        public ExecutionContext Context { get; set; }
+
+        public CancellationToken Token { get; set; }
     }
 }

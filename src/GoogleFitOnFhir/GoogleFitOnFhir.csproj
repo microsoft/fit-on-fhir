@@ -35,6 +35,9 @@
     </PackageReference>
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.16.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FitOnFhir.Common\FitOnFhir.Common.csproj" />
+  </ItemGroup>
   <PropertyGroup>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
   </PropertyGroup>

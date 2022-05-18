@@ -4,10 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
-using GoogleFitOnFhir.Common;
+using FitOnFhir.Common.Requests;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GoogleFitOnFhir.Clients.GoogleFit.Handlers
+namespace FitOnFhir.Common.Handlers
 {
     public class UnknownAuthorizationHandler : UnknownOperationHandlerBase<RoutingRequest, Task<IActionResult>>
     {

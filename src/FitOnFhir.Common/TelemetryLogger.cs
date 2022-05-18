@@ -3,13 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.Health.Logging.Telemetry;
 using Metric = Microsoft.Health.Common.Telemetry.Metric;
 
-namespace GoogleFitOnFhir.Common
+namespace FitOnFhir.Common
 {
     public class TelemetryLogger : ITelemetryLogger
     {

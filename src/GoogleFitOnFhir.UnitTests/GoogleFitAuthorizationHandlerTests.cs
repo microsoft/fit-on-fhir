@@ -6,10 +6,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using FitOnFhir.Common.Models;
+using FitOnFhir.Common.Requests;
 using GoogleFitOnFhir.Clients.GoogleFit.Handlers;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
 using GoogleFitOnFhir.Common;
-using GoogleFitOnFhir.Models;
 using GoogleFitOnFhir.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
-namespace GoogleFitOnFhir.Common
+namespace FitOnFhir.Common.Exceptions
 {
     public class EventBatchException : Exception
     {

@@ -5,7 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using GoogleFitOnFhir.Models;
+using FitOnFhir.Common.Models;
 
 namespace GoogleFitOnFhir.Services
 {

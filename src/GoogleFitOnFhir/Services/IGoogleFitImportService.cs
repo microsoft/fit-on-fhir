@@ -6,9 +6,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using FitOnFhir.Common.Models;
 using GoogleFitOnFhir.Clients.GoogleFit.Models;
 using GoogleFitOnFhir.Clients.GoogleFit.Responses;
-using GoogleFitOnFhir.Models;
 
 namespace GoogleFitOnFhir.Services
 {
