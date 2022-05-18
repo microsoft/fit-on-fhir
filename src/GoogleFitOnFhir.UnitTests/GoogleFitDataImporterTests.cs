@@ -36,7 +36,7 @@ namespace GoogleFitOnFhir.UnitTests
         private readonly IGoogleFitAuthService _googleFitAuthService;
         private readonly IUsersTableRepository _usersTableRepository;
         private readonly IGoogleFitClient _googleFitClient;
-        private MockLogger<GoogleFitDataImporter> _dataImporterLogger;
+        private readonly MockLogger<GoogleFitDataImporter> _dataImporterLogger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
         private readonly IGoogleFitDataImporter _googleFitDataImporter;
         private readonly Func<DateTimeOffset> _utcNowFunc;

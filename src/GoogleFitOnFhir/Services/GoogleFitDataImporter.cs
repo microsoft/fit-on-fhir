@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -23,6 +22,7 @@ namespace GoogleFitOnFhir.Services
         private readonly ILogger<GoogleFitDataImporter> _logger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
         private readonly IGoogleFitAuthService _googleFitAuthService;
+        private readonly Func<DateTimeOffset> _utcNowFunc;
 
         public GoogleFitDataImporter(
             IUsersTableRepository usersTableRepository,
@@ -38,11 +38,9 @@ namespace GoogleFitOnFhir.Services
             _googleFitImportService = EnsureArg.IsNotNull(googleFitImportService, nameof(googleFitImportService));
             _usersKeyvaultRepository = EnsureArg.IsNotNull(usersKeyvaultRepository, nameof(usersKeyvaultRepository));
             _googleFitAuthService = EnsureArg.IsNotNull(googleFitAuthService, nameof(googleFitAuthService));
-            UtcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
+            _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
-
-        protected Func<DateTimeOffset> UtcNowFunc { get; }
 
         public async Task Import(string userId, CancellationToken cancellationToken)
         {
@@ -81,14 +79,14 @@ namespace GoogleFitOnFhir.Services
             var user = await _usersTableRepository.GetById(userId, cancellationToken);
 
             // Generating datasetId based on event type
-            DateTimeOffset startDateDto = UtcNowFunc().AddDays(-30);
+            DateTimeOffset startDateDto = _utcNowFunc().AddDays(-30);
             if (user.LastSync != null)
             {
                 startDateDto = user.LastSync.Value;
             }
 
             // Convert to DateTimeOffset to so .NET unix conversion is usable
-            DateTimeOffset endDateDto = UtcNowFunc();
+            DateTimeOffset endDateDto = _utcNowFunc();
 
             // .NET unix conversion only goes as small as milliseconds, multiplying to get nanoseconds
             var startDate = startDateDto.ToUnixTimeMilliseconds() * 1000000;
