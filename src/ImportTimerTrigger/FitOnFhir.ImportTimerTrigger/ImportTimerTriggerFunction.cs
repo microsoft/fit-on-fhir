@@ -24,7 +24,7 @@ namespace FitOnFhir.ImportTimerTrigger
             _usersTableRepository = usersTableRepository;
         }
 
-        [FunctionName("SyncEvent")]
+        [FunctionName("import-timer")]
         public async Task Run(
             [TimerTrigger("0 0 * * * *")] TimerInfo myTimer,
             [Queue("import-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService,
