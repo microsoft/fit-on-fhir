@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\FitOnFhir.Authorization\FitOnFhir.Authorization.csproj" />
     <ProjectReference Include="..\FitOnFhir.Common\FitOnFhir.Common.csproj" />
     <ProjectReference Include="..\..\GoogleFit\FitOnFhir.GoogleFit\FitOnFhir.GoogleFit.csproj" />
   </ItemGroup>

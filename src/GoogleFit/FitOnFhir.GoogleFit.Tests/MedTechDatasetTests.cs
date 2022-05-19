@@ -5,12 +5,12 @@
 
 using System.Text;
 using Azure.Messaging.EventHubs;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Models;
+using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Common;
 using Google.Apis.Fitness.v1.Data;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using DataSource = FitOnFhir.GoogleFit.Clients.GoogleFit.Models.DataSource;
+using DataSource = FitOnFhir.GoogleFit.Client.Models.DataSource;
 
 namespace FitOnFhir.GoogleFit.Tests
 {
@@ -49,8 +49,8 @@ namespace FitOnFhir.GoogleFit.Tests
             EventData eventData = dataset.ToEventData(UserId);
             JObject json = JObject.Parse(Encoding.UTF8.GetString(eventData.EventBody));
 
-            Assert.Equal(UserId, json[Constants.PatientIdentifier]);
-            Assert.Equal("TestUserId.TestDeviceUid", json[Constants.DeviceIdentifier]);
+            Assert.Equal(UserId, json[GoogleFitConstants.PatientIdentifier]);
+            Assert.Equal("TestUserId.TestDeviceUid", json[GoogleFitConstants.DeviceIdentifier]);
         }
 
         [Fact]
@@ -60,8 +60,8 @@ namespace FitOnFhir.GoogleFit.Tests
             EventData eventData = dataset.ToEventData(UserId);
             JObject json = JObject.Parse(Encoding.UTF8.GetString(eventData.EventBody));
 
-            Assert.Equal(UserId, json[Constants.PatientIdentifier]);
-            Assert.Equal($"{UserId}.{PackageName}", json[Constants.DeviceIdentifier]);
+            Assert.Equal(UserId, json[GoogleFitConstants.PatientIdentifier]);
+            Assert.Equal($"{UserId}.{PackageName}", json[GoogleFitConstants.DeviceIdentifier]);
         }
 
         [Fact]
@@ -71,8 +71,8 @@ namespace FitOnFhir.GoogleFit.Tests
             EventData eventData = dataset.ToEventData(UserId);
             JObject json = JObject.Parse(Encoding.UTF8.GetString(eventData.EventBody));
 
-            Assert.Equal(UserId, json[Constants.PatientIdentifier]);
-            Assert.Equal($"{UserId}.{PackageName}.{DeviceUid}", json[Constants.DeviceIdentifier]);
+            Assert.Equal(UserId, json[GoogleFitConstants.PatientIdentifier]);
+            Assert.Equal($"{UserId}.{PackageName}.{DeviceUid}", json[GoogleFitConstants.DeviceIdentifier]);
         }
 
         [Fact]

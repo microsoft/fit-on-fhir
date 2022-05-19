@@ -7,7 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FitOnFhir.Common.Models;
-using FitOnFhir.GoogleFit.Clients.GoogleFit;
+using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
@@ -60,7 +60,7 @@ namespace FitOnFhir.GoogleFit.Services
             // Use sub within your application as the unique-identifier key for the user.
             // Maximum length of 255 case-sensitive ASCII characters."
             string userId = tokenResponse.IdToken.Subject;
-            User user = new User(userId, Constants.GoogleFitPlatformName);
+            User user = new User(userId, GoogleFitConstants.GoogleFitPlatformName);
 
             // Insert user into UsersTable
             await _usersTableRepository.Upsert(user, cancellationToken);

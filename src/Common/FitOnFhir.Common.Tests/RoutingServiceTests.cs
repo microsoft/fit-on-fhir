@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using FitOnFhir.Authorization.Services;
 using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Services;
 using Microsoft.AspNetCore.Http;

@@ -6,8 +6,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FitOnFhir.GoogleFit.Clients.GoogleFit;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Responses;
+using FitOnFhir.GoogleFit.Client;
+using FitOnFhir.GoogleFit.Client.Responses;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;

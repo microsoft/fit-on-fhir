@@ -7,8 +7,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FitOnFhir.GoogleFit.Clients.GoogleFit;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Responses;
+using FitOnFhir.GoogleFit.Client;
+using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
 

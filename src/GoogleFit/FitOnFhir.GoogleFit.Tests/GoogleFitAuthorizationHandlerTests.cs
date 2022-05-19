@@ -5,8 +5,8 @@
 
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Requests;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Handlers;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Responses;
+using FitOnFhir.GoogleFit.Client.Handlers;
+using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Services;
 using Microsoft.AspNetCore.Http;
@@ -26,8 +26,8 @@ namespace FitOnFhir.GoogleFit.Tests
     {
         private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _googleFitAuthorizationHandler;
 
-        private readonly PathString googleFitAuthorizeRequest = "/" + Constants.GoogleFitAuthorizeRequest;
-        private readonly PathString googleFitCallbackRequest = "/" + Constants.GoogleFitCallbackRequest;
+        private readonly PathString googleFitAuthorizeRequest = "/" + GoogleFitConstants.GoogleFitAuthorizeRequest;
+        private readonly PathString googleFitCallbackRequest = "/" + GoogleFitConstants.GoogleFitCallbackRequest;
         private readonly PathString emptyGoogleFitRequest = "/api/googlefit/";
 
         private static string _fakeRedirectUri = "http://localhost";
@@ -72,7 +72,7 @@ namespace FitOnFhir.GoogleFit.Tests
         [Fact]
         public async Task GivenRequestHandledAndUserExists_WhenRequestIsCallback_ReturnsOkResult()
         {
-            _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User("test user", Constants.GoogleFitPlatformName));
+            _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User("test user", GoogleFitConstants.GoogleFitPlatformName));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);

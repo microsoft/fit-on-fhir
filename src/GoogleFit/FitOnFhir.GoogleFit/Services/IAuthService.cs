@@ -5,7 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Responses;
+using FitOnFhir.GoogleFit.Client.Responses;
 
 namespace FitOnFhir.GoogleFit.Services
 {

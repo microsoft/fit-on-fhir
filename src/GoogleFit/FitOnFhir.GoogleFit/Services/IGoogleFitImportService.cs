@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FitOnFhir.Common.Models;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Models;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Responses;
+using FitOnFhir.GoogleFit.Client.Models;
+using FitOnFhir.GoogleFit.Client.Responses;
 
 namespace FitOnFhir.GoogleFit.Services
 {

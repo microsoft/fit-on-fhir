@@ -3,9 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Requests;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Handlers;
+using FitOnFhir.GoogleFit.Client.Handlers;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Services;
 using Microsoft.Extensions.Logging;
@@ -48,7 +49,7 @@ namespace FitOnFhir.GoogleFit.Tests
         [Fact]
         public void GivenPublishRequestForGoogleFit_WhenPublishToIsCalled_TaskCompletes()
         {
-            var publishRequest = CreatePublishRequest(_testUser, Constants.GoogleFitPlatformName);
+            var publishRequest = CreatePublishRequest(_testUser, GoogleFitConstants.GoogleFitPlatformName);
             var result = _googleFitPublishingHandler.Evaluate(publishRequest);
 
             Assert.NotNull(result);
@@ -60,10 +61,10 @@ namespace FitOnFhir.GoogleFit.Tests
             string exceptionMessage = "data sync error";
             _googleFitDataImporter.Import(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception(exceptionMessage));
 
-            var publishRequest = CreatePublishRequest(_testUser, Constants.GoogleFitPlatformName);
+            var publishRequest = CreatePublishRequest(_testUser, GoogleFitConstants.GoogleFitPlatformName);
             var result = _googleFitPublishingHandler.Evaluate(publishRequest);
 
-            var expectedQueueMessage = new QueueMessage() { UserId = _testUser, PlatformName = Constants.GoogleFitPlatformName };
+            var expectedQueueMessage = new QueueMessage() { UserId = _testUser, PlatformName = GoogleFitConstants.GoogleFitPlatformName };
             _errorHandler.Received(1).HandleDataImportError(
                 Arg.Is<QueueMessage>(msg => msg.UserId == expectedQueueMessage.UserId && msg.PlatformName == expectedQueueMessage.PlatformName),
                 Arg.Is<Exception>(ex => ex.Message == exceptionMessage));

@@ -5,9 +5,9 @@
 
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Tests.Mocks;
-using FitOnFhir.GoogleFit.Clients.GoogleFit;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Models;
-using FitOnFhir.GoogleFit.Clients.GoogleFit.Responses;
+using FitOnFhir.GoogleFit.Client;
+using FitOnFhir.GoogleFit.Client.Models;
+using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.GoogleFit.Services;
@@ -24,7 +24,7 @@ namespace FitOnFhir.GoogleFit.Tests
         private const string _accessToken = "AccessToken";
         private const string _refreshToken = "RefreshToken";
         private readonly CancellationToken _cancellationToken = CancellationToken.None;
-        private readonly User _user = new User(_userId, Constants.GoogleFitPlatformName);
+        private readonly User _user = new User(_userId, GoogleFitConstants.GoogleFitPlatformName);
         private readonly DataSourcesListResponse _dataSourcesListResponse = new DataSourcesListResponse() { DataSources = new List<DataSource>() };
         private readonly AuthTokensResponse _tokensResponse = new AuthTokensResponse() { AccessToken = _accessToken, RefreshToken = _refreshToken };
 
