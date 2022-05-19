@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FitOnFhir.Common\FitOnFhir.Common.csproj" />
-    <ProjectReference Include="..\GoogleFit\FitOnFhir.GoogleFit\FitOnFhir.GoogleFit.csproj" />
+    <ProjectReference Include="..\..\GoogleFit\FitOnFhir.GoogleFit\FitOnFhir.GoogleFit.csproj" />
   </ItemGroup>
 
 </Project>

@@ -10,13 +10,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.Import", "FitOnFh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.ImportTimerTrigger", "FitOnFhir.ImportTimerTrigger\FitOnFhir.ImportTimerTrigger.csproj", "{0E3C0AA4-816C-46F5-ACCB-1507CEC7A605}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.Common", "FitOnFhir.Common\FitOnFhir.Common.csproj", "{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.Common", "Common\FitOnFhir.Common\FitOnFhir.Common.csproj", "{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GoogleFit", "GoogleFit", "{E05034C2-99D3-41DD-A416-9FA2ECB3867D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitOnFhir.Common.Tests", "FitOnFhir.Common.Tests\FitOnFhir.Common.Tests.csproj", "{A9088ABB-4F50-4887-BB04-7DFC11647168}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.Common.Tests", "Common\FitOnFhir.Common.Tests\FitOnFhir.Common.Tests.csproj", "{A9088ABB-4F50-4887-BB04-7DFC11647168}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitOnFhir.GoogleFit.Tests", "GoogleFit\FitOnFhir.GoogleFit.Tests\FitOnFhir.GoogleFit.Tests.csproj", "{A064C40E-5E45-4FD3-B5C4-B93F7888F01B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitOnFhir.GoogleFit.Tests", "GoogleFit\FitOnFhir.GoogleFit.Tests\FitOnFhir.GoogleFit.Tests.csproj", "{A064C40E-5E45-4FD3-B5C4-B93F7888F01B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{8254079F-D7AF-432C-ABF0-F5446219F066}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -118,6 +120,8 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{68114D4D-03B6-4640-9678-42A6BBA52934} = {E05034C2-99D3-41DD-A416-9FA2ECB3867D}
+		{8BA4DEDD-A9C6-4283-B1C3-67DE3373C439} = {8254079F-D7AF-432C-ABF0-F5446219F066}
+		{A9088ABB-4F50-4887-BB04-7DFC11647168} = {8254079F-D7AF-432C-ABF0-F5446219F066}
 		{A064C40E-5E45-4FD3-B5C4-B93F7888F01B} = {E05034C2-99D3-41DD-A416-9FA2ECB3867D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
