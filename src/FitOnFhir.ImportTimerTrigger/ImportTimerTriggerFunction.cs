@@ -15,11 +15,11 @@ using Newtonsoft.Json;
 
 namespace FitOnFhir.ImportTimerTrigger
 {
-    public class SyncEvent
+    public class ImportTimerTriggerFunction
     {
         private readonly IUsersTableRepository _usersTableRepository;
 
-        public SyncEvent(IUsersTableRepository usersTableRepository)
+        public ImportTimerTriggerFunction(IUsersTableRepository usersTableRepository)
         {
             _usersTableRepository = usersTableRepository;
         }

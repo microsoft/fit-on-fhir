@@ -14,11 +14,11 @@ using Newtonsoft.Json;
 
 namespace FitOnFhir.Import
 {
-    public class ImportData
+    public class ImportFunction
     {
         private readonly IImporterService _importerService;
 
-        public ImportData(IImporterService importerService)
+        public ImportFunction(IImporterService importerService)
         {
             _importerService = EnsureArg.IsNotNull(importerService);
         }

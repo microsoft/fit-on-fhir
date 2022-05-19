@@ -15,12 +15,12 @@ using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.Authorization
 {
-    public class AuthorizeFunction
+    public class AuthorizationFunction
     {
         private readonly IRoutingService _routingService;
         private readonly ILogger _logger;
 
-        public AuthorizeFunction(IRoutingService routingService, ILogger<AuthorizeFunction> logger)
+        public AuthorizationFunction(IRoutingService routingService, ILogger<AuthorizationFunction> logger)
         {
             _routingService = EnsureArg.IsNotNull(routingService);
             _logger = EnsureArg.IsNotNull(logger);
