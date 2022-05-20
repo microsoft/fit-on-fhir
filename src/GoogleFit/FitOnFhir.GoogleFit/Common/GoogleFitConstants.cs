@@ -15,12 +15,12 @@ namespace FitOnFhir.GoogleFit.Common
         /// <summary>
         /// GoogleFit authorize endpoint
         /// </summary>
-        public const string GoogleFitAuthorizeRequest = "auth/googlefit/authorize";
+        public const string GoogleFitAuthorizeRequest = "api/googlefit/authorize";
 
         /// <summary>
         /// GoogleFit callback endpoint
         /// </summary>
-        public const string GoogleFitCallbackRequest = "auth/googlefit/callback";
+        public const string GoogleFitCallbackRequest = "api/googlefit/callback";
 
         /// <summary>
         /// String identifier for the GoogleFit platform.  Used to help identify the platform to import from, in a <see cref="QueueMessage"/>.

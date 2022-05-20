@@ -26,7 +26,7 @@ namespace FitOnFhir.Authorization
             _logger = EnsureArg.IsNotNull(logger);
         }
 
-        [FunctionName("auth")]
+        [FunctionName("api")]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{p1?}/{p2?}/{p3?}")] HttpRequest req,
             Microsoft.Azure.WebJobs.ExecutionContext context,
