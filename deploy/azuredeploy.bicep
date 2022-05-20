@@ -370,7 +370,7 @@ resource import_timer_basename_appsettings 'Microsoft.Web/sites/config@2015-08-0
     WEBSITE_CONTENTSHARE: 'import-timer-${basename}-${take(uniqueString('import-timer-', basename), 4)}'
   }
   dependsOn: [
-    identity_basename
+    authorize_basename
   ]
 }
 
