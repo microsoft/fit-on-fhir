@@ -1,0 +1,14 @@
+// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+namespace FitOnFhir.Common.Models
+{
+    public class QueueMessage
+    {
+      public string UserId { get; set; }
+
+      public string PlatformName { get; set; }
+    }
+}

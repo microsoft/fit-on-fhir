@@ -33,8 +33,8 @@ resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
     }
     accessPolicies: [
       {
-        tenantId: reference(publish_data_basename.id, '2020-06-01', 'Full').identity.tenantId
-        objectId: reference(publish_data_basename.id, '2020-06-01', 'Full').identity.principalId
+        tenantId: reference(import_data_basename.id, '2020-06-01', 'Full').identity.tenantId
+        objectId: reference(import_data_basename.id, '2020-06-01', 'Full').identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -42,8 +42,8 @@ resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
         }
       }
       {
-        tenantId: reference(sync_event_basename.id, '2020-06-01', 'Full').identity.tenantId
-        objectId: reference(sync_event_basename.id, '2020-06-01', 'Full').identity.principalId
+        tenantId: reference(import_timer_basename.id, '2020-06-01', 'Full').identity.tenantId
+        objectId: reference(import_timer_basename.id, '2020-06-01', 'Full').identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -51,8 +51,8 @@ resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
         }
       }
       {
-        tenantId: reference(identity_basename.id, '2020-06-01', 'Full').identity.tenantId
-        objectId: reference(identity_basename.id, '2020-06-01', 'Full').identity.principalId
+        tenantId: reference(authorize_basename.id, '2020-06-01', 'Full').identity.tenantId
+        objectId: reference(authorize_basename.id, '2020-06-01', 'Full').identity.principalId
         permissions: {
           secrets: [
             'all'
@@ -98,8 +98,8 @@ resource infraKvName_add 'Microsoft.KeyVault/vaults/accessPolicies@2019-09-01' =
   properties: {
     accessPolicies: [
       {
-        tenantId: reference(publish_data_basename.id, '2020-06-01', 'full').identity.tenantId
-        objectId: reference(publish_data_basename.id, '2020-06-01', 'full').identity.principalId
+        tenantId: reference(import_data_basename.id, '2020-06-01', 'full').identity.tenantId
+        objectId: reference(import_data_basename.id, '2020-06-01', 'full').identity.principalId
         permissions: {
           secrets: [
             'get'
@@ -196,9 +196,9 @@ resource Microsoft_Storage_storageAccounts_queueServices_sa_basename_default 'Mi
   ]
 }
 
-resource sa_basename_default_publish_data 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-04-01' = {
+resource sa_basename_default_import_data 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-04-01' = {
   parent: Microsoft_Storage_storageAccounts_queueServices_sa_basename_default
-  name: 'publish-data'
+  name: 'import-data'
   properties: {
     metadata: {}
   }
@@ -281,8 +281,8 @@ resource app_plan_basename 'Microsoft.Web/serverfarms@2020-10-01' = {
   }
 }
 
-resource identity_basename 'Microsoft.Web/sites@2020-06-01' = {
-  name: 'identity-${basename}'
+resource authorize_basename 'Microsoft.Web/sites@2020-06-01' = {
+  name: 'authorize-${basename}'
   location: location
   kind: 'functionapp'
   identity: {
@@ -302,27 +302,27 @@ resource identity_basename 'Microsoft.Web/sites@2020-06-01' = {
   }
 }
 
-resource identity_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' = {
-  parent: identity_basename
+resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' = {
+  parent: authorize_basename
   location: location
   name: 'appsettings'
   properties: {
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
-    PROJECT: 'src/GoogleFitOnFhir.Identity/GoogleFitOnFhir.Identity.csproj'
+    PROJECT: 'src/Authorization/FitOnFhir.Authorization/FitOnFhir.Authorization.csproj'
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
-    WEBSITE_CONTENTSHARE: 'identity-${basename}-${take(uniqueString('identity-', basename), 4)}'
+    WEBSITE_CONTENTSHARE: 'authorize-${basename}-${take(uniqueString('authorize-', basename), 4)}'
     GOOGLE_OAUTH_CLIENT_ID: google_client_id
     GOOGLE_OAUTH_CLIENT_SECRET: google_client_secret
     USERS_KEY_VAULT_URI: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
   }
 }
 
-resource identity_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
-  parent: identity_basename
+resource authorize_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
+  parent: authorize_basename
   name: 'web'
   properties: {
     repoUrl: repository_url
@@ -330,12 +330,12 @@ resource identity_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' =
     isManualIntegration: true
   }
   dependsOn: [
-    identity_basename_appsettings
+    authorize_basename_appsettings
   ]
 }
 
-resource sync_event_basename 'Microsoft.Web/sites@2020-06-01' = {
-  name: 'sync-event-${basename}'
+resource import_timer_basename 'Microsoft.Web/sites@2020-06-01' = {
+  name: 'import-timer-${basename}'
   location: location
   kind: 'functionapp'
   identity: {
@@ -355,27 +355,27 @@ resource sync_event_basename 'Microsoft.Web/sites@2020-06-01' = {
   }
 }
 
-resource sync_event_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' = {
-  parent: sync_event_basename
+resource import_timer_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' = {
+  parent: import_timer_basename
   location: location
   name: 'appsettings'
   properties: {
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
-    PROJECT: 'src/GoogleFitOnFhir.SyncEvent/GoogleFitOnFhir.SyncEvent.csproj'
+    PROJECT: 'src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/FitOnFhir.ImportTimerTrigger.csproj'
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
-    WEBSITE_CONTENTSHARE: 'sync-event-${basename}-${take(uniqueString('sync-event-', basename), 4)}'
+    WEBSITE_CONTENTSHARE: 'import-timer-${basename}-${take(uniqueString('import-timer-', basename), 4)}'
   }
   dependsOn: [
-    identity_basename
+    authorize_basename
   ]
 }
 
-resource sync_event_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
-  parent: sync_event_basename
+resource import_timer_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
+  parent: import_timer_basename
   name: 'web'
   properties: {
     repoUrl: repository_url
@@ -383,12 +383,12 @@ resource sync_event_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01'
     isManualIntegration: true
   }
   dependsOn: [
-    sync_event_basename_appsettings
+    import_timer_basename_appsettings
   ]
 }
 
-resource publish_data_basename 'Microsoft.Web/sites@2020-06-01' = {
-  name: 'publish-data-${basename}'
+resource import_data_basename 'Microsoft.Web/sites@2020-06-01' = {
+  name: 'import-data-${basename}'
   location: location
   kind: 'functionapp'
   identity: {
@@ -408,19 +408,19 @@ resource publish_data_basename 'Microsoft.Web/sites@2020-06-01' = {
   }
 }
 
-resource publish_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' = {
-  parent: publish_data_basename
+resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' = {
+  parent: import_data_basename
   location: location
   name: 'appsettings'
   properties: {
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
-    PROJECT: 'src/GoogleFitOnFhir.PublishData/GoogleFitOnFhir.PublishData.csproj'
+    PROJECT: 'src/Import/FitOnFhir.Import/FitOnFhir.Import.csproj'
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
-    WEBSITE_CONTENTSHARE: 'publish-data-${basename}-${take(uniqueString('publish-data-', basename), 4)}'
+    WEBSITE_CONTENTSHARE: 'import-data-${basename}-${take(uniqueString('import-data-', basename), 4)}'
     EventHubConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', split('${infraKvName}/eventhub-connection-string', '/')[0], split('${infraKvName}/eventhub-connection-string', '/')[1])).secretUriWithVersion})'
     GOOGLE_OAUTH_CLIENT_ID: google_client_id
     GOOGLE_OAUTH_CLIENT_SECRET: google_client_secret
@@ -431,8 +431,8 @@ resource publish_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-0
   ]
 }
 
-resource publish_data_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
-  parent: publish_data_basename
+resource import_data_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
+  parent: import_data_basename
   name: 'web'
   properties: {
     repoUrl: repository_url
@@ -440,7 +440,7 @@ resource publish_data_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-0
     isManualIntegration: true
   }
   dependsOn: [
-    publish_data_basename_appsettings
+    import_data_basename_appsettings
   ]
 }
 
@@ -630,6 +630,6 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
 
 output usersKeyVaultName string = usersKvName
 output infraKeyVaultName string = infraKvName
-output identityAppName string = 'identity-${basename}'
-output syncEventAppName string = 'sync-event-${basename}'
-output publishDataAppName string = 'publish-data-${basename}'
+output authorizeAppName string = 'authorize-${basename}'
+output importTimerAppName string = 'import-timer-${basename}'
+output importDataAppName string = 'import-data-${basename}'
