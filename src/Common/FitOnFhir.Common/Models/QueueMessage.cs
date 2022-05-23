@@ -3,12 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
+
 namespace FitOnFhir.Common.Models
 {
     public class QueueMessage
     {
-      public string UserId { get; set; }
+        public QueueMessage(string userId, string platformName)
+        {
+            UserId = EnsureArg.IsNotNullOrWhiteSpace(userId);
+            PlatformName = EnsureArg.IsNotNullOrWhiteSpace(platformName);
+        }
 
-      public string PlatformName { get; set; }
+        public string UserId { get; set; }
+
+        public string PlatformName { get; set; }
     }
 }

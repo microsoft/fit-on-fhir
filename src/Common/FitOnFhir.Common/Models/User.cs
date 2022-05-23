@@ -22,18 +22,18 @@ namespace FitOnFhir.Common.Models
         {
         }
 
-        public string PartitionKey { get; set; }
+        public string? PartitionKey { get; set; }
 
-        public string RowKey { get; set; }
+        public string? RowKey { get; set; }
 
         public DateTimeOffset? Timestamp { get; set; }
 
         public ETag ETag { get; set; }
 
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         public DateTimeOffset? LastSync { get; set; }
 
-        public string PlatformName { get; set; }
+        public string? PlatformName { get; set; }
     }
 }

@@ -104,7 +104,7 @@ namespace FitOnFhir.GoogleFit.Tests
             httpRequest.Query["code"].Returns(new StringValues("access code"));
             var context = new ExecutionContext();
 
-            return new RoutingRequest() { HttpRequest = httpRequest, Context = context, Token = CancellationToken.None };
+            return new RoutingRequest(httpRequest, context, CancellationToken.None);
         }
     }
 }

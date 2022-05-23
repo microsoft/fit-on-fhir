@@ -94,7 +94,7 @@ namespace FitOnFhir.GoogleFit.Tests
             Assert.Equal(61.557689666748047, json["point"][0]["value"][0]["fpVal"]);
         }
 
-        private MedTechDataset GetMedTechDataset(string deviceUid = DeviceUid, string packageName = PackageName)
+        private MedTechDataset GetMedTechDataset(string? deviceUid = DeviceUid, string? packageName = PackageName)
         {
             var dataPoint = new DataPoint
             {

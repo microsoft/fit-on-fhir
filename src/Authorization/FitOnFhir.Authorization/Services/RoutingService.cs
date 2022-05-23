@@ -32,7 +32,7 @@ namespace FitOnFhir.Authorization.Services
         {
             try
             {
-                var routingRequest = new RoutingRequest() { HttpRequest = req, Context = context, Token = cancellationToken };
+                var routingRequest = new RoutingRequest(req, context, cancellationToken);
                 return _handler.Evaluate(routingRequest);
             }
             catch (Exception ex)

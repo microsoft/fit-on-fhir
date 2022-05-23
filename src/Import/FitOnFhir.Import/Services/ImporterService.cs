@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Requests;
-using FitOnFhir.GoogleFit.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
 
@@ -31,7 +30,7 @@ namespace FitOnFhir.Import.Services
         {
             try
             {
-                var importRequest = new ImportRequest() { Message = message, Token = cancellationToken };
+                var importRequest = new ImportRequest(message, cancellationToken);
                 return _handler.Evaluate(importRequest);
             }
             catch (Exception ex)

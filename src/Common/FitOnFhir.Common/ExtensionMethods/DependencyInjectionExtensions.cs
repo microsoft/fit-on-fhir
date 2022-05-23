@@ -22,19 +22,19 @@ namespace FitOnFhir.Common.ExtensionMethods
         /// <typeparam name="TResult">Type representing the responsibility handler's output.</typeparam>
         /// <param name="serviceProvider">The service provider with the registered handlers.</param>
         /// <param name="handlerTypes">The list of handlers to form a chain from.</param>
-        public static IResponsibilityHandler<TRequest, TResult> CreateOrderedHandlerChain<TRequest, TResult>(
+        public static IResponsibilityHandler<TRequest, TResult>? CreateOrderedHandlerChain<TRequest, TResult>(
             this IServiceProvider serviceProvider,
             params Type[] handlerTypes)
             where TResult : class
         {
             if (handlerTypes.Any() && handlerTypes.All(handler => handler.GetInterfaces().Contains(typeof(IResponsibilityHandler<TRequest, TResult>))))
             {
-                IResponsibilityHandler<TRequest, TResult> previousHandler = null;
+                IResponsibilityHandler<TRequest, TResult>? previousHandler = null;
 
                 // Loop through the handlerTypes retrieve the instance and chain them together.
                 foreach (Type handlerType in handlerTypes)
                 {
-                    IResponsibilityHandler<TRequest, TResult> handler = serviceProvider.GetRequiredService(handlerType) as IResponsibilityHandler<TRequest, TResult>;
+                    IResponsibilityHandler<TRequest, TResult>? handler = serviceProvider.GetRequiredService(handlerType) as IResponsibilityHandler<TRequest, TResult>;
                     if (previousHandler != null)
                     {
                         previousHandler.Chain(handler);

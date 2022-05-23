@@ -5,7 +5,6 @@
 
 using FitOnFhir.Authorization.Services;
 using FitOnFhir.Common.Requests;
-using FitOnFhir.GoogleFit.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -76,7 +75,7 @@ namespace FitOnFhir.Common.Tests
             httpRequest.Query["code"].Returns(new StringValues("access code"));
             var context = new ExecutionContext();
 
-            return new RoutingRequest() { HttpRequest = httpRequest, Context = context, Token = CancellationToken.None };
+            return new RoutingRequest(httpRequest, context, CancellationToken.None);
         }
     }
 }

@@ -64,7 +64,7 @@ namespace FitOnFhir.GoogleFit.Tests
             var publishRequest = CreatePublishRequest(_testUser, GoogleFitConstants.GoogleFitPlatformName);
             var result = _googleFitPublishingHandler.Evaluate(publishRequest);
 
-            var expectedQueueMessage = new QueueMessage() { UserId = _testUser, PlatformName = GoogleFitConstants.GoogleFitPlatformName };
+            var expectedQueueMessage = new QueueMessage(_testUser, GoogleFitConstants.GoogleFitPlatformName);
             _errorHandler.Received(1).HandleDataImportError(
                 Arg.Is<QueueMessage>(msg => msg.UserId == expectedQueueMessage.UserId && msg.PlatformName == expectedQueueMessage.PlatformName),
                 Arg.Is<Exception>(ex => ex.Message == exceptionMessage));
@@ -73,7 +73,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
         private ImportRequest CreatePublishRequest(string user, string platform)
         {
-            return new ImportRequest() { Message = new QueueMessage() { PlatformName = platform, UserId = user }, Token = CancellationToken.None };
+            return new ImportRequest(new QueueMessage(user, platform), CancellationToken.None);
         }
     }
 }
