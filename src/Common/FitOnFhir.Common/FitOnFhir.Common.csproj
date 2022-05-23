@@ -6,7 +6,6 @@
     <CodeAnalysisRuleSet>..\..\..\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>	
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
