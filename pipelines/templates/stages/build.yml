@@ -39,7 +39,7 @@ stages:
                 /p:CoverletOutputformat=cobertura
                 /p:CoverletOutput=$(System.DefaultWorkingDirectory)/Cobertura.xml
               publishTestResults: false
-              projects: '**/*.Tests.csproj'
+              projects: '**/**/*.Tests.csproj'
 
           - bash: |
               sudo apt-get -y install libxml2-utils
