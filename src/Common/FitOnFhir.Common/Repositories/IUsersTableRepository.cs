@@ -3,13 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace FitOnFhir.GoogleFit.Persistence
+using FitOnFhir.Common.Models;
+
+namespace FitOnFhir.Common.Repositories
 {
-    public class StorageAccountContext : ConnectionStringContext
+    public interface IUsersTableRepository : IGenericRepository<User>
     {
-        public StorageAccountContext(string connectionString)
-        : base(connectionString)
-        {
-        }
     }
 }

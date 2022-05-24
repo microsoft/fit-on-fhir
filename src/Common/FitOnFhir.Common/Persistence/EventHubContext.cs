@@ -3,11 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Models;
-
-namespace FitOnFhir.GoogleFit.Repositories
+namespace FitOnFhir.Common.Persistence
 {
-    public interface IUsersTableRepository : IGenericRepository<User>
+    public class EventHubContext : ConnectionStringContext
     {
+        public EventHubContext(string connectionString)
+        : base(connectionString)
+        {
+        }
     }
 }

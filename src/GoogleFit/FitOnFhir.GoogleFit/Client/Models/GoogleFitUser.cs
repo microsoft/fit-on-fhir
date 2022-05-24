@@ -1,23 +1,24 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using Azure;
 using Azure.Data.Tables;
+using FitOnFhir.GoogleFit.Common;
 
-namespace FitOnFhir.Common.Models
+namespace FitOnFhir.GoogleFit.Client.Models
 {
-    public class User : ITableEntity
+    public class GoogleFitUser : ITableEntity
     {
-        public User(Guid userId)
+        public GoogleFitUser(string userId)
         {
-            PartitionKey = Constants.UsersPartitionKey;
-            RowKey = userId.ToString();
-            PlatformPartitionKeys = new List<string>();
+            PartitionKey = GoogleFitConstants.GoogleFitPlatformName;
+            RowKey = userId;
+            SyncTimes = new Dictionary<string, DateTimeOffset>();
         }
 
-        public User()
+        public GoogleFitUser()
         {
         }
 
@@ -29,8 +30,6 @@ namespace FitOnFhir.Common.Models
 
         public ETag ETag { get; set; }
 
-        public DateTimeOffset? LastSync { get; set; }
-
-        public List<string> PlatformPartitionKeys { get; set; }
+        public Dictionary<string, DateTimeOffset> SyncTimes { get; set; }
     }
 }

@@ -7,7 +7,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FitOnFhir.Common.Models;
+using FitOnFhir.Common.Repositories;
 using FitOnFhir.GoogleFit.Client;
+using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
@@ -20,6 +22,7 @@ namespace FitOnFhir.GoogleFit.Services
     public class UsersService : IUsersService
     {
         private readonly IUsersTableRepository _usersTableRepository;
+        private readonly IGoogleFitUserRepository _googleFitUserRepository;
         private readonly IGoogleFitClient _googleFitClient;
         private readonly ILogger<UsersService> _logger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
@@ -27,12 +30,14 @@ namespace FitOnFhir.GoogleFit.Services
 
         public UsersService(
             IUsersTableRepository usersTableRepository,
+            IGoogleFitUserRepository googleFitUserRepository,
             IGoogleFitClient googleFitClient,
             IUsersKeyVaultRepository usersKeyvaultRepository,
             IGoogleFitAuthService authService,
             ILogger<UsersService> logger)
         {
             _usersTableRepository = usersTableRepository;
+            _googleFitUserRepository = googleFitUserRepository;
             _googleFitClient = googleFitClient;
             _usersKeyvaultRepository = usersKeyvaultRepository;
             _authService = authService;
@@ -53,6 +58,12 @@ namespace FitOnFhir.GoogleFit.Services
                 throw new Exception("Email response empty");
             }
 
+            User user = new User(Guid.NewGuid());
+            user.PlatformPartitionKeys.Add(GoogleFitConstants.GoogleFitPlatformName);
+
+            // Insert user into Users Table
+            await _usersTableRepository.Upsert(user, cancellationToken);
+
             // https://developers.google.com/identity/protocols/oauth2/openid-connect#an-id-tokens-payload
             // Use the IdToken sub (Subject) claim for the user id - From the Google docs:
             // "An identifier for the user, unique among all Google accounts and never reused.
@@ -60,10 +71,11 @@ namespace FitOnFhir.GoogleFit.Services
             // Use sub within your application as the unique-identifier key for the user.
             // Maximum length of 255 case-sensitive ASCII characters."
             string userId = tokenResponse.IdToken.Subject;
-            User user = new User(userId, GoogleFitConstants.GoogleFitPlatformName);
 
-            // Insert user into UsersTable
-            await _usersTableRepository.Upsert(user, cancellationToken);
+            GoogleFitUser googleFitUser = new GoogleFitUser(userId);
+
+            // Insert GoogleFitUser into Users Table
+            await _googleFitUserRepository.Upsert(googleFitUser, cancellationToken);
 
             // Insert refresh token into users KV by userId
             await _usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken, cancellationToken);

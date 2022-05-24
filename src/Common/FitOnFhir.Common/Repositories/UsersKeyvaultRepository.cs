@@ -3,14 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Azure.Security.KeyVault.Secrets;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 
-namespace FitOnFhir.GoogleFit.Repositories
+namespace FitOnFhir.Common.Repositories
 {
     public class UsersKeyVaultRepository : IUsersKeyVaultRepository
     {

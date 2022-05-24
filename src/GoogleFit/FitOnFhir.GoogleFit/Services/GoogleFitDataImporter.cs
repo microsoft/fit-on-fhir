@@ -7,9 +7,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using FitOnFhir.Common.Repositories;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Responses;
-using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.GoogleFit.Services
@@ -74,37 +74,22 @@ namespace FitOnFhir.GoogleFit.Services
             _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
             var dataSourcesList = await _googleFitClient.DataSourcesListRequest(tokensResponse.AccessToken, cancellationToken);
 
-            // Get user's info for LastSync date
-            _logger.LogInformation("Query userInfo");
-            var user = await _usersTableRepository.GetById(userId, cancellationToken);
-
-            // Generating datasetId based on event type
-            DateTimeOffset startDateDto = _utcNowFunc().AddDays(-30);
-            if (user.LastSync != null)
-            {
-                startDateDto = user.LastSync.Value;
-            }
-
-            // Convert to DateTimeOffset to so .NET unix conversion is usable
-            DateTimeOffset endDateDto = _utcNowFunc();
-
-            // .NET unix conversion only goes as small as milliseconds, multiplying to get nanoseconds
-            var startDate = startDateDto.ToUnixTimeMilliseconds() * 1000000;
-            var endDate = endDateDto.ToUnixTimeMilliseconds() * 1000000;
-            var datasetId = startDate + "-" + endDate;
-
             // Request the datasets from each datasource, based on the datasetId
             try
             {
-                await _googleFitImportService.ProcessDatasetRequests(user, dataSourcesList.DataSources, datasetId, tokensResponse, cancellationToken);
+                await _googleFitImportService.ProcessDatasetRequests(userId, dataSourcesList.DataSources, tokensResponse, cancellationToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }
 
+            // Get user's info for LastSync date
+            _logger.LogInformation("Query userInfo");
+            var user = await _usersTableRepository.GetById(userId, cancellationToken);
+
             // Update LastSync column
-            user.LastSync = endDateDto;
+            user.LastSync = _utcNowFunc();
             await _usersTableRepository.Update(user, cancellationToken);
         }
     }

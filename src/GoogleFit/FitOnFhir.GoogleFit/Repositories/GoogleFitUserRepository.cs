@@ -1,43 +1,40 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Azure;
 using Azure.Data.Tables;
-using FitOnFhir.Common.Models;
-using FitOnFhir.GoogleFit.Persistence;
+using FitOnFhir.Common.Persistence;
+using FitOnFhir.GoogleFit.Client.Models;
 using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.GoogleFit.Repositories
 {
-    public class UsersTableRepository : IUsersTableRepository
+    public class GoogleFitUserRepository : IGoogleFitUserRepository
     {
         private readonly StorageAccountContext _storageAccountContext;
         private readonly TableClient _tableClient;
-        private readonly ILogger<UsersTableRepository> _logger;
+        private readonly ILogger<GoogleFitUserRepository> _logger;
 
-        public UsersTableRepository(StorageAccountContext storageAccountContext, ILogger<UsersTableRepository> logger)
+        public GoogleFitUserRepository(StorageAccountContext storageAccountContext, ILogger<GoogleFitUserRepository> logger)
         {
             _storageAccountContext = storageAccountContext;
             _tableClient = new TableClient(storageAccountContext.ConnectionString, "users");
             _logger = logger;
         }
 
-        public AsyncPageable<User> GetAll(CancellationToken cancellationToken)
+        public AsyncPageable<GoogleFitUser> GetAll(CancellationToken cancellationToken)
         {
-            return _tableClient.QueryAsync<User>(cancellationToken: cancellationToken);
+            return _tableClient.QueryAsync<GoogleFitUser>(cancellationToken: cancellationToken);
         }
 
-        public async Task<User> GetById(string id, CancellationToken cancellationToken)
+        public async Task<GoogleFitUser> GetById(string id, CancellationToken cancellationToken)
         {
-            return await _tableClient.GetEntityAsync<User>(id, id, cancellationToken: cancellationToken);
+            return await _tableClient.GetEntityAsync<GoogleFitUser>(id, id, cancellationToken: cancellationToken);
         }
 
-        public async Task Insert(User user, CancellationToken cancellationToken)
+        public async Task Insert(GoogleFitUser user, CancellationToken cancellationToken)
         {
             try
             {
@@ -49,7 +46,7 @@ namespace FitOnFhir.GoogleFit.Repositories
             }
         }
 
-        public async Task Update(User user, CancellationToken cancellationToken)
+        public async Task Update(GoogleFitUser user, CancellationToken cancellationToken)
         {
             try
             {
@@ -61,7 +58,7 @@ namespace FitOnFhir.GoogleFit.Repositories
             }
         }
 
-        public async Task Upsert(User user, CancellationToken cancellationToken)
+        public async Task Upsert(GoogleFitUser user, CancellationToken cancellationToken)
         {
             try
             {
@@ -73,7 +70,7 @@ namespace FitOnFhir.GoogleFit.Repositories
             }
         }
 
-        public async Task Delete(User user, CancellationToken cancellationToken)
+        public async Task Delete(GoogleFitUser user, CancellationToken cancellationToken)
         {
             try
             {

@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using FitOnFhir.Common.Models;
-using FitOnFhir.GoogleFit.Repositories;
+using FitOnFhir.Common.Repositories;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -37,8 +37,11 @@ namespace FitOnFhir.ImportTimerTrigger
 
             await foreach (User user in usersPageable)
             {
-                logger.LogInformation("Adding {0} to queue", user.Id);
-                queueService.Add(JsonConvert.SerializeObject(new QueueMessage(user.Id, user.PlatformName)));
+                logger.LogInformation("Adding {0} to queue", user.RowKey);
+                foreach (var platformPartitionKey in user.PlatformPartitionKeys)
+                {
+                    queueService.Add(JsonConvert.SerializeObject(new QueueMessage(user.RowKey, platformPartitionKey)));
+                }
             }
         }
     }

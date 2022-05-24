@@ -3,13 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace FitOnFhir.Common
+using FitOnFhir.Common.Repositories;
+using FitOnFhir.GoogleFit.Client.Models;
+
+namespace FitOnFhir.GoogleFit.Repositories
 {
-    public class Constants
+    public interface IGoogleFitUserRepository : IGenericRepository<GoogleFitUser>
     {
-        /// <summary>
-        /// Partition key for the Users partition
-        /// </summary>
-        public const string UsersPartitionKey = "Users";
     }
 }
