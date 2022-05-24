@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.6.11.53198",
-      "templateHash": "6549955078691142429"
+      "version": "0.6.18.56646",
+      "templateHash": "16713646223262934228"
     }
   },
   "parameters": {
@@ -77,8 +77,8 @@
         },
         "accessPolicies": [
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -86,8 +86,8 @@
             }
           },
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -95,8 +95,8 @@
             }
           },
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "all"
@@ -119,9 +119,9 @@
         "softDeleteRetentionInDays": 30
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename')))]"
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename')))]"
       ]
     },
     {
@@ -148,8 +148,8 @@
       "properties": {
         "accessPolicies": [
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "get"
@@ -168,8 +168,8 @@
         ]
       },
       "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
-        "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]"
+        "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]"
       ]
     },
     {
@@ -256,7 +256,7 @@
     {
       "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
       "apiVersion": "2021-04-01",
-      "name": "[format('{0}/{1}/{2}', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1], 'publish-data')]",
+      "name": "[format('{0}/{1}/{2}', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1], 'import-data')]",
       "properties": {
         "metadata": {}
       },
@@ -358,7 +358,7 @@
     {
       "type": "Microsoft.Web/sites",
       "apiVersion": "2020-06-01",
-      "name": "[format('identity-{0}', parameters('basename'))]",
+      "name": "[format('authorize-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "kind": "functionapp",
       "identity": {
@@ -383,45 +383,45 @@
     {
       "type": "Microsoft.Web/sites/config",
       "apiVersion": "2015-08-01",
-      "name": "[format('{0}/{1}', format('identity-{0}', parameters('basename')), 'appsettings')]",
+      "name": "[format('{0}/{1}', format('authorize-{0}', parameters('basename')), 'appsettings')]",
       "location": "[parameters('location')]",
       "properties": {
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-        "PROJECT": "src/GoogleFitOnFhir.Identity/GoogleFitOnFhir.Identity.csproj",
+        "PROJECT": "src/Authorization/FitOnFhir.Authorization/FitOnFhir.Authorization.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
-        "WEBSITE_CONTENTSHARE": "[format('identity-{0}-{1}', parameters('basename'), take(uniqueString('identity-', parameters('basename')), 4))]",
+        "WEBSITE_CONTENTSHARE": "[format('authorize-{0}-{1}', parameters('basename'), take(uniqueString('authorize-', parameters('basename')), 4))]",
         "GOOGLE_OAUTH_CLIENT_ID": "[parameters('google_client_id')]",
         "GOOGLE_OAUTH_CLIENT_SECRET": "[parameters('google_client_secret')]",
         "USERS_KEY_VAULT_URI": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.Web/sites/sourcecontrols",
       "apiVersion": "2021-03-01",
-      "name": "[format('{0}/{1}', format('identity-{0}', parameters('basename')), 'web')]",
+      "name": "[format('{0}/{1}', format('authorize-{0}', parameters('basename')), 'web')]",
       "properties": {
         "repoUrl": "[parameters('repository_url')]",
         "branch": "[parameters('repository_branch')]",
         "isManualIntegration": true
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('identity-{0}', parameters('basename')), 'appsettings')]"
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites/config', format('authorize-{0}', parameters('basename')), 'appsettings')]"
       ]
     },
     {
       "type": "Microsoft.Web/sites",
       "apiVersion": "2020-06-01",
-      "name": "[format('sync-event-{0}', parameters('basename'))]",
+      "name": "[format('import-timer-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "kind": "functionapp",
       "identity": {
@@ -446,43 +446,43 @@
     {
       "type": "Microsoft.Web/sites/config",
       "apiVersion": "2015-08-01",
-      "name": "[format('{0}/{1}', format('sync-event-{0}', parameters('basename')), 'appsettings')]",
+      "name": "[format('{0}/{1}', format('import-timer-{0}', parameters('basename')), 'appsettings')]",
       "location": "[parameters('location')]",
       "properties": {
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-        "PROJECT": "src/GoogleFitOnFhir.SyncEvent/GoogleFitOnFhir.SyncEvent.csproj",
+        "PROJECT": "src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/FitOnFhir.ImportTimerTrigger.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
-        "WEBSITE_CONTENTSHARE": "[format('sync-event-{0}-{1}', parameters('basename'), take(uniqueString('sync-event-', parameters('basename')), 4))]"
+        "WEBSITE_CONTENTSHARE": "[format('import-timer-{0}-{1}', parameters('basename'), take(uniqueString('import-timer-', parameters('basename')), 4))]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Web/sites', format('identity-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
-        "[resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename')))]"
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.Web/sites/sourcecontrols",
       "apiVersion": "2021-03-01",
-      "name": "[format('{0}/{1}', format('sync-event-{0}', parameters('basename')), 'web')]",
+      "name": "[format('{0}/{1}', format('import-timer-{0}', parameters('basename')), 'web')]",
       "properties": {
         "repoUrl": "[parameters('repository_url')]",
         "branch": "[parameters('repository_branch')]",
         "isManualIntegration": true
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('sync-event-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('sync-event-{0}', parameters('basename')), 'appsettings')]"
+        "[resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites/config', format('import-timer-{0}', parameters('basename')), 'appsettings')]"
       ]
     },
     {
       "type": "Microsoft.Web/sites",
       "apiVersion": "2020-06-01",
-      "name": "[format('publish-data-{0}', parameters('basename'))]",
+      "name": "[format('import-data-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "kind": "functionapp",
       "identity": {
@@ -507,17 +507,17 @@
     {
       "type": "Microsoft.Web/sites/config",
       "apiVersion": "2015-08-01",
-      "name": "[format('{0}/{1}', format('publish-data-{0}', parameters('basename')), 'appsettings')]",
+      "name": "[format('{0}/{1}', format('import-data-{0}', parameters('basename')), 'appsettings')]",
       "location": "[parameters('location')]",
       "properties": {
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-        "PROJECT": "src/GoogleFitOnFhir.PublishData/GoogleFitOnFhir.PublishData.csproj",
+        "PROJECT": "src/Import/FitOnFhir.Import/FitOnFhir.Import.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
-        "WEBSITE_CONTENTSHARE": "[format('publish-data-{0}-{1}', parameters('basename'), take(uniqueString('publish-data-', parameters('basename')), 4))]",
+        "WEBSITE_CONTENTSHARE": "[format('import-data-{0}-{1}', parameters('basename'), take(uniqueString('import-data-', parameters('basename')), 4))]",
         "EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[0], split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[1])).secretUriWithVersion)]",
         "GOOGLE_OAUTH_CLIENT_ID": "[parameters('google_client_id')]",
         "GOOGLE_OAUTH_CLIENT_SECRET": "[parameters('google_client_secret')]",
@@ -525,23 +525,23 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.KeyVault/vaults/secrets', parameters('infraKvName'), 'eventhub-connection-string')]",
-        "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.Web/sites/sourcecontrols",
       "apiVersion": "2021-03-01",
-      "name": "[format('{0}/{1}', format('publish-data-{0}', parameters('basename')), 'web')]",
+      "name": "[format('{0}/{1}', format('import-data-{0}', parameters('basename')), 'web')]",
       "properties": {
         "repoUrl": "[parameters('repository_url')]",
         "branch": "[parameters('repository_branch')]",
         "isManualIntegration": true
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('publish-data-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Web/sites/config', format('publish-data-{0}', parameters('basename')), 'appsettings')]"
+        "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites/config', format('import-data-{0}', parameters('basename')), 'appsettings')]"
       ]
     },
     {
@@ -763,17 +763,17 @@
       "type": "string",
       "value": "[parameters('infraKvName')]"
     },
-    "identityAppName": {
+    "authorizeAppName": {
       "type": "string",
-      "value": "[format('identity-{0}', parameters('basename'))]"
+      "value": "[format('authorize-{0}', parameters('basename'))]"
     },
-    "syncEventAppName": {
+    "importTimerAppName": {
       "type": "string",
-      "value": "[format('sync-event-{0}', parameters('basename'))]"
+      "value": "[format('import-timer-{0}', parameters('basename'))]"
     },
-    "publishDataAppName": {
+    "importDataAppName": {
       "type": "string",
-      "value": "[format('publish-data-{0}', parameters('basename'))]"
+      "value": "[format('import-data-{0}', parameters('basename'))]"
     }
   }
 }
