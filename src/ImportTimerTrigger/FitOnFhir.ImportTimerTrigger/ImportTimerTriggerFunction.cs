@@ -38,9 +38,9 @@ namespace FitOnFhir.ImportTimerTrigger
             await foreach (User user in usersPageable)
             {
                 logger.LogInformation("Adding {0} to queue", user.RowKey);
-                foreach (var platformPartitionKey in user.PlatformPartitionKeys)
+                foreach (var platformUserInfo in user.PlatformUserInfo)
                 {
-                    queueService.Add(JsonConvert.SerializeObject(new QueueMessage(user.RowKey, platformPartitionKey)));
+                    queueService.Add(JsonConvert.SerializeObject(new QueueMessage(user.RowKey, platformUserInfo.Value, platformUserInfo.Key)));
                 }
             }
         }

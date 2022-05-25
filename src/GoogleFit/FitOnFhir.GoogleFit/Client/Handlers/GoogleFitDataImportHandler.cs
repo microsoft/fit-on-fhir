@@ -41,7 +41,7 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
             {
                 if (request.Message.PlatformName == GoogleFitConstants.GoogleFitPlatformName)
                 {
-                    _googleFitDataImporter.Import(request.Message.UserId, request.Token);
+                    _googleFitDataImporter.Import(request.Message.UserId, request.Message.PlatformUserId, request.Token);
                     return Task.CompletedTask;
                 }
                 else

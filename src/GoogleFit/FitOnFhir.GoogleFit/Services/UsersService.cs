@@ -58,12 +58,6 @@ namespace FitOnFhir.GoogleFit.Services
                 throw new Exception("Email response empty");
             }
 
-            User user = new User(Guid.NewGuid());
-            user.PlatformPartitionKeys.Add(GoogleFitConstants.GoogleFitPlatformName);
-
-            // Insert user into Users Table
-            await _usersTableRepository.Upsert(user, cancellationToken);
-
             // https://developers.google.com/identity/protocols/oauth2/openid-connect#an-id-tokens-payload
             // Use the IdToken sub (Subject) claim for the user id - From the Google docs:
             // "An identifier for the user, unique among all Google accounts and never reused.
@@ -71,6 +65,13 @@ namespace FitOnFhir.GoogleFit.Services
             // Use sub within your application as the unique-identifier key for the user.
             // Maximum length of 255 case-sensitive ASCII characters."
             string userId = tokenResponse.IdToken.Subject;
+
+            // Create a new user and add GoogleFit info
+            User user = new User(Guid.NewGuid());
+            user.PlatformUserInfo.Add(GoogleFitConstants.GoogleFitPlatformName, userId);
+
+            // Insert user into Users Table
+            await _usersTableRepository.Upsert(user, cancellationToken);
 
             GoogleFitUser googleFitUser = new GoogleFitUser(userId);
 

@@ -14,7 +14,7 @@ namespace FitOnFhir.Common.Models
         {
             PartitionKey = Constants.UsersPartitionKey;
             RowKey = userId.ToString();
-            PlatformPartitionKeys = new List<string>();
+            PlatformUserInfo = new Dictionary<string, string>();
         }
 
         public User()
@@ -31,6 +31,9 @@ namespace FitOnFhir.Common.Models
 
         public DateTimeOffset? LastSync { get; set; }
 
-        public List<string> PlatformPartitionKeys { get; set; }
+        /// <summary>
+        /// Store any platform names (key) for this user along with their user ID for that platform (value)
+        /// </summary>
+        public Dictionary<string, string> PlatformUserInfo { get; set; }
     }
 }

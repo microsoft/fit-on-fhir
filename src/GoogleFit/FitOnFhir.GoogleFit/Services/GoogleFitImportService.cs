@@ -45,11 +45,7 @@ namespace FitOnFhir.GoogleFit.Services
         }
 
         /// <inheritdoc/>
-        public async Task ProcessDatasetRequests(
-            string userId,
-            IEnumerable<DataSource> dataSources,
-            AuthTokensResponse tokensResponse,
-            CancellationToken cancellationToken)
+        public async Task ProcessDatasetRequests(string userId, IEnumerable<DataSource> dataSources, AuthTokensResponse tokensResponse, CancellationToken cancellationToken)
         {
             // Get user's info for LastSync date
              _logger.LogInformation("Query userInfo");
@@ -59,22 +55,22 @@ namespace FitOnFhir.GoogleFit.Services
                 dataSource => new Func<Task>(
                 async () =>
                 {
-                    var dataStreamId = dataSource.DataStreamId;
-                    string pageToken = null;
-
-                    string datasetId;
-                    DateTimeOffset currentTime;
-                    if (user.SyncTimes.TryGetValue(dataStreamId, out var lastSyncTime))
-                    {
-                        datasetId = GenerateDataSetId(lastSyncTime, out currentTime);
-                    }
-                    else
-                    {
-                        datasetId = GenerateDataSetId(null, out currentTime);
-                    }
-
                     try
                     {
+                        var dataStreamId = dataSource.DataStreamId;
+                        string pageToken = null;
+                        string datasetId;
+                        DateTimeOffset currentTime;
+
+                        if (user.SyncTimes.TryGetValue(dataStreamId, out var lastSyncTime))
+                        {
+                            datasetId = GenerateDataSetId(lastSyncTime, out currentTime);
+                        }
+                        else
+                        {
+                            datasetId = GenerateDataSetId(null, out currentTime);
+                        }
+
                         // Make the Dataset requests, requesting the next page of data if necessary
                         do
                         {
@@ -111,13 +107,13 @@ namespace FitOnFhir.GoogleFit.Services
 
                             // Use the producer client to send the batch of events to the event hub
                             await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
-
-                            // Update the GoogleFitUser timestamp for this data source
-                            user.SyncTimes.Remove(dataStreamId);
-                            user.SyncTimes.Add(dataStreamId, currentTime);
-                            await _googleFitUserRepository.Update(user, cancellationToken);
                         }
                         while (pageToken != null);
+
+                        // Update the GoogleFitUser timestamp for this data source
+                        user.SyncTimes.Remove(dataStreamId);
+                        user.SyncTimes.Add(dataStreamId, currentTime);
+                        await _googleFitUserRepository.Update(user, cancellationToken);
                     }
                     catch (Exception ex)
                     {

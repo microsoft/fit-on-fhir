@@ -42,15 +42,16 @@ namespace FitOnFhir.GoogleFit.Services
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public async Task Import(string userId, CancellationToken cancellationToken)
+        /// <inheritdoc/>
+        public async Task Import(string userId, string googleFitId, CancellationToken cancellationToken)
         {
             string refreshToken;
 
-            _logger.LogInformation("Get RefreshToken from KV for {0}", userId);
+            _logger.LogInformation("Get RefreshToken from KV for {0}", googleFitId);
 
             try
             {
-                refreshToken = await _usersKeyvaultRepository.GetByName(userId, cancellationToken);
+                refreshToken = await _usersKeyvaultRepository.GetByName(googleFitId, cancellationToken);
             }
             catch (AggregateException ex)
             {
@@ -63,12 +64,12 @@ namespace FitOnFhir.GoogleFit.Services
 
             if (!string.IsNullOrEmpty(tokensResponse.RefreshToken))
             {
-                _logger.LogInformation("Updating refreshToken in KV for {0}", userId);
-                await _usersKeyvaultRepository.Upsert(userId, tokensResponse.RefreshToken, cancellationToken);
+                _logger.LogInformation("Updating refreshToken in KV for {0}", googleFitId);
+                await _usersKeyvaultRepository.Upsert(googleFitId, tokensResponse.RefreshToken, cancellationToken);
             }
             else
             {
-                _logger.LogInformation("RefreshToken is empty for {0}", userId);
+                _logger.LogInformation("RefreshToken is empty for {0}", googleFitId);
             }
 
             _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
@@ -77,7 +78,7 @@ namespace FitOnFhir.GoogleFit.Services
             // Request the datasets from each datasource, based on the datasetId
             try
             {
-                await _googleFitImportService.ProcessDatasetRequests(userId, dataSourcesList.DataSources, tokensResponse, cancellationToken);
+                await _googleFitImportService.ProcessDatasetRequests(googleFitId, dataSourcesList.DataSources, tokensResponse, cancellationToken);
             }
             catch (Exception ex)
             {
