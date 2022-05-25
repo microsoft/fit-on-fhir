@@ -19,7 +19,8 @@ namespace FitOnFhir.GoogleFit.Tests
 {
     public class GoogleFitDataImporterTests
     {
-        private const string _userId = "me";
+        private readonly string _userId;
+        private const string _googleUserId = "me";
         private const string _accessToken = "AccessToken";
         private const string _refreshToken = "RefreshToken";
         private readonly CancellationToken _cancellationToken = CancellationToken.None;
@@ -38,6 +39,8 @@ namespace FitOnFhir.GoogleFit.Tests
 
         public GoogleFitDataImporterTests()
         {
+            _userId = Guid.NewGuid().ToString();
+
             // GoogleFitDataImporter dependencies
             _usersTableRepository = Substitute.For<IUsersTableRepository>();
             _googleFitClient = Substitute.For<IGoogleFitClient>();
@@ -65,10 +68,10 @@ namespace FitOnFhir.GoogleFit.Tests
         {
             string exceptionMessage = "import exception";
             _usersKeyvaultRepository.GetByName(
-                Arg.Is<string>(user => user == _userId),
+                Arg.Is<string>(user => user == _googleUserId),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken)).Throws(new Exception(exceptionMessage));
 
-            Assert.ThrowsAsync<Exception>(async () => await _googleFitDataImporter.Import(_userId, _cancellationToken));
+            Assert.ThrowsAsync<Exception>(async () => await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken));
         }
 
         [Fact]
@@ -77,10 +80,10 @@ namespace FitOnFhir.GoogleFit.Tests
             string exceptionMessage = "import exception";
             var exception = new AggregateException(exceptionMessage);
             _usersKeyvaultRepository.GetByName(
-                Arg.Is<string>(user => user == _userId),
+                Arg.Is<string>(user => user == _googleUserId),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken)).Throws(exception);
 
-            await _googleFitDataImporter.Import(_userId, _cancellationToken);
+            await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             _dataImporterLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
@@ -93,10 +96,10 @@ namespace FitOnFhir.GoogleFit.Tests
         {
             SetupMockSuccessReturns();
 
-            await _googleFitDataImporter.Import(_userId, _cancellationToken);
+            await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             _ = _usersKeyvaultRepository.Received(1).Upsert(
-                Arg.Is<string>(userid => userid == _userId),
+                Arg.Is<string>(userid => userid == _googleUserId),
                 Arg.Is<string>(refresh => refresh == _refreshToken),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
         }
@@ -112,11 +115,11 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitAuthService.RefreshTokensRequest(
                 Arg.Is<string>(refresh => refresh == _refreshToken), Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(emptyTokensResponse);
 
-            await _googleFitDataImporter.Import(_userId, _cancellationToken);
+            await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             _dataImporterLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Information),
-                Arg.Is<string>(msg => msg.StartsWith($"RefreshToken is empty for {_userId}")));
+                Arg.Is<string>(msg => msg.StartsWith($"RefreshToken is empty for {_googleUserId}")));
         }
 
         [Fact]
@@ -130,11 +133,11 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitAuthService.RefreshTokensRequest(
                 Arg.Is<string>(refresh => refresh == _refreshToken), Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(emptyTokensResponse);
 
-            await _googleFitDataImporter.Import(_userId, _cancellationToken);
+            await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             _dataImporterLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Information),
-                Arg.Is<string>(msg => msg.StartsWith($"RefreshToken is empty for {_userId}")));
+                Arg.Is<string>(msg => msg.StartsWith($"RefreshToken is empty for {_googleUserId}")));
         }
 
         [Fact]
@@ -142,7 +145,7 @@ namespace FitOnFhir.GoogleFit.Tests
         {
             SetupMockSuccessReturns();
 
-            await _googleFitDataImporter.Import(_userId, _cancellationToken);
+            await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             _ = _googleFitAuthService.Received(1).RefreshTokensRequest(
                 Arg.Is<string>(refresh => refresh == _refreshToken),
@@ -154,7 +157,7 @@ namespace FitOnFhir.GoogleFit.Tests
         {
             SetupMockSuccessReturns();
 
-            await _googleFitDataImporter.Import(_userId, _cancellationToken);
+            await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             _ = _googleFitClient.Received(1).DataSourcesListRequest(
                 Arg.Is<string>(access => access == _accessToken),
@@ -166,7 +169,7 @@ namespace FitOnFhir.GoogleFit.Tests
         {
             SetupMockSuccessReturns();
 
-            await _googleFitDataImporter.Import(_userId, _cancellationToken);
+            await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             _ = _usersTableRepository.Received(1).GetById(
                 Arg.Is<string>(usr => usr == _userId),
@@ -174,23 +177,11 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenWhenAuthTokensResponseIsValid_WhenImportIsCalled_UpdateIsCalled()
-        {
-            SetupMockSuccessReturns();
-
-            await _googleFitDataImporter.Import(_userId, _cancellationToken);
-
-            _ = _usersTableRepository.Received(1).Update(
-                Arg.Is<User>(usr => usr == _user),
-                Arg.Is<CancellationToken>(token => token == _cancellationToken));
-        }
-
-        [Fact]
         public async Task GivenWhenAuthTokensResponseIsValid_WhenImportIsCalled_UserLastSyncIsUpdated()
         {
             SetupMockSuccessReturns();
 
-            await _googleFitDataImporter.Import(_userId, _cancellationToken);
+            await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             Assert.Equal(_user.LastSync, _utcNowFunc());
         }
@@ -209,7 +200,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Any<AuthTokensResponse>(),
                 Arg.Any<CancellationToken>()).Throws(exception);
 
-            await _googleFitDataImporter.Import(_userId, _cancellationToken);
+            await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             _dataImporterLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
@@ -217,45 +208,10 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(msg => msg == exceptionMessage));
         }
 
-        // [Fact]
-        // public async Task GivenWhenUserLastSyncIsNull_WhenImportIsCalled_DatasetIdReflectsCorrectTimespan()
-        // {
-        //    SetupMockSuccessReturns();
-        //    // set start DateTimeOffset to 30 days prior to "now"
-        //    var start = _utcNowFunc().AddDays(-30);
-        //    var end = _utcNowFunc();
-        //    var datasetId = GenerateDatasetId(start, end);
-        //    await _googleFitDataImporter.Import(_userId, _cancellationToken);
-        //    _ = _googleFitImportService.Received(1).ProcessDatasetRequests(
-        //        Arg.Is<User>(usr => usr == _user),
-        //        Arg.Is<IEnumerable<DataSource>>(list => list == _dataSourcesListResponse.DataSources),
-        //        Arg.Is<string>(id => id == datasetId),
-        //        Arg.Is<AuthTokensResponse>(tknrsp => tknrsp == _tokensResponse),
-        //        Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
-        // }
-
-        // [Fact]
-        // public async Task GivenWhenUserLastSyncNotNull_WhenImportIsCalled_DatasetIdReflectsLastSyncValue()
-        // {
-        //    SetupMockSuccessReturns();
-        //    // set User LastSync value to one day before mocked "now" returned by _utcNowFunc
-        //    var lastSync = DateTimeOffset.Parse("01/11/2004");
-        //    _user.LastSync = lastSync;
-        //    var end = _utcNowFunc();
-        //    var datasetId = GenerateDatasetId(lastSync, end);
-        //    await _googleFitDataImporter.Import(_userId, _cancellationToken);
-        //    _ = _googleFitImportService.Received(1).ProcessDatasetRequests(
-        //        Arg.Is<User>(usr => usr == _user),
-        //        Arg.Is<IEnumerable<DataSource>>(list => list == _dataSourcesListResponse.DataSources),
-        //        Arg.Is<string>(id => id == datasetId),
-        //        Arg.Is<AuthTokensResponse>(tknrsp => tknrsp == _tokensResponse),
-        //        Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
-        // }
-
         private void SetupMockSuccessReturns()
         {
             _usersKeyvaultRepository.GetByName(
-              Arg.Is<string>(userid => userid == _userId),
+              Arg.Is<string>(userid => userid == _googleUserId),
               Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_refreshToken);
 
             _googleFitAuthService.RefreshTokensRequest(
@@ -265,26 +221,19 @@ namespace FitOnFhir.GoogleFit.Tests
               Arg.Is<string>(access => access == _tokensResponse.AccessToken),
               Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_dataSourcesListResponse);
 
-            _usersTableRepository.GetById(
-              Arg.Is<string>(userid => userid == _userId),
-              Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_user);
-
             _ = _googleFitImportService.ProcessDatasetRequests(
-            Arg.Is<string>(userid => userid == _userId),
+            Arg.Is<string>(userid => userid == _googleUserId),
             Arg.Is<IEnumerable<DataSource>>(list => list == _dataSourcesListResponse.DataSources),
             Arg.Is<AuthTokensResponse>(tknrsp => tknrsp == _tokensResponse),
             Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
 
+            _usersTableRepository.GetById(
+                Arg.Is<string>(userid => userid == _userId),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_user);
+
             _ = _usersTableRepository.Update(
                 Arg.Is<User>(usr => usr == _user),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
-        }
-
-        private string GenerateDatasetId(DateTimeOffset start, DateTimeOffset end)
-        {
-            var startDate = start.ToUnixTimeMilliseconds() * 1000000;
-            var endDate = end.ToUnixTimeMilliseconds() * 1000000;
-            return startDate + "-" + endDate;
         }
     }
 }
