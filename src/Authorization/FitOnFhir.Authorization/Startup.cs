@@ -46,7 +46,7 @@ namespace FitOnFhir.Authorization
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
-            builder.Services.AddSingleton<IGoogleFitUserRepository, GoogleFitUserRepository>();
+            builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IRoutingService, RoutingService>();

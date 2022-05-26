@@ -22,7 +22,7 @@ namespace FitOnFhir.GoogleFit.Services
     public class UsersService : IUsersService
     {
         private readonly IUsersTableRepository _usersTableRepository;
-        private readonly IGoogleFitUserRepository _googleFitUserRepository;
+        private readonly IGoogleFitUserTableRepository _googleFitUserRepository;
         private readonly IGoogleFitClient _googleFitClient;
         private readonly ILogger<UsersService> _logger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
@@ -30,7 +30,7 @@ namespace FitOnFhir.GoogleFit.Services
 
         public UsersService(
             IUsersTableRepository usersTableRepository,
-            IGoogleFitUserRepository googleFitUserRepository,
+            IGoogleFitUserTableRepository googleFitUserRepository,
             IGoogleFitClient googleFitClient,
             IUsersKeyVaultRepository usersKeyvaultRepository,
             IGoogleFitAuthService authService,

@@ -53,7 +53,7 @@ namespace FitOnFhir.Import
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
-            builder.Services.AddSingleton<IGoogleFitUserRepository, GoogleFitUserRepository>();
+            builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
             builder.Services.AddSingleton<IImporterService, ImporterService>();

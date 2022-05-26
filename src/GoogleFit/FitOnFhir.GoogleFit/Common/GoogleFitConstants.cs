@@ -28,6 +28,11 @@ namespace FitOnFhir.GoogleFit.Common
         public const string GoogleFitPlatformName = "GoogleFit";
 
         /// <summary>
+        /// String identifier for the GoogleFit platform partition key in the storage account table.
+        /// </summary>
+        public const string GoogleFitPartitionKey = "GoogleFit";
+
+        /// <summary>
         /// The key in a JSON payload sent to an Event Hub for a globally unique patient identifier.
         /// </summary>
         public const string PatientIdentifier = "patientIdentifier";

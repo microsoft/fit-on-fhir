@@ -25,7 +25,7 @@ namespace FitOnFhir.ImportTimerTrigger
 
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
 
-            builder.Services.AddSingleton<IGoogleFitUserRepository, GoogleFitUserRepository>();
+            builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
         }
     }
 }

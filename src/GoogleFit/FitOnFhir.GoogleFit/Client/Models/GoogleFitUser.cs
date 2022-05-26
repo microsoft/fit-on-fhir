@@ -15,7 +15,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
         {
             PartitionKey = GoogleFitConstants.GoogleFitPlatformName;
             RowKey = userId;
-            SyncTimes = new Dictionary<string, DateTimeOffset>();
+            LastSyncTimes = new Dictionary<string, DateTimeOffset>();
         }
 
         public GoogleFitUser()
@@ -30,6 +30,9 @@ namespace FitOnFhir.GoogleFit.Client.Models
 
         public ETag ETag { get; set; }
 
-        public Dictionary<string, DateTimeOffset> SyncTimes { get; set; }
+        /// <summary>
+        /// Store the last times a sync occurred (value) for each DataSource (key)
+        /// </summary>
+        public Dictionary<string, DateTimeOffset> LastSyncTimes { get; set; }
     }
 }

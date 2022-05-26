@@ -8,7 +8,7 @@ using FitOnFhir.GoogleFit.Client.Models;
 
 namespace FitOnFhir.GoogleFit.Repositories
 {
-    public interface IGoogleFitUserRepository : IGenericRepository<GoogleFitUser>
+    public interface IGoogleFitUserTableRepository : ITableRepository<GoogleFitUser>
     {
     }
 }

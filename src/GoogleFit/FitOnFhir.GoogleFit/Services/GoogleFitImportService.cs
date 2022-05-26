@@ -20,7 +20,7 @@ namespace FitOnFhir.GoogleFit.Services
     public class GoogleFitImportService : ParallelTaskWorker<GoogleFitImportOptions>, IGoogleFitImportService, IAsyncDisposable
     {
         private readonly IGoogleFitClient _googleFitClient;
-        private readonly IGoogleFitUserRepository _googleFitUserRepository;
+        private readonly GoogleFitUserTableRepository _googleFitUserTableRepository;
         private readonly EventHubProducerClient _eventHubProducerClient;
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly ILogger<GoogleFitImportService> _logger;
@@ -28,7 +28,7 @@ namespace FitOnFhir.GoogleFit.Services
 
         public GoogleFitImportService(
             IGoogleFitClient googleFitClient,
-            IGoogleFitUserRepository googleFitUserRepository,
+            GoogleFitUserTableRepository googleFitUserTableRepository,
             EventHubProducerClient eventHubProducerClient,
             GoogleFitImportOptions options,
             Func<DateTimeOffset> utcNowFunc,
@@ -37,7 +37,7 @@ namespace FitOnFhir.GoogleFit.Services
             : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
         {
             _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
-            _googleFitUserRepository = googleFitUserRepository;
+            _googleFitUserTableRepository = googleFitUserTableRepository;
             _eventHubProducerClient = EnsureArg.IsNotNull(eventHubProducerClient, nameof(eventHubProducerClient));
             _utcNowFunc = utcNowFunc;
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
@@ -49,7 +49,7 @@ namespace FitOnFhir.GoogleFit.Services
         {
             // Get user's info for LastSync date
              _logger.LogInformation("Query userInfo");
-             var user = await _googleFitUserRepository.GetById(userId, cancellationToken);
+             var user = await _googleFitUserTableRepository.GetById(userId, cancellationToken);
 
              var workItems = dataSources.Select(
                 dataSource => new Func<Task>(
@@ -62,7 +62,7 @@ namespace FitOnFhir.GoogleFit.Services
                         string datasetId;
                         DateTimeOffset currentTime;
 
-                        if (user.SyncTimes.TryGetValue(dataStreamId, out var lastSyncTime))
+                        if (user.LastSyncTimes.TryGetValue(dataStreamId, out var lastSyncTime))
                         {
                             datasetId = GenerateDataSetId(lastSyncTime, out currentTime);
                         }
@@ -111,9 +111,9 @@ namespace FitOnFhir.GoogleFit.Services
                         while (pageToken != null);
 
                         // Update the GoogleFitUser timestamp for this data source
-                        user.SyncTimes.Remove(dataStreamId);
-                        user.SyncTimes.Add(dataStreamId, currentTime);
-                        await _googleFitUserRepository.Update(user, cancellationToken);
+                        user.LastSyncTimes.Remove(dataStreamId);
+                        user.LastSyncTimes.Add(dataStreamId, currentTime);
+                        await _googleFitUserTableRepository.Update(user, cancellationToken);
                     }
                     catch (Exception ex)
                     {
