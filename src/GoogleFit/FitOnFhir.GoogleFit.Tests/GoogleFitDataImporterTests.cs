@@ -183,7 +183,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
-            Assert.Equal(_user.LastSync, _utcNowFunc());
+            Assert.Equal(_user.LastTouched, _utcNowFunc());
         }
 
         [Fact]

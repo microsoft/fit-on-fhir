@@ -3,36 +3,27 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Azure;
 using Azure.Data.Tables;
+using FitOnFhir.Common.Models;
 using FitOnFhir.GoogleFit.Common;
 
 namespace FitOnFhir.GoogleFit.Client.Models
 {
-    public class GoogleFitUser : ITableEntity
+    public class GoogleFitUser : UserBase
     {
         public GoogleFitUser(string userId)
+            : base(GoogleFitConstants.GoogleFitPartitionKey, userId)
         {
-            PartitionKey = GoogleFitConstants.GoogleFitPlatformName;
-            RowKey = userId;
-            LastSyncTimes = new Dictionary<string, DateTimeOffset>();
         }
 
         public GoogleFitUser()
+            : base(string.Empty, string.Empty)
         {
         }
-
-        public string PartitionKey { get; set; }
-
-        public string RowKey { get; set; }
-
-        public DateTimeOffset? Timestamp { get; set; }
-
-        public ETag ETag { get; set; }
 
         /// <summary>
         /// Store the last times a sync occurred (value) for each DataSource (key)
         /// </summary>
-        public Dictionary<string, DateTimeOffset> LastSyncTimes { get; set; }
+        public TableEntity LastSyncTimes => Entity;
     }
 }

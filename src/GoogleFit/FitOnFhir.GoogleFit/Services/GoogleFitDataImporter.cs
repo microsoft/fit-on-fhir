@@ -91,7 +91,7 @@ namespace FitOnFhir.GoogleFit.Services
             var user = await _usersTableRepository.GetById(userId, cancellationToken);
 
             // Update LastSync column
-            user.LastSync = _utcNowFunc();
+            user.LastTouched = _utcNowFunc();
             await _usersTableRepository.Update(user, cancellationToken);
         }
     }

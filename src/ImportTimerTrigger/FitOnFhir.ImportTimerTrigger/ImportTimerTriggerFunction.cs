@@ -40,7 +40,7 @@ namespace FitOnFhir.ImportTimerTrigger
                 logger.LogInformation("Adding {0} to queue", user.RowKey);
                 foreach (var platformUserInfo in user.PlatformUserInfo)
                 {
-                    queueService.Add(JsonConvert.SerializeObject(new QueueMessage(user.RowKey, platformUserInfo.Value, platformUserInfo.Key)));
+                    queueService.Add(JsonConvert.SerializeObject(new QueueMessage(user.RowKey, (string)platformUserInfo.Value, platformUserInfo.Key)));
                 }
             }
         }

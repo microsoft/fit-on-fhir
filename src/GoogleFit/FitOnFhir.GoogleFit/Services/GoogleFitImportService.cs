@@ -128,13 +128,15 @@ namespace FitOnFhir.GoogleFit.Services
              await StartWorker(workItems);
         }
 
-        private string GenerateDataSetId(DateTimeOffset? lastSyncTime, out DateTimeOffset currentTime)
+        private string GenerateDataSetId(object lastSyncTime, out DateTimeOffset currentTime)
         {
+            DateTimeOffset? lastSync = lastSyncTime as DateTimeOffset?;
+
             // if this DataSource has never been synced before, then retrieve 30 days prior worth of data
             DateTimeOffset startDateDto = _utcNowFunc().AddDays(-30);
-            if (lastSyncTime != null)
+            if (lastSync != null)
             {
-                startDateDto = lastSyncTime.Value;
+                startDateDto = lastSync.Value;
             }
 
             // Convert to DateTimeOffset to so .NET unix conversion is usable
