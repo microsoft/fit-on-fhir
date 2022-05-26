@@ -16,12 +16,14 @@ namespace FitOnFhir.GoogleFit.Services
         /// </summary>
         /// <param name="userId">The user ID associated with the <param ref="dataSources"></param>.</param>
         /// <param name="dataSources">The list of <see cref="DataSource"/> for this user, that have been granted access.</param>
+        /// <param name="lastSyncTimes">A dictionary of synce times for each DataSource for this user.</param>
         /// <param name="tokensResponse">The <see cref="AuthTokensResponse"/> which contains the access token.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> used to cancel this operation, if necessary.</param>
         /// <returns>An empty Task.</returns>
         public Task ProcessDatasetRequests(
             string userId,
             IEnumerable<DataSource> dataSources,
+            Dictionary<string, DateTimeOffset?> lastSyncTimes,
             AuthTokensResponse tokensResponse,
             CancellationToken cancellationToken);
     }

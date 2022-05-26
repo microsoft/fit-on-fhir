@@ -9,6 +9,7 @@ using FitOnFhir.Common.Tests.Mocks;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Responses;
+using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.GoogleFit.Services;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -25,12 +26,14 @@ namespace FitOnFhir.GoogleFit.Tests
         private const string _refreshToken = "RefreshToken";
         private readonly CancellationToken _cancellationToken = CancellationToken.None;
         private readonly User _user = new User(Guid.NewGuid());
+        private readonly GoogleFitUser _googleFitUser;
         private readonly DataSourcesListResponse _dataSourcesListResponse = new DataSourcesListResponse() { DataSources = new List<DataSource>() };
         private readonly AuthTokensResponse _tokensResponse = new AuthTokensResponse() { AccessToken = _accessToken, RefreshToken = _refreshToken };
 
         private readonly IGoogleFitImportService _googleFitImportService;
         private readonly IGoogleFitAuthService _googleFitAuthService;
         private readonly IUsersTableRepository _usersTableRepository;
+        private readonly IGoogleFitUserTableRepository _googleFitUserTableRepository;
         private readonly IGoogleFitClient _googleFitClient;
         private readonly MockLogger<GoogleFitDataImporter> _dataImporterLogger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
@@ -40,9 +43,11 @@ namespace FitOnFhir.GoogleFit.Tests
         public GoogleFitDataImporterTests()
         {
             _userId = Guid.NewGuid().ToString();
+            _googleFitUser = new GoogleFitUser(_userId);
 
             // GoogleFitDataImporter dependencies
             _usersTableRepository = Substitute.For<IUsersTableRepository>();
+            _googleFitUserTableRepository = Substitute.For<IGoogleFitUserTableRepository>();
             _googleFitClient = Substitute.For<IGoogleFitClient>();
             _dataImporterLogger = Substitute.For<MockLogger<GoogleFitDataImporter>>();
             _usersKeyvaultRepository = Substitute.For<IUsersKeyVaultRepository>();
@@ -55,6 +60,7 @@ namespace FitOnFhir.GoogleFit.Tests
             // create the service
             _googleFitDataImporter = new GoogleFitDataImporter(
                 _usersTableRepository,
+                _googleFitUserTableRepository,
                 _googleFitClient,
                 _googleFitImportService,
                 _usersKeyvaultRepository,
@@ -197,6 +203,7 @@ namespace FitOnFhir.GoogleFit.Tests
             _ = _googleFitImportService.ProcessDatasetRequests(
                 Arg.Any<string>(),
                 Arg.Any<IEnumerable<DataSource>>(),
+                Arg.Any<Dictionary<string, DateTimeOffset?>>(),
                 Arg.Any<AuthTokensResponse>(),
                 Arg.Any<CancellationToken>()).Throws(exception);
 
@@ -221,9 +228,18 @@ namespace FitOnFhir.GoogleFit.Tests
               Arg.Is<string>(access => access == _tokensResponse.AccessToken),
               Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_dataSourcesListResponse);
 
+            _googleFitUserTableRepository.GetById(
+                Arg.Is<string>(userid => userid == _userId),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_googleFitUser);
+
+            _ = _googleFitUserTableRepository.Update(
+                Arg.Is<GoogleFitUser>(usr => usr == _googleFitUser),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken));
+
             _ = _googleFitImportService.ProcessDatasetRequests(
             Arg.Is<string>(userid => userid == _googleUserId),
             Arg.Is<IEnumerable<DataSource>>(list => list == _dataSourcesListResponse.DataSources),
+            Arg.Any<Dictionary<string, DateTimeOffset?>>(),
             Arg.Is<AuthTokensResponse>(tknrsp => tknrsp == _tokensResponse),
             Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
 

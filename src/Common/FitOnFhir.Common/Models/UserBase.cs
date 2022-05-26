@@ -69,6 +69,6 @@ namespace FitOnFhir.Common.Models
             }
         }
 
-        public TableEntity Entity => _tableEntity;
+        protected TableEntity Entity => _tableEntity;
     }
 }

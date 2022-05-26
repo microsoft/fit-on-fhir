@@ -3,10 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using AngleSharp.Common;
 using EnsureThat;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Responses;
+using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.GoogleFit.Services
@@ -14,6 +16,7 @@ namespace FitOnFhir.GoogleFit.Services
     public class GoogleFitDataImporter : IGoogleFitDataImporter
     {
         private readonly IUsersTableRepository _usersTableRepository;
+        private readonly IGoogleFitUserTableRepository _googleFitUserTableRepository;
         private readonly IGoogleFitClient _googleFitClient;
         private readonly IGoogleFitImportService _googleFitImportService;
         private readonly ILogger<GoogleFitDataImporter> _logger;
@@ -23,6 +26,7 @@ namespace FitOnFhir.GoogleFit.Services
 
         public GoogleFitDataImporter(
             IUsersTableRepository usersTableRepository,
+            IGoogleFitUserTableRepository googleFitUserTableRepository,
             IGoogleFitClient googleFitClient,
             IGoogleFitImportService googleFitImportService,
             IUsersKeyVaultRepository usersKeyvaultRepository,
@@ -31,6 +35,7 @@ namespace FitOnFhir.GoogleFit.Services
             ILogger<GoogleFitDataImporter> logger)
         {
             _usersTableRepository = EnsureArg.IsNotNull(usersTableRepository, nameof(usersTableRepository));
+            _googleFitUserTableRepository = EnsureArg.IsNotNull(googleFitUserTableRepository, nameof(googleFitUserTableRepository));
             _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
             _googleFitImportService = EnsureArg.IsNotNull(googleFitImportService, nameof(googleFitImportService));
             _usersKeyvaultRepository = EnsureArg.IsNotNull(usersKeyvaultRepository, nameof(usersKeyvaultRepository));
@@ -72,15 +77,28 @@ namespace FitOnFhir.GoogleFit.Services
             _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
             var dataSourcesList = await _googleFitClient.DataSourcesListRequest(tokensResponse.AccessToken, cancellationToken);
 
+            // get user sync times
+            _logger.LogInformation("Query userInfo");
+            var googleUser = await _googleFitUserTableRepository.GetById(userId, cancellationToken);
+            var lastSyncTimes = googleUser.ToDictionary();
+
             // Request the datasets from each datasource, based on the datasetId
             try
             {
-                await _googleFitImportService.ProcessDatasetRequests(googleFitId, dataSourcesList.DataSources, tokensResponse, cancellationToken);
+                await _googleFitImportService.ProcessDatasetRequests(googleFitId, dataSourcesList.DataSources, lastSyncTimes, tokensResponse, cancellationToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }
+
+            // Update the GoogleFitUser timestamps for the data sources
+            foreach (var lastSyncTime in lastSyncTimes)
+            {
+                googleUser.SaveLastSyncTime(lastSyncTime.Key, lastSyncTime.Value);
+            }
+
+            await _googleFitUserTableRepository.Update(googleUser, cancellationToken);
 
             // Get user's info for LastSync date
             _logger.LogInformation("Query userInfo");

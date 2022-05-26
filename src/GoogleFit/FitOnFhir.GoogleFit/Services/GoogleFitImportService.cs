@@ -20,7 +20,7 @@ namespace FitOnFhir.GoogleFit.Services
     public class GoogleFitImportService : ParallelTaskWorker<GoogleFitImportOptions>, IGoogleFitImportService, IAsyncDisposable
     {
         private readonly IGoogleFitClient _googleFitClient;
-        private readonly GoogleFitUserTableRepository _googleFitUserTableRepository;
+        private readonly IGoogleFitUserTableRepository _googleFitUserTableRepository;
         private readonly EventHubProducerClient _eventHubProducerClient;
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly ILogger<GoogleFitImportService> _logger;
@@ -28,7 +28,7 @@ namespace FitOnFhir.GoogleFit.Services
 
         public GoogleFitImportService(
             IGoogleFitClient googleFitClient,
-            GoogleFitUserTableRepository googleFitUserTableRepository,
+            IGoogleFitUserTableRepository googleFitUserTableRepository,
             EventHubProducerClient eventHubProducerClient,
             GoogleFitImportOptions options,
             Func<DateTimeOffset> utcNowFunc,
@@ -45,13 +45,14 @@ namespace FitOnFhir.GoogleFit.Services
         }
 
         /// <inheritdoc/>
-        public async Task ProcessDatasetRequests(string userId, IEnumerable<DataSource> dataSources, AuthTokensResponse tokensResponse, CancellationToken cancellationToken)
+        public async Task ProcessDatasetRequests(
+            string userId,
+            IEnumerable<DataSource> dataSources,
+            Dictionary<string, DateTimeOffset?> lastSyncTimes,
+            AuthTokensResponse tokensResponse,
+            CancellationToken cancellationToken)
         {
-            // Get user's info for LastSync date
-             _logger.LogInformation("Query userInfo");
-             var user = await _googleFitUserTableRepository.GetById(userId, cancellationToken);
-
-             var workItems = dataSources.Select(
+            var workItems = dataSources.Select(
                 dataSource => new Func<Task>(
                 async () =>
                 {
@@ -62,7 +63,7 @@ namespace FitOnFhir.GoogleFit.Services
                         string datasetId;
                         DateTimeOffset currentTime;
 
-                        if (user.LastSyncTimes.TryGetValue(dataStreamId, out var lastSyncTime))
+                        if (lastSyncTimes.TryGetValue(dataStreamId, out var lastSyncTime))
                         {
                             datasetId = GenerateDataSetId(lastSyncTime, out currentTime);
                         }
@@ -107,13 +108,11 @@ namespace FitOnFhir.GoogleFit.Services
 
                             // Use the producer client to send the batch of events to the event hub
                             await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
+
+                            // Update the last sync time for this DataSource
+                            lastSyncTimes[dataStreamId] = lastSyncTime;
                         }
                         while (pageToken != null);
-
-                        // Update the GoogleFitUser timestamp for this data source
-                        user.LastSyncTimes.Remove(dataStreamId);
-                        user.LastSyncTimes.Add(dataStreamId, currentTime);
-                        await _googleFitUserTableRepository.Update(user, cancellationToken);
                     }
                     catch (Exception ex)
                     {
@@ -124,8 +123,8 @@ namespace FitOnFhir.GoogleFit.Services
                     }
                 }));
 
-             // Wait for the Dataset request tasks to finish
-             await StartWorker(workItems);
+            // Wait for the Dataset request tasks to finish
+            await StartWorker(workItems);
         }
 
         private string GenerateDataSetId(object lastSyncTime, out DateTimeOffset currentTime)
