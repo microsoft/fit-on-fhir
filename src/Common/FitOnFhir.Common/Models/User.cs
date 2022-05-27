@@ -3,10 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 namespace FitOnFhir.Common.Models
 {
     public class User : UserBase
     {
+        private const string _platformsKey = "Platforms";
+
         public User(Guid userId)
             : base(Constants.UsersPartitionKey, userId.ToString())
         {
@@ -39,11 +44,14 @@ namespace FitOnFhir.Common.Models
         /// <summary>
         /// Stores the user name associated with a platform.
         /// </summary>
-        /// <param name="platformName">The platform ID associated with the user name.</param>
-        /// <param name="userName">The user name for this platform.</param>
-        public void SavePlatformUserName(string platformName, string userName)
+        /// <param name="platformUserInfo">Contains the platform name associated with the user ID.</param>
+        public void SavePlatformUserName(PlatformUserInfo platformUserInfo)
         {
-            Entity.Add(platformName, userName);
+            // take the List<> passed in, and convert to json string
+            var jsonString = JObject.FromObject(platformUserInfo).ToString();
+
+            // store the json string to the _platformKeys key in the TableEntity dictionary
+            Entity.Add(_platformsKey, jsonString);
         }
 
         /// <summary>
@@ -51,8 +59,9 @@ namespace FitOnFhir.Common.Models
         /// </summary>
         public Dictionary<string, string> ToDictionary()
         {
-            return Entity.Select(t => new { t.Key, t.Value })
-                .ToDictionary(t => t.Key, t => t.Value as string);
+            var json = Entity[_platformsKey] as string;
+            Dictionary<string, string> platformInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+            return platformInfo;
         }
     }
 }
