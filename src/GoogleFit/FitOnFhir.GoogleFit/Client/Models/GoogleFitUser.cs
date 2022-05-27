@@ -46,7 +46,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
         /// <param name="time">The <see cref="DateTimeOffset"/> representing when this DataSource was last synced.</param>
         public void SaveLastSyncTime(string dataStreamId, DateTimeOffset? time)
         {
-            Entity[dataStreamId] = time;
+            Entity.Add(dataStreamId, time);
         }
 
         /// <summary>

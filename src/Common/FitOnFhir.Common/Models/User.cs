@@ -43,7 +43,7 @@ namespace FitOnFhir.Common.Models
         /// <param name="userName">The user name for this platform.</param>
         public void SavePlatformUserName(string platformName, string userName)
         {
-            Entity[platformName] = userName;
+            Entity.Add(platformName, userName);
         }
 
         /// <summary>

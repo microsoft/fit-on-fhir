@@ -7,11 +7,11 @@ using FitOnFhir.Common.Requests;
 
 namespace FitOnFhir.Common.Handlers
 {
-    public class UnknownDataImportHandler : UnknownOperationHandlerBase<ImportRequest, Task>
+    public class UnknownDataImportHandler : UnknownOperationHandlerBase<ImportRequest, Task<bool?>>
     {
-        public override Task Evaluate(ImportRequest request)
+        public override Task<bool?> Evaluate(ImportRequest request)
         {
-            return Task.CompletedTask;
+            return Task.FromResult<bool?>(true);
         }
     }
 }
