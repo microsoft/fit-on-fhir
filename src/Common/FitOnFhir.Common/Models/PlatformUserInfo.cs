@@ -7,14 +7,14 @@ namespace FitOnFhir.Common.Models
 {
     public class PlatformUserInfo
     {
-        public PlatformUserInfo(string platformName, string platformUserId)
+        public PlatformUserInfo(string platformName, string userId)
         {
             PlatformName = platformName;
-            PlatformUserId = platformUserId;
+            UserId = userId;
         }
 
         public string PlatformName { get; set; }
 
-        public string PlatformUserId { get; set; }
+        public string UserId { get; set; }
     }
 }

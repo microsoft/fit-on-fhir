@@ -3,65 +3,76 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Concurrent;
+using Azure.Data.Tables;
+using EnsureThat;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace FitOnFhir.Common.Models
 {
-    public class User : UserBase
+    public class User : EntityBase
     {
         private const string _platformsKey = "Platforms";
+        private ConcurrentBag<PlatformUserInfo> _platformUserInfo = new ConcurrentBag<PlatformUserInfo>();
 
-        public User(Guid userId)
-            : base(Constants.UsersPartitionKey, userId.ToString())
+        public User()
+            : base(new TableEntity())
         {
         }
 
-        public User()
-            : base(string.Empty, string.Empty)
+        public User(Guid userId)
+            : this(new TableEntity(Constants.UsersPartitionKey, userId.ToString()))
         {
+        }
+
+        public User(TableEntity tableEntity)
+            : base(tableEntity)
+        {
+            string serializedPlatformInfo = InternalTableEntity.GetString(_platformsKey);
+
+            if (serializedPlatformInfo != null)
+            {
+                PlatformUserInfo[] platformUserInfo = JsonConvert.DeserializeObject<PlatformUserInfo[]>(serializedPlatformInfo);
+                _platformUserInfo = new ConcurrentBag<PlatformUserInfo>(platformUserInfo);
+            }
         }
 
         public DateTimeOffset? LastTouched { get; set; }
 
         /// <summary>
-        /// Retrieves the user name associated with the platform name provided
+        /// Retrieves a collection of all <see cref="PlatformUserInfo"/> objects associated with the user.
         /// </summary>
-        /// <param name="platformName">The platform ID associated with the user name.</param>
-        /// <returns>The user name for the platform.</returns>
-        public string GetPlatformUserName(string platformName)
+        /// <returns>A collection of <see cref="PlatformUserInfo"/></returns>
+        public IEnumerable<PlatformUserInfo> GetPlatformUserInfo()
         {
-            string userId = null;
-
-            if (Entity.TryGetValue(platformName, out object userName))
-            {
-                userId = userName as string;
-            }
-
-            return userId;
+            return _platformUserInfo;
         }
 
         /// <summary>
-        /// Stores the user name associated with a platform.
+        /// Stores the user platform info associated with a platform.
         /// </summary>
         /// <param name="platformUserInfo">Contains the platform name associated with the user ID.</param>
-        public void SavePlatformUserName(PlatformUserInfo platformUserInfo)
+        public void AddPlatformUserInfo(PlatformUserInfo platformUserInfo)
         {
-            // take the List<> passed in, and convert to json string
-            var jsonString = JObject.FromObject(platformUserInfo).ToString();
+            EnsureArg.IsNotNull(platformUserInfo, nameof(platformUserInfo));
 
-            // store the json string to the _platformKeys key in the TableEntity dictionary
-            Entity.Add(_platformsKey, jsonString);
+            _platformUserInfo.Add(platformUserInfo);
         }
 
-        /// <summary>
-        /// Converts the underlying Dictionary from having an object value, to a string value.
-        /// </summary>
-        public Dictionary<string, string> ToDictionary()
+        public override TableEntity ToTableEntity()
         {
-            var json = Entity[_platformsKey] as string;
-            Dictionary<string, string> platformInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-            return platformInfo;
+            if (LastTouched != null)
+            {
+                InternalTableEntity.Add(nameof(LastTouched), LastTouched);
+            }
+
+            if (_platformUserInfo != null && _platformUserInfo.Count > 0)
+            {
+                string serializedPlatformInfo = JsonConvert.SerializeObject(_platformUserInfo.ToArray());
+                InternalTableEntity.Add(_platformsKey, serializedPlatformInfo);
+            }
+
+            return base.ToTableEntity();
         }
     }
 }

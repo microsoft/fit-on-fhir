@@ -4,13 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure;
+using Azure.Data.Tables;
 
 namespace FitOnFhir.Common.Repositories
 {
     public interface ITableRepository<T>
         where T : class
     {
-        AsyncPageable<T> GetAll(CancellationToken cancellationToken);
+        AsyncPageable<TableEntity> GetAll(CancellationToken cancellationToken);
 
         Task<T> GetById(string id, CancellationToken cancellationToken);
 

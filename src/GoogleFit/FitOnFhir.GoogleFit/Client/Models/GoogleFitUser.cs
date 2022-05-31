@@ -3,39 +3,61 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Concurrent;
+using Azure.Data.Tables;
+using EnsureThat;
 using FitOnFhir.Common.Models;
 using FitOnFhir.GoogleFit.Common;
+using Newtonsoft.Json;
 
 namespace FitOnFhir.GoogleFit.Client.Models
 {
-    public class GoogleFitUser : UserBase
+    public class GoogleFitUser : EntityBase
     {
-        public GoogleFitUser(string userId)
-            : base(GoogleFitConstants.GoogleFitPartitionKey, userId)
+        private const string _lastSyncTimesKey = "LastSyncTimes";
+        private readonly ConcurrentDictionary<string, DateTimeOffset> _lastSyncTimes = new ConcurrentDictionary<string, DateTimeOffset>();
+
+        public GoogleFitUser()
+            : base(new TableEntity())
         {
         }
 
-        public GoogleFitUser()
-            : base(string.Empty, string.Empty)
+        public GoogleFitUser(string userId)
+            : this(new TableEntity(GoogleFitConstants.GoogleFitPartitionKey, userId))
         {
+        }
+
+        public GoogleFitUser(TableEntity tableEntity)
+            : base(tableEntity)
+        {
+            string serializedLastSyncTimes = InternalTableEntity.GetString(_lastSyncTimesKey);
+
+            if (serializedLastSyncTimes != null)
+            {
+                Dictionary<string, DateTimeOffset> lastSyncTimes = JsonConvert.DeserializeObject<Dictionary<string, DateTimeOffset>>(serializedLastSyncTimes);
+                _lastSyncTimes = new ConcurrentDictionary<string, DateTimeOffset>(lastSyncTimes);
+            }
         }
 
         /// <summary>
         /// Retrieves the last time the DataSource was synced for this user, based on the
         /// data stream ID provided
         /// </summary>
-        /// <param name="dataStreamid">The data stream ID for the DataSource.</param>
+        /// <param name="dataStreamId">The data stream ID for the DataSource.</param>
+        /// <param name="lastSyncTime">The last time a sync was executed for the data stream.</param>
         /// <returns>The <see cref="DateTimeOffset"/> for the last sync.</returns>
-        public DateTimeOffset? GetLastSyncTime(string dataStreamid)
+        public bool TryGetLastSyncTime(string dataStreamId, out DateTimeOffset? lastSyncTime)
         {
-            DateTimeOffset? lastSyncTime = null;
+            EnsureArg.IsNotNullOrWhiteSpace(dataStreamId, nameof(dataStreamId));
 
-            if (Entity.TryGetValue(dataStreamid, out object time))
+            if (_lastSyncTimes.TryGetValue(dataStreamId, out DateTimeOffset syncTime))
             {
-                lastSyncTime = time as DateTimeOffset?;
+                lastSyncTime = syncTime;
+                return true;
             }
 
-            return lastSyncTime;
+            lastSyncTime = null;
+            return false;
         }
 
         /// <summary>
@@ -44,18 +66,20 @@ namespace FitOnFhir.GoogleFit.Client.Models
         /// </summary>
         /// <param name="dataStreamId">The data stream ID for the DataSource.</param>
         /// <param name="time">The <see cref="DateTimeOffset"/> representing when this DataSource was last synced.</param>
-        public void SaveLastSyncTime(string dataStreamId, DateTimeOffset? time)
+        public void SaveLastSyncTime(string dataStreamId, DateTimeOffset time)
         {
-            Entity.Add(dataStreamId, time);
+            _lastSyncTimes.AddOrUpdate(dataStreamId, time, (key, oldTime) => time > oldTime ? time : oldTime);
         }
 
-        /// <summary>
-        /// Converts the underlying Dictionary from having an object value, to a <see cref="DateTimeOffset"/> value.
-        /// </summary>
-        public Dictionary<string, DateTimeOffset?> ToDictionary()
+        public override TableEntity ToTableEntity()
         {
-            return Entity.Select(t => new { t.Key, t.Value })
-                .ToDictionary(t => t.Key, t => t.Value as DateTimeOffset?);
+            if (_lastSyncTimes != null && _lastSyncTimes.Count > 0)
+            {
+                string serializedLastSyncTimes = JsonConvert.SerializeObject(_lastSyncTimes.ToDictionary((key) => key, (value) => value));
+                InternalTableEntity.Add(_lastSyncTimesKey, serializedLastSyncTimes);
+            }
+
+            return base.ToTableEntity();
         }
     }
 }

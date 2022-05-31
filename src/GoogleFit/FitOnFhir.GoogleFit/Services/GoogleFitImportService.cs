@@ -20,7 +20,6 @@ namespace FitOnFhir.GoogleFit.Services
     public class GoogleFitImportService : ParallelTaskWorker<GoogleFitImportOptions>, IGoogleFitImportService, IAsyncDisposable
     {
         private readonly IGoogleFitClient _googleFitClient;
-        private readonly IGoogleFitUserTableRepository _googleFitUserTableRepository;
         private readonly EventHubProducerClient _eventHubProducerClient;
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly ILogger<GoogleFitImportService> _logger;
@@ -37,7 +36,6 @@ namespace FitOnFhir.GoogleFit.Services
             : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
         {
             _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
-            _googleFitUserTableRepository = googleFitUserTableRepository;
             _eventHubProducerClient = EnsureArg.IsNotNull(eventHubProducerClient, nameof(eventHubProducerClient));
             _utcNowFunc = utcNowFunc;
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
@@ -46,9 +44,8 @@ namespace FitOnFhir.GoogleFit.Services
 
         /// <inheritdoc/>
         public async Task ProcessDatasetRequests(
-            string userId,
+            GoogleFitUser user,
             IEnumerable<DataSource> dataSources,
-            Dictionary<string, DateTimeOffset?> lastSyncTimes,
             AuthTokensResponse tokensResponse,
             CancellationToken cancellationToken)
         {
@@ -63,7 +60,8 @@ namespace FitOnFhir.GoogleFit.Services
                         string datasetId;
                         DateTimeOffset currentTime;
 
-                        if (lastSyncTimes.TryGetValue(dataStreamId, out var lastSyncTime))
+                        // Get the time this data stream was synced from the GoogleFitUser object
+                        if (user.TryGetLastSyncTime(dataStreamId, out var lastSyncTime))
                         {
                             datasetId = GenerateDataSetId(lastSyncTime, out currentTime);
                         }
@@ -94,13 +92,13 @@ namespace FitOnFhir.GoogleFit.Services
 
                             // Create a batch of events for MedTech Service
                             using var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
-                            _logger.LogInformation("Created Eventhub Batch (size {0}, count {1})", eventBatch.SizeInBytes, eventBatch.Count);
+                            _logger.LogInformation("Created EventHub Batch (size {0}, count {1})", eventBatch.SizeInBytes, eventBatch.Count);
 
                             _logger.LogInformation("Push Dataset: {0}", dataStreamId);
 
                             // Push dataset to MedTech Service
                             // TODO should this be the GoogleFitUser ID or the top level Users partition ID?
-                            if (!eventBatch.TryAdd(medTechDataset.ToEventData(userId)))
+                            if (!eventBatch.TryAdd(medTechDataset.ToEventData(user.Id)))
                             {
                                 var eventBatchException = new EventBatchException("Event is too large for the batch and cannot be sent.");
                                 _logger.LogError(eventBatchException, eventBatchException.Message);
@@ -109,8 +107,8 @@ namespace FitOnFhir.GoogleFit.Services
                             // Use the producer client to send the batch of events to the event hub
                             await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
 
-                            // Update the last sync time for this DataSource
-                            lastSyncTimes[dataStreamId] = lastSyncTime;
+                            // Update the last sync time for this DataSource in the GoogleFitUser
+                            user.SaveLastSyncTime(dataStreamId, lastSyncTime.Value);
                         }
                         while (pageToken != null);
                     }

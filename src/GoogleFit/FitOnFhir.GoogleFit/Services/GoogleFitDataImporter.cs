@@ -80,22 +80,15 @@ namespace FitOnFhir.GoogleFit.Services
             // get user sync times
             _logger.LogInformation("Query userInfo");
             var googleUser = await _googleFitUserTableRepository.GetById(userId, cancellationToken);
-            var lastSyncTimes = googleUser.ToDictionary();
 
             // Request the datasets from each datasource, based on the datasetId
             try
             {
-                await _googleFitImportService.ProcessDatasetRequests(googleFitId, dataSourcesList.DataSources, lastSyncTimes, tokensResponse, cancellationToken);
+                await _googleFitImportService.ProcessDatasetRequests(googleUser, dataSourcesList.DataSources, tokensResponse, cancellationToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-            }
-
-            // Update the GoogleFitUser timestamps for the data sources
-            foreach (var lastSyncTime in lastSyncTimes)
-            {
-                googleUser.SaveLastSyncTime(lastSyncTime.Key, lastSyncTime.Value);
             }
 
             await _googleFitUserTableRepository.Update(googleUser, cancellationToken);

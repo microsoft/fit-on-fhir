@@ -201,9 +201,8 @@ namespace FitOnFhir.GoogleFit.Tests
             string exceptionMessage = "process dataset exception";
             var exception = new Exception(exceptionMessage);
             _ = _googleFitImportService.ProcessDatasetRequests(
-                Arg.Any<string>(),
+                Arg.Any<GoogleFitUser>(),
                 Arg.Any<IEnumerable<DataSource>>(),
-                Arg.Any<Dictionary<string, DateTimeOffset?>>(),
                 Arg.Any<AuthTokensResponse>(),
                 Arg.Any<CancellationToken>()).Throws(exception);
 
@@ -237,9 +236,8 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
 
             _ = _googleFitImportService.ProcessDatasetRequests(
-            Arg.Is<string>(userid => userid == _googleUserId),
+            Arg.Is<GoogleFitUser>(user => user.Id == _googleUserId),
             Arg.Is<IEnumerable<DataSource>>(list => list == _dataSourcesListResponse.DataSources),
-            Arg.Any<Dictionary<string, DateTimeOffset?>>(),
             Arg.Is<AuthTokensResponse>(tknrsp => tknrsp == _tokensResponse),
             Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
 
