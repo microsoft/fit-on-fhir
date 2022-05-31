@@ -38,11 +38,11 @@ namespace FitOnFhir.Common.Repositories
         {
             EnsureArg.IsNotNull(id, nameof(id));
 
-            var tableEntity = await _tableClient.GetEntityAsync<TableEntity>(PartitionKey, id, cancellationToken: cancellationToken);
+            var response = await _tableClient.GetEntityAsync<TableEntity>(PartitionKey, id, cancellationToken: cancellationToken);
 
-            if (tableEntity != null)
+            if (response?.Value != null)
             {
-                return (TEntity)Activator.CreateInstance(typeof(TEntity), tableEntity.Value);
+                return (TEntity)Activator.CreateInstance(typeof(TEntity), response.Value);
             }
 
             return null;
