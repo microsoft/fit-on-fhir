@@ -42,7 +42,7 @@ namespace FitOnFhir.Common.Repositories
 
             if (tableEntity != null)
             {
-                return (TEntity)Activator.CreateInstance(typeof(TEntity), tableEntity);
+                return (TEntity)Activator.CreateInstance(typeof(TEntity), tableEntity.Value);
             }
 
             return null;

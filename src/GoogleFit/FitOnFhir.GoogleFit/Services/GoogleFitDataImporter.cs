@@ -79,7 +79,7 @@ namespace FitOnFhir.GoogleFit.Services
 
             // get user sync times
             _logger.LogInformation("Query userInfo");
-            var googleUser = await _googleFitUserTableRepository.GetById(userId, cancellationToken);
+            var googleUser = await _googleFitUserTableRepository.GetById(googleFitId, cancellationToken);
 
             // Request the datasets from each datasource, based on the datasetId
             try
