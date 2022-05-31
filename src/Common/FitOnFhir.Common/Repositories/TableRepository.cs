@@ -36,7 +36,7 @@ namespace FitOnFhir.Common.Repositories
 
         public async Task<TEntity> GetById(string id, CancellationToken cancellationToken)
         {
-            EnsureArg.IsNotNull(id, nameof(id));
+            EnsureArg.IsNotNullOrWhiteSpace(id, nameof(id));
 
             var response = await _tableClient.GetEntityAsync<TableEntity>(PartitionKey, id, cancellationToken: cancellationToken);
 

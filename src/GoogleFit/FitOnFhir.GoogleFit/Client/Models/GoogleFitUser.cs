@@ -34,8 +34,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
 
             if (serializedLastSyncTimes != null)
             {
-                Dictionary<string, DateTimeOffset> lastSyncTimes = JsonConvert.DeserializeObject<Dictionary<string, DateTimeOffset>>(serializedLastSyncTimes);
-                _lastSyncTimes = new ConcurrentDictionary<string, DateTimeOffset>(lastSyncTimes);
+                _lastSyncTimes = JsonConvert.DeserializeObject<ConcurrentDictionary<string, DateTimeOffset>>(serializedLastSyncTimes);
             }
         }
 
@@ -46,7 +45,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
         /// <param name="dataStreamId">The data stream ID for the DataSource.</param>
         /// <param name="lastSyncTime">The last time a sync was executed for the data stream.</param>
         /// <returns>The <see cref="DateTimeOffset"/> for the last sync.</returns>
-        public bool TryGetLastSyncTime(string dataStreamId, out DateTimeOffset? lastSyncTime)
+        public bool TryGetLastSyncTime(string dataStreamId, out DateTimeOffset lastSyncTime)
         {
             EnsureArg.IsNotNullOrWhiteSpace(dataStreamId, nameof(dataStreamId));
 
@@ -56,7 +55,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
                 return true;
             }
 
-            lastSyncTime = null;
+            lastSyncTime = default;
             return false;
         }
 
@@ -75,7 +74,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
         {
             if (_lastSyncTimes != null && _lastSyncTimes.Count > 0)
             {
-                string serializedLastSyncTimes = JsonConvert.SerializeObject(_lastSyncTimes.ToDictionary((key) => key, (value) => value));
+                string serializedLastSyncTimes = JsonConvert.SerializeObject(_lastSyncTimes);
                 InternalTableEntity.Add(_lastSyncTimesKey, serializedLastSyncTimes);
             }
 

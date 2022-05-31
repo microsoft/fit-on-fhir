@@ -61,22 +61,22 @@ namespace FitOnFhir.GoogleFit.Services
             // A Google account can have multiple email addresses at different points in time, but the sub value is never changed.
             // Use sub within your application as the unique-identifier key for the user.
             // Maximum length of 255 case-sensitive ASCII characters."
-            string userId = tokenResponse.IdToken.Subject;
+            string googleUserId = tokenResponse.IdToken.Subject;
 
             // Create a new user and add GoogleFit info
             User user = new User(Guid.NewGuid());
-            user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, userId));
+            user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, googleUserId));
 
             // Insert user into Users Table
             await _usersTableRepository.Upsert(user, cancellationToken);
 
-            GoogleFitUser googleFitUser = new GoogleFitUser(userId);
+            GoogleFitUser googleFitUser = new GoogleFitUser(googleUserId);
 
             // Insert GoogleFitUser into Users Table
             await _googleFitUserRepository.Upsert(googleFitUser, cancellationToken);
 
             // Insert refresh token into users KV by userId
-            await _usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken, cancellationToken);
+            await _usersKeyvaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
 
             return user;
         }

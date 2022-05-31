@@ -67,7 +67,7 @@ namespace FitOnFhir.GoogleFit.Services
                         }
                         else
                         {
-                            datasetId = GenerateDataSetId(null, out currentTime);
+                            datasetId = GenerateDataSetId(default, out currentTime);
                         }
 
                         // Make the Dataset requests, requesting the next page of data if necessary
@@ -108,7 +108,7 @@ namespace FitOnFhir.GoogleFit.Services
                             await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
 
                             // Update the last sync time for this DataSource in the GoogleFitUser
-                            user.SaveLastSyncTime(dataStreamId, lastSyncTime.Value);
+                            user.SaveLastSyncTime(dataStreamId, currentTime);
                         }
                         while (pageToken != null);
                     }
@@ -125,15 +125,13 @@ namespace FitOnFhir.GoogleFit.Services
             await StartWorker(workItems);
         }
 
-        private string GenerateDataSetId(object lastSyncTime, out DateTimeOffset currentTime)
+        private string GenerateDataSetId(DateTimeOffset lastSyncTime, out DateTimeOffset currentTime)
         {
-            DateTimeOffset? lastSync = lastSyncTime as DateTimeOffset?;
-
             // if this DataSource has never been synced before, then retrieve 30 days prior worth of data
             DateTimeOffset startDateDto = _utcNowFunc().AddDays(-30);
-            if (lastSync != null)
+            if (lastSyncTime != default)
             {
-                startDateDto = lastSync.Value;
+                startDateDto = lastSyncTime;
             }
 
             // Convert to DateTimeOffset to so .NET unix conversion is usable
