@@ -3,10 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace FitOnFhir.GoogleFit.Repositories
+namespace FitOnFhir.Common.Repositories
 {
     public interface IUsersKeyVaultRepository
     {

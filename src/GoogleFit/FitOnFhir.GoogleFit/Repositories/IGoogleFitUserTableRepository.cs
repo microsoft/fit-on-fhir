@@ -3,15 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Requests;
+using FitOnFhir.Common.Repositories;
+using FitOnFhir.GoogleFit.Client.Models;
 
-namespace FitOnFhir.Common.Handlers
+namespace FitOnFhir.GoogleFit.Repositories
 {
-    public class UnknownDataImportHandler : UnknownOperationHandlerBase<ImportRequest, Task<bool?>>
+    public interface IGoogleFitUserTableRepository : ITableRepository<GoogleFitUser>
     {
-        public override Task<bool?> Evaluate(ImportRequest request)
-        {
-            return Task.FromResult<bool?>(true);
-        }
     }
 }

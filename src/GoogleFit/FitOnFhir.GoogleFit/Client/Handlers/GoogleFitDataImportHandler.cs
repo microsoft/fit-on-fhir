@@ -3,8 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading.Tasks;
+using System.Diagnostics.Eventing.Reader;
 using EnsureThat;
 using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Requests;
@@ -15,7 +14,7 @@ using Microsoft.Health.Common.Handler;
 
 namespace FitOnFhir.GoogleFit.Client.Handlers
 {
-    public class GoogleFitDataImportHandler : IResponsibilityHandler<ImportRequest, Task>
+    public class GoogleFitDataImportHandler : IResponsibilityHandler<ImportRequest, Task<bool?>>
     {
         private readonly IGoogleFitDataImporter _googleFitDataImporter;
         private readonly IErrorHandler _errorHandler;
@@ -37,14 +36,14 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
 
         public static IResponsibilityHandler<ImportRequest, Task> Instance { get; } = new GoogleFitDataImportHandler();
 
-        public Task Evaluate(ImportRequest request)
+        public async Task<bool?> Evaluate(ImportRequest request)
         {
             try
             {
                 if (request.Message.PlatformName == GoogleFitConstants.GoogleFitPlatformName)
                 {
-                    _googleFitDataImporter.Import(request.Message.UserId, request.Token);
-                    return Task.CompletedTask;
+                    await _googleFitDataImporter.Import(request.Message.UserId, request.Message.PlatformUserId, request.Token);
+                    return true;
                 }
                 else
                 {

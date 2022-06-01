@@ -3,37 +3,76 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Azure;
+using System.Collections.Concurrent;
 using Azure.Data.Tables;
+using EnsureThat;
+using Newtonsoft.Json;
 
 namespace FitOnFhir.Common.Models
 {
-    public class User : ITableEntity
+    public class User : EntityBase
     {
-        public User(string userId, string platformName)
-        {
-            PartitionKey = userId;
-            RowKey = userId;
-            Id = userId;
-            PlatformName = platformName;
-        }
+        private const string _platformsKey = "Platforms";
+        private ConcurrentBag<PlatformUserInfo> _platformUserInfo = new ConcurrentBag<PlatformUserInfo>();
 
         public User()
+            : base(new TableEntity())
         {
         }
 
-        public string PartitionKey { get; set; }
+        public User(Guid userId)
+            : this(new TableEntity(Constants.UsersPartitionKey, userId.ToString()))
+        {
+        }
 
-        public string RowKey { get; set; }
+        public User(TableEntity tableEntity)
+            : base(tableEntity)
+        {
+            string serializedPlatformInfo = InternalTableEntity.GetString(_platformsKey);
 
-        public DateTimeOffset? Timestamp { get; set; }
+            if (serializedPlatformInfo != null)
+            {
+                PlatformUserInfo[] platformUserInfo = JsonConvert.DeserializeObject<PlatformUserInfo[]>(serializedPlatformInfo);
+                _platformUserInfo = new ConcurrentBag<PlatformUserInfo>(platformUserInfo);
+            }
+        }
 
-        public ETag ETag { get; set; }
+        public DateTimeOffset? LastTouched { get; set; }
 
-        public string Id { get; set; }
+        /// <summary>
+        /// Retrieves a collection of all <see cref="PlatformUserInfo"/> objects associated with the user.
+        /// </summary>
+        /// <returns>A collection of <see cref="PlatformUserInfo"/></returns>
+        public IEnumerable<PlatformUserInfo> GetPlatformUserInfo()
+        {
+            return _platformUserInfo;
+        }
 
-        public DateTimeOffset? LastSync { get; set; }
+        /// <summary>
+        /// Stores the user platform info associated with a platform.
+        /// </summary>
+        /// <param name="platformUserInfo">Contains the platform name associated with the user ID.</param>
+        public void AddPlatformUserInfo(PlatformUserInfo platformUserInfo)
+        {
+            EnsureArg.IsNotNull(platformUserInfo, nameof(platformUserInfo));
 
-        public string PlatformName { get; set; }
+            _platformUserInfo.Add(platformUserInfo);
+        }
+
+        public override TableEntity ToTableEntity()
+        {
+            if (LastTouched != null)
+            {
+                InternalTableEntity.Add(nameof(LastTouched), LastTouched);
+            }
+
+            if (_platformUserInfo != null && _platformUserInfo.Count > 0)
+            {
+                string serializedPlatformInfo = JsonConvert.SerializeObject(_platformUserInfo.ToArray());
+                InternalTableEntity.Add(_platformsKey, serializedPlatformInfo);
+            }
+
+            return base.ToTableEntity();
+        }
     }
 }

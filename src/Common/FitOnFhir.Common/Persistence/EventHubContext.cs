@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace FitOnFhir.GoogleFit.Persistence
+namespace FitOnFhir.Common.Persistence
 {
-    public class StorageAccountContext : ConnectionStringContext
+    public class EventHubContext : ConnectionStringContext
     {
-        public StorageAccountContext(string connectionString)
+        public EventHubContext(string connectionString)
         : base(connectionString)
         {
         }

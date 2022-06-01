@@ -4,11 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Data.Tables;
 using FitOnFhir.Common.Models;
-using FitOnFhir.GoogleFit.Repositories;
+using FitOnFhir.Common.Repositories;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -33,12 +35,18 @@ namespace FitOnFhir.ImportTimerTrigger
         {
             logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            AsyncPageable<User> usersPageable = _usersTableRepository.GetAll(cancellationToken);
+            AsyncPageable<TableEntity> tableEntities = _usersTableRepository.GetAll(cancellationToken);
 
-            await foreach (User user in usersPageable)
+            await foreach (TableEntity entity in tableEntities)
             {
+                User user = new User(entity);
+
                 logger.LogInformation("Adding {0} to queue", user.Id);
-                queueService.Add(JsonConvert.SerializeObject(new QueueMessage(user.Id, user.PlatformName)));
+                IEnumerable<PlatformUserInfo> userPlatformInformation = user.GetPlatformUserInfo();
+                foreach (var userPlatformInfo in userPlatformInformation)
+                {
+                    queueService.Add(JsonConvert.SerializeObject(new QueueMessage(user.Id, userPlatformInfo.UserId, userPlatformInfo.PlatformName)));
+                }
             }
         }
     }

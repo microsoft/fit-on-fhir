@@ -3,15 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Requests;
-
-namespace FitOnFhir.Common.Handlers
+namespace FitOnFhir.Common.Models
 {
-    public class UnknownDataImportHandler : UnknownOperationHandlerBase<ImportRequest, Task<bool?>>
+    public class PlatformUserInfo
     {
-        public override Task<bool?> Evaluate(ImportRequest request)
+        public PlatformUserInfo(string platformName, string userId)
         {
-            return Task.FromResult<bool?>(true);
+            PlatformName = platformName;
+            UserId = userId;
         }
+
+        public string PlatformName { get; set; }
+
+        public string UserId { get; set; }
     }
 }

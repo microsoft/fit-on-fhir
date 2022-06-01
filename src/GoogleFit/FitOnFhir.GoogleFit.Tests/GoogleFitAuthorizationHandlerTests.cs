@@ -72,7 +72,7 @@ namespace FitOnFhir.GoogleFit.Tests
         [Fact]
         public async Task GivenRequestHandledAndUserExists_WhenRequestIsCallback_ReturnsOkResult()
         {
-            _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User("test user", GoogleFitConstants.GoogleFitPlatformName));
+            _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User(Guid.NewGuid()));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
