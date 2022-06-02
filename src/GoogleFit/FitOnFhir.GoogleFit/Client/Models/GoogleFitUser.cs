@@ -45,7 +45,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
         /// <param name="dataStreamId">The data stream ID for the DataSource.</param>
         /// <param name="lastSyncTime">The last time a sync was executed for the data stream.</param>
         /// <returns>The <see cref="DateTimeOffset"/> for the last sync.</returns>
-        public bool TryGetLastSyncTime(string dataStreamId, out DateTimeOffset lastSyncTime)
+        public virtual bool TryGetLastSyncTime(string dataStreamId, out DateTimeOffset lastSyncTime)
         {
             EnsureArg.IsNotNullOrWhiteSpace(dataStreamId, nameof(dataStreamId));
 
@@ -65,7 +65,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
         /// </summary>
         /// <param name="dataStreamId">The data stream ID for the DataSource.</param>
         /// <param name="time">The <see cref="DateTimeOffset"/> representing when this DataSource was last synced.</param>
-        public void SaveLastSyncTime(string dataStreamId, DateTimeOffset time)
+        public virtual void SaveLastSyncTime(string dataStreamId, DateTimeOffset time)
         {
             _lastSyncTimes.AddOrUpdate(dataStreamId, time, (key, oldTime) => time > oldTime ? time : oldTime);
         }

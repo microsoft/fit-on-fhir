@@ -10,6 +10,10 @@ namespace FitOnFhir.Common.Models
 {
     public abstract class EntityBase
     {
+        public EntityBase()
+        {
+        }
+
         public EntityBase(TableEntity tableEntity)
         {
             InternalTableEntity = tableEntity;
