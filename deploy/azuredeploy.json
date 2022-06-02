@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.6.18.56646",
-      "templateHash": "16713646223262934228"
+      "templateHash": "10558320632758782820"
     }
   },
   "parameters": {
@@ -456,7 +456,8 @@
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
-        "WEBSITE_CONTENTSHARE": "[format('import-timer-{0}-{1}', parameters('basename'), take(uniqueString('import-timer-', parameters('basename')), 4))]"
+        "WEBSITE_CONTENTSHARE": "[format('import-timer-{0}-{1}', parameters('basename'), take(uniqueString('import-timer-', parameters('basename')), 4))]",
+        "schedule": "0 0 * * * *"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",

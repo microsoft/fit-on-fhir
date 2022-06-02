@@ -368,6 +368,7 @@ resource import_timer_basename_appsettings 'Microsoft.Web/sites/config@2015-08-0
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     WEBSITE_CONTENTSHARE: 'import-timer-${basename}-${take(uniqueString('import-timer-', basename), 4)}'
+    schedule: '0 0 * * * *'
   }
   dependsOn: [
     authorize_basename
