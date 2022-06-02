@@ -28,7 +28,7 @@ namespace FitOnFhir.ImportTimerTrigger
 
         [FunctionName("import-timer")]
         public async Task Run(
-            [TimerTrigger("%schedule%")] TimerInfo myTimer,
+            [TimerTrigger("%SCHEDULE%")] TimerInfo myTimer,
             [Queue("import-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService,
             ILogger logger,
             CancellationToken cancellationToken)
