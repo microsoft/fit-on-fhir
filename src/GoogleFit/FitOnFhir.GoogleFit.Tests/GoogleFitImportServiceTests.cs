@@ -196,6 +196,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
 
+            _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<DateTimeOffset>());
             Assert.Equal(1, _eventHubProducerClient.CreateBatchAsyncCalls);
             Assert.Equal(1, _eventHubProducerClient.SendAsyncCalls);
             _googleFitUser.Received(1).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<DateTimeOffset>(dto => dto == _utcNowFunc()));
