@@ -3,11 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FitOnFhir.Common.Models;
+using FitOnFhir.Common.Repositories;
 using FitOnFhir.GoogleFit.Client;
+using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
@@ -20,6 +19,7 @@ namespace FitOnFhir.GoogleFit.Services
     public class UsersService : IUsersService
     {
         private readonly IUsersTableRepository _usersTableRepository;
+        private readonly IGoogleFitUserTableRepository _googleFitUserRepository;
         private readonly IGoogleFitClient _googleFitClient;
         private readonly ILogger<UsersService> _logger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
@@ -27,12 +27,14 @@ namespace FitOnFhir.GoogleFit.Services
 
         public UsersService(
             IUsersTableRepository usersTableRepository,
+            IGoogleFitUserTableRepository googleFitUserRepository,
             IGoogleFitClient googleFitClient,
             IUsersKeyVaultRepository usersKeyvaultRepository,
             IGoogleFitAuthService authService,
             ILogger<UsersService> logger)
         {
             _usersTableRepository = usersTableRepository;
+            _googleFitUserRepository = googleFitUserRepository;
             _googleFitClient = googleFitClient;
             _usersKeyvaultRepository = usersKeyvaultRepository;
             _authService = authService;
@@ -59,14 +61,22 @@ namespace FitOnFhir.GoogleFit.Services
             // A Google account can have multiple email addresses at different points in time, but the sub value is never changed.
             // Use sub within your application as the unique-identifier key for the user.
             // Maximum length of 255 case-sensitive ASCII characters."
-            string userId = tokenResponse.IdToken.Subject;
-            User user = new User(userId, GoogleFitConstants.GoogleFitPlatformName);
+            string googleUserId = tokenResponse.IdToken.Subject;
 
-            // Insert user into UsersTable
+            // Create a new user and add GoogleFit info
+            User user = new User(Guid.NewGuid());
+            user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, googleUserId));
+
+            // Insert user into Users Table
             await _usersTableRepository.Upsert(user, cancellationToken);
 
+            GoogleFitUser googleFitUser = new GoogleFitUser(googleUserId);
+
+            // Insert GoogleFitUser into Users Table
+            await _googleFitUserRepository.Upsert(googleFitUser, cancellationToken);
+
             // Insert refresh token into users KV by userId
-            await _usersKeyvaultRepository.Upsert(userId, tokenResponse.RefreshToken, cancellationToken);
+            await _usersKeyvaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
 
             return user;
         }

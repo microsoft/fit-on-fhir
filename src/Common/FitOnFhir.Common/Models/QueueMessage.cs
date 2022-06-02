@@ -9,13 +9,16 @@ namespace FitOnFhir.Common.Models
 {
     public class QueueMessage
     {
-        public QueueMessage(string userId, string platformName)
+        public QueueMessage(string userId, string platformUserId, string platformName)
         {
             UserId = EnsureArg.IsNotNullOrWhiteSpace(userId);
+            PlatformUserId = EnsureArg.IsNotNullOrWhiteSpace(platformUserId);
             PlatformName = EnsureArg.IsNotNullOrWhiteSpace(platformName);
         }
 
         public string UserId { get; set; }
+
+        public string PlatformUserId { get; set; }
 
         public string PlatformName { get; set; }
     }

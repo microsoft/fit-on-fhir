@@ -4,7 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using FitOnFhir.GoogleFit.Persistence;
+using FitOnFhir.Common.Persistence;
+using FitOnFhir.Common.Repositories;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.ImportTimerTrigger;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -23,6 +24,8 @@ namespace FitOnFhir.ImportTimerTrigger
             builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
 
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
+
+            builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
         }
     }
 }

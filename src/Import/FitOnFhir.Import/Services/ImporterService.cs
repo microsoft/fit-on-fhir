@@ -16,10 +16,10 @@ namespace FitOnFhir.Import.Services
 {
     public class ImporterService : IImporterService
     {
-        private readonly IResponsibilityHandler<ImportRequest, Task> _handler;
+        private readonly IResponsibilityHandler<ImportRequest, Task<bool?>> _handler;
         private readonly ILogger _logger;
 
-        public ImporterService(IResponsibilityHandler<ImportRequest, Task> handler, ILogger<ImporterService> logger)
+        public ImporterService(IResponsibilityHandler<ImportRequest, Task<bool?>> handler, ILogger<ImporterService> logger)
         {
             _handler = EnsureArg.IsNotNull(handler);
             _logger = EnsureArg.IsNotNull(logger);

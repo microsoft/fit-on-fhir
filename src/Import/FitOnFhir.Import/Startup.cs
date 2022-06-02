@@ -12,12 +12,13 @@ using FitOnFhir.Common;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
 using FitOnFhir.Common.Interfaces;
+using FitOnFhir.Common.Persistence;
+using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Handlers;
 using FitOnFhir.GoogleFit.Client.Telemetry;
-using FitOnFhir.GoogleFit.Persistence;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.GoogleFit.Services;
 using FitOnFhir.Import;
@@ -52,6 +53,7 @@ namespace FitOnFhir.Import
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
+            builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
             builder.Services.AddSingleton<IImporterService, ImporterService>();
@@ -63,7 +65,7 @@ namespace FitOnFhir.Import
             builder.Services.AddSingleton<ITelemetryLogger, TelemetryLogger>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton(typeof(Func<DateTimeOffset>), () => DateTimeOffset.UtcNow);
-            builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<ImportRequest, Task>(typeof(GoogleFitDataImportHandler), typeof(UnknownDataImportHandler)));
+            builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<ImportRequest, Task<bool?>>(typeof(GoogleFitDataImportHandler), typeof(UnknownDataImportHandler)));
         }
     }
 }

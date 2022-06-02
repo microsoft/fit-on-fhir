@@ -20,13 +20,14 @@ namespace FitOnFhir.GoogleFit.Tests
 {
     public class GoogleFitDataImportHandlerTests
     {
-        private readonly IResponsibilityHandler<ImportRequest, Task> _googleFitPublishingHandler;
+        private readonly IResponsibilityHandler<ImportRequest, Task<bool?>> _googleFitDataImportHandler;
         private readonly IGoogleFitDataImporter _googleFitDataImporter;
         private readonly IErrorHandler _errorHandler;
         private readonly ILogger<GoogleFitDataImportHandler> _logger;
 
-        private static string _fakePlatform = "ACME";
-        private static string _testUser = "tester";
+        private static readonly string _fakePlatform = "ACME";
+        private static readonly string _fakePlatformUser = "platform user";
+        private static readonly string _testUser = "tester";
 
         public GoogleFitDataImportHandlerTests()
         {
@@ -34,46 +35,46 @@ namespace FitOnFhir.GoogleFit.Tests
             _errorHandler = Substitute.For<IErrorHandler>();
             _logger = NullLogger<GoogleFitDataImportHandler>.Instance;
 
-            _googleFitPublishingHandler = new GoogleFitDataImportHandler(_googleFitDataImporter, _errorHandler, _logger);
+            _googleFitDataImportHandler = new GoogleFitDataImportHandler(_googleFitDataImporter, _errorHandler, _logger);
         }
 
         [Fact]
-        public void GivenPublishRequestForInvalidPlatform_WhenPublishToIsCalled_NullIsReturned()
+        public async Task GivenPublishRequestForInvalidPlatform_WhenPublishToIsCalled_NullIsReturned()
         {
-            var publishRequest = CreatePublishRequest(_testUser, _fakePlatform);
-            var result = _googleFitPublishingHandler.Evaluate(publishRequest);
+            var importRequest = CreateImportRequest(_testUser, _fakePlatformUser, _fakePlatform);
+            var result = await _googleFitDataImportHandler.Evaluate(importRequest);
 
             Assert.Null(result);
         }
 
         [Fact]
-        public void GivenPublishRequestForGoogleFit_WhenPublishToIsCalled_TaskCompletes()
+        public async Task GivenPublishRequestForGoogleFit_WhenPublishToIsCalled_TaskCompletes()
         {
-            var publishRequest = CreatePublishRequest(_testUser, GoogleFitConstants.GoogleFitPlatformName);
-            var result = _googleFitPublishingHandler.Evaluate(publishRequest);
+            var importRequest = CreateImportRequest(_testUser, _fakePlatformUser, GoogleFitConstants.GoogleFitPlatformName);
+            var result = await _googleFitDataImportHandler.Evaluate(importRequest);
 
             Assert.NotNull(result);
         }
 
         [Fact]
-        public void GivenPublishRequestForGoogleFitThrowsException_WhenPublishToIsCalled_HandleDataSyncErrorIsCalled()
+        public async Task GivenPublishRequestForGoogleFitThrowsException_WhenPublishToIsCalled_HandleDataSyncErrorIsCalled()
         {
             string exceptionMessage = "data sync error";
-            _googleFitDataImporter.Import(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception(exceptionMessage));
+            _googleFitDataImporter.Import(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception(exceptionMessage));
 
-            var publishRequest = CreatePublishRequest(_testUser, GoogleFitConstants.GoogleFitPlatformName);
-            var result = _googleFitPublishingHandler.Evaluate(publishRequest);
+            var importRequest = CreateImportRequest(_testUser, _fakePlatformUser, GoogleFitConstants.GoogleFitPlatformName);
+            var result = await _googleFitDataImportHandler.Evaluate(importRequest);
 
-            var expectedQueueMessage = new QueueMessage(_testUser, GoogleFitConstants.GoogleFitPlatformName);
+            var expectedQueueMessage = new QueueMessage(_testUser, _fakePlatformUser, GoogleFitConstants.GoogleFitPlatformName);
             _errorHandler.Received(1).HandleDataImportError(
                 Arg.Is<QueueMessage>(msg => msg.UserId == expectedQueueMessage.UserId && msg.PlatformName == expectedQueueMessage.PlatformName),
                 Arg.Is<Exception>(ex => ex.Message == exceptionMessage));
             Assert.Null(result);
         }
 
-        private ImportRequest CreatePublishRequest(string user, string platform)
+        private ImportRequest CreateImportRequest(string user, string platformUser, string platformName)
         {
-            return new ImportRequest(new QueueMessage(user, platform), CancellationToken.None);
+            return new ImportRequest(new QueueMessage(user, platformUser, platformName), CancellationToken.None);
         }
     }
 }

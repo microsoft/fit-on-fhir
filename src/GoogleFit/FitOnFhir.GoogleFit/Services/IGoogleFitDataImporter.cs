@@ -10,6 +10,12 @@ namespace FitOnFhir.GoogleFit.Services
 {
     public interface IGoogleFitDataImporter
     {
-        Task Import(string userId, CancellationToken cancellationToken);
+        /// <summary>
+        /// Imports data from all DataSources authorized for this user.
+        /// </summary>
+        /// <param name="userId">The Users partition ID for this user.</param>
+        /// /// <param name="googleFitId">The GoogleFit user ID for this user.</param>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
+        Task Import(string userId, string googleFitId, CancellationToken cancellationToken);
     }
 }
