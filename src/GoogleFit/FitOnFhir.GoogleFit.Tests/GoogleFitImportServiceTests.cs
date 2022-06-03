@@ -39,8 +39,11 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly DataSource _dataSource = new DataSource(_dataStreamId, _deviceUid, _applicationPackageName);
         private readonly List<DataSource> _dataSources = new List<DataSource>();
 
-        private readonly DateTimeOffset _now;
-        private readonly DateTimeOffset _oneDayBack = DateTimeOffset.Parse("01/11/2004");
+        private readonly DateTimeOffset _now =
+            new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
+
+        private readonly DateTimeOffset _oneDayBack =
+            new DateTimeOffset(2004, 1, 11, 0, 0, 0, new TimeSpan(-5, 0, 0));
 
         private readonly GoogleFitUser _googleFitUser;
         private readonly MockEventHubProducerClient _eventHubProducerClient;
@@ -57,7 +60,6 @@ namespace FitOnFhir.GoogleFit.Tests
 
         public GoogleFitImportServiceTests()
         {
-            // _googleFitUser = new GoogleFitUser(_googleUserId);
             _googleFitUser = Substitute.For<GoogleFitUser>(_googleUserId);
             _eventData = new EventData(_eventBody);
             _medTechDataset = new MedTechDataset(_dataset, _dataSource);
@@ -69,7 +71,6 @@ namespace FitOnFhir.GoogleFit.Tests
             _eventHubProducerClient = new MockEventHubProducerClient();
             _options = Substitute.For<GoogleFitImportOptions>();
             _utcNowFunc = Substitute.For<Func<DateTimeOffset>>();
-            _now = DateTimeOffset.Parse("01/12/2004");
             _utcNowFunc().Returns(_now);
             _importServiceLogger = Substitute.For<MockLogger<GoogleFitImportService>>();
             _telemetryLogger = Substitute.For<ITelemetryLogger>();
