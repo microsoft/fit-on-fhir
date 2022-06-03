@@ -57,6 +57,7 @@ namespace FitOnFhir.Import
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
             builder.Services.AddSingleton<IImporterService, ImporterService>();
+            builder.Services.AddSingleton<IGoogleFitTokensService, GoogleFitTokensService>();
             builder.Services.AddSingleton<GoogleFitDataImportHandler>();
             builder.Services.AddSingleton<UnknownDataImportHandler>();
             builder.Services.AddSingleton<IGoogleFitImportService, GoogleFitImportService>();

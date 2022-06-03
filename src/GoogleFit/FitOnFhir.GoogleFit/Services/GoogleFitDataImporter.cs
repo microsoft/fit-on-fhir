@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using AngleSharp.Common;
 using EnsureThat;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.GoogleFit.Client;
@@ -20,8 +19,7 @@ namespace FitOnFhir.GoogleFit.Services
         private readonly IGoogleFitClient _googleFitClient;
         private readonly IGoogleFitImportService _googleFitImportService;
         private readonly ILogger<GoogleFitDataImporter> _logger;
-        private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
-        private readonly IGoogleFitAuthService _googleFitAuthService;
+        private readonly IGoogleFitTokensService _googleFitTokensService;
         private readonly Func<DateTimeOffset> _utcNowFunc;
 
         public GoogleFitDataImporter(
@@ -29,8 +27,7 @@ namespace FitOnFhir.GoogleFit.Services
             IGoogleFitUserTableRepository googleFitUserTableRepository,
             IGoogleFitClient googleFitClient,
             IGoogleFitImportService googleFitImportService,
-            IUsersKeyVaultRepository usersKeyvaultRepository,
-            IGoogleFitAuthService googleFitAuthService,
+            IGoogleFitTokensService googleFitTokensService,
             Func<DateTimeOffset> utcNowFunc,
             ILogger<GoogleFitDataImporter> logger)
         {
@@ -38,8 +35,7 @@ namespace FitOnFhir.GoogleFit.Services
             _googleFitUserTableRepository = EnsureArg.IsNotNull(googleFitUserTableRepository, nameof(googleFitUserTableRepository));
             _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
             _googleFitImportService = EnsureArg.IsNotNull(googleFitImportService, nameof(googleFitImportService));
-            _usersKeyvaultRepository = EnsureArg.IsNotNull(usersKeyvaultRepository, nameof(usersKeyvaultRepository));
-            _googleFitAuthService = EnsureArg.IsNotNull(googleFitAuthService, nameof(googleFitAuthService));
+            _googleFitTokensService = EnsureArg.IsNotNull(googleFitTokensService, nameof(googleFitTokensService));
             _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
@@ -47,13 +43,11 @@ namespace FitOnFhir.GoogleFit.Services
         /// <inheritdoc/>
         public async Task Import(string userId, string googleFitId, CancellationToken cancellationToken)
         {
-            string refreshToken;
-
-            _logger.LogInformation("Get RefreshToken from KV for {0}", googleFitId);
+            AuthTokensResponse tokensResponse;
 
             try
             {
-                refreshToken = await _usersKeyvaultRepository.GetByName(googleFitId, cancellationToken);
+                tokensResponse = await _googleFitTokensService.RefreshToken(googleFitId, cancellationToken);
             }
             catch (AggregateException ex)
             {
@@ -61,23 +55,11 @@ namespace FitOnFhir.GoogleFit.Services
                 return;
             }
 
-            _logger.LogInformation("Refreshing the RefreshToken");
-            AuthTokensResponse tokensResponse = await _googleFitAuthService.RefreshTokensRequest(refreshToken, cancellationToken);
-
-            if (!string.IsNullOrEmpty(tokensResponse.RefreshToken))
-            {
-                _logger.LogInformation("Updating refreshToken in KV for {0}", googleFitId);
-                await _usersKeyvaultRepository.Upsert(googleFitId, tokensResponse.RefreshToken, cancellationToken);
-            }
-            else
-            {
-                _logger.LogInformation("RefreshToken is empty for {0}", googleFitId);
-            }
-
+            // Get DataSources list for this user
             _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
             var dataSourcesList = await _googleFitClient.DataSourcesListRequest(tokensResponse.AccessToken, cancellationToken);
 
-            // get user sync times
+            // Get user sync times
             _logger.LogInformation("Query userInfo");
             var googleUser = await _googleFitUserTableRepository.GetById(googleFitId, cancellationToken);
 
