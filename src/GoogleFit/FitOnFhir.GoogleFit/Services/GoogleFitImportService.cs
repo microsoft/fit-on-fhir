@@ -10,7 +10,6 @@ using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Responses;
-using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Service;
 using Microsoft.Health.Logging.Telemetry;
@@ -87,7 +86,7 @@ namespace FitOnFhir.GoogleFit.Services
                             }
 
                             // Save the NextPageToken
-                            pageToken = medTechDataset.GetDataset().NextPageToken;
+                            pageToken = medTechDataset.GetPageToken();
 
                             // Create a batch of events for MedTech Service
                             using var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
