@@ -4,46 +4,46 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FitOnFhir.Common.Exceptions;
 using FitOnFhir.Common.Repositories;
+using FitOnFhir.Common.Services;
 using FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.GoogleFit.Services
 {
-    public class GoogleFitTokensService : IGoogleFitTokensService
+    public class GoogleFitTokensService : TokensServiceBase<AuthTokensResponse>
     {
-        private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
         private readonly IGoogleFitAuthService _googleFitAuthService;
         private readonly ILogger<GoogleFitTokensService> _logger;
 
         public GoogleFitTokensService(
-            IUsersKeyVaultRepository usersKeyvaultRepository,
             IGoogleFitAuthService googleFitAuthService,
+            IUsersKeyVaultRepository usersKeyVaultRepository,
             ILogger<GoogleFitTokensService> logger)
+        : base(usersKeyVaultRepository, logger)
         {
-            _usersKeyvaultRepository = EnsureArg.IsNotNull(usersKeyvaultRepository, nameof(usersKeyvaultRepository));
             _googleFitAuthService = EnsureArg.IsNotNull(googleFitAuthService, nameof(googleFitAuthService));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public async Task<AuthTokensResponse> RefreshToken(string googleFitId, CancellationToken cancellationToken)
+        public override async Task<AuthTokensResponse> RefreshToken(string googleFitId, CancellationToken cancellationToken)
         {
-            string refreshToken;
+            AuthTokensResponse tokensResponse = null;
 
-            _logger.LogInformation("Get RefreshToken from KV for {0}", googleFitId);
-            refreshToken = await _usersKeyvaultRepository.GetByName(googleFitId, cancellationToken);
-
-            _logger.LogInformation("Refreshing the RefreshToken");
-            AuthTokensResponse tokensResponse = await _googleFitAuthService.RefreshTokensRequest(refreshToken, cancellationToken);
-
-            if (!string.IsNullOrEmpty(tokensResponse.RefreshToken))
+            try
             {
-                _logger.LogInformation("Updating refreshToken in KV for {0}", googleFitId);
-                await _usersKeyvaultRepository.Upsert(googleFitId, tokensResponse.RefreshToken, cancellationToken);
+                var refreshToken = await RetrieveRefreshToken(googleFitId, cancellationToken);
+
+                _logger.LogInformation("Refreshing the RefreshToken");
+                tokensResponse = await _googleFitAuthService.RefreshTokensRequest(refreshToken, cancellationToken);
+
+                await StoreRefreshToken(googleFitId, tokensResponse.RefreshToken, cancellationToken);
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogInformation("RefreshToken is empty for {0}", googleFitId);
+                var tokenRefreshException = new TokenRefreshException(ex.Message);
+                _logger.LogError(tokenRefreshException, tokenRefreshException.Message);
             }
 
             return tokensResponse;

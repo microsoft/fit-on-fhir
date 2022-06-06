@@ -24,7 +24,7 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
         private readonly IGoogleFitAuthService _googleFitAuthService;
         private readonly MockLogger<GoogleFitTokensService> _tokensServiceLogger;
-        private readonly IGoogleFitTokensService _googleFitTokensService;
+        private readonly GoogleFitTokensService _googleFitTokensService;
 
         public GoogleFitTokensServiceTests()
         {
@@ -34,7 +34,7 @@ namespace FitOnFhir.GoogleFit.Tests
             _tokensServiceLogger = Substitute.For<MockLogger<GoogleFitTokensService>>();
 
             // create the service
-            _googleFitTokensService = new GoogleFitTokensService(_usersKeyvaultRepository, _googleFitAuthService, _tokensServiceLogger);
+            _googleFitTokensService = new GoogleFitTokensService(_googleFitAuthService, _usersKeyvaultRepository, _tokensServiceLogger);
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitTokensService.RefreshToken(_googleUserId, _cancellationToken);
 
-            _ = _usersKeyvaultRepository.Received(1).GetByName(
+            await _usersKeyvaultRepository.Received(1).GetByName(
                 Arg.Is<string>(userid => userid == _googleUserId),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
         }
@@ -56,7 +56,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitTokensService.RefreshToken(_googleUserId, _cancellationToken);
 
-            _ = _googleFitAuthService.Received(1).RefreshTokensRequest(
+            await _googleFitAuthService.Received(1).RefreshTokensRequest(
                 Arg.Is<string>(refresh => refresh == _refreshToken),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
         }
@@ -68,7 +68,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitTokensService.RefreshToken(_googleUserId, _cancellationToken);
 
-            _ = _usersKeyvaultRepository.Received(1).Upsert(
+            await _usersKeyvaultRepository.Received(1).Upsert(
                 Arg.Is<string>(userid => userid == _googleUserId),
                 Arg.Is<string>(refresh => refresh == _refreshToken),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
