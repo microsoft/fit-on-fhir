@@ -45,13 +45,9 @@ namespace FitOnFhir.GoogleFit.Services
         {
             AuthTokensResponse tokensResponse;
 
-            try
+            tokensResponse = await _googleFitTokensService.RefreshToken(googleFitId, cancellationToken);
+            if (tokensResponse == null)
             {
-                tokensResponse = await _googleFitTokensService.RefreshToken(googleFitId, cancellationToken);
-            }
-            catch (AggregateException ex)
-            {
-                _logger.LogError(ex, ex.Message);
                 return;
             }
 

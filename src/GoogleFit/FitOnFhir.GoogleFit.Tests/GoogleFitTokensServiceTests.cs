@@ -3,12 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using FitOnFhir.Common.Exceptions;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Tests.Mocks;
 using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Services;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace FitOnFhir.GoogleFit.Tests
@@ -108,6 +110,65 @@ namespace FitOnFhir.GoogleFit.Tests
             _tokensServiceLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Information),
                 Arg.Is<string>(msg => msg.StartsWith($"RefreshToken is empty for {_googleUserId}")));
+        }
+
+        [Fact]
+        public async Task GivenGetByNameThrowsException_WhenRefreshTokenIsCalled_RefreshTokenLogsATokenRefreshException()
+        {
+            string exceptionMessage = "retrieve token exception";
+            var exception = new Exception(exceptionMessage);
+
+            _usersKeyvaultRepository.GetByName(
+                Arg.Is<string>(userid => userid == _googleUserId),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(exception);
+
+            await _googleFitTokensService.RefreshToken(_googleUserId, _cancellationToken);
+
+            _tokensServiceLogger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Any<TokenRefreshException>(),
+                Arg.Is<string>(msg => msg == exceptionMessage));
+        }
+
+        [Fact]
+        public async Task GivenRetrieveRefreshTokenThrowsException_WhenRefreshTokenIsCalled_RefreshTokenLogsATokenRefreshException()
+        {
+            string exceptionMessage = "retrieve token exception";
+            var exception = new Exception(exceptionMessage);
+
+            SetupMockSuccessReturns();
+
+            _googleFitAuthService.RefreshTokensRequest(
+                Arg.Is<string>(refresh => refresh == _refreshToken),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(exception);
+
+            await _googleFitTokensService.RefreshToken(_googleUserId, _cancellationToken);
+
+            _tokensServiceLogger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Any<TokenRefreshException>(),
+                Arg.Is<string>(msg => msg == exceptionMessage));
+        }
+
+        [Fact]
+        public async Task GivenUpsertThrowsException_WhenRefreshTokenIsCalled_RefreshTokenLogsATokenRefreshException()
+        {
+            string exceptionMessage = "retrieve token exception";
+            var exception = new Exception(exceptionMessage);
+
+            SetupMockSuccessReturns();
+
+            _usersKeyvaultRepository.Upsert(
+                Arg.Is<string>(userid => userid == _googleUserId),
+                Arg.Is<string>(val => val == _tokensResponse.RefreshToken),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(exception);
+
+            await _googleFitTokensService.RefreshToken(_googleUserId, _cancellationToken);
+
+            _tokensServiceLogger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Any<TokenRefreshException>(),
+                Arg.Is<string>(msg => msg == exceptionMessage));
         }
 
         private void SetupMockSuccessReturns()

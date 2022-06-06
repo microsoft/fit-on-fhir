@@ -67,31 +67,41 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public void GivenRefreshTokenThrowsException_WhenImportIsCalled_ThrowsException()
+        public async Task GivenRefreshTokenReturnsNull_WhenImportIsCalled_ImportReturns()
         {
-            string exceptionMessage = "import exception";
+            AuthTokensResponse tokensResponse = null;
+
             _googleFitTokensService.RefreshToken(
                 Arg.Is<string>(userid => userid == _googleUserId),
-                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(new Exception(exceptionMessage));
-
-            Assert.ThrowsAsync<Exception>(async () => await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken));
-        }
-
-        [Fact]
-        public async Task GivenRefreshTokenThrowsAggregateException_WhenImportIsCalled_ImportLogsAnError()
-        {
-            string exceptionMessage = "import exception";
-            var exception = new AggregateException(exceptionMessage);
-            _googleFitTokensService.RefreshToken(
-                Arg.Is<string>(userid => userid == _googleUserId),
-                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(exception);
+                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(tokensResponse);
 
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
-            _dataImporterLogger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<AggregateException>(exc => exc == exception),
-                Arg.Is<string>(msg => msg == exceptionMessage));
+            await _googleFitClient.DidNotReceive().DataSourcesListRequest(
+                Arg.Is<string>(access => access == _accessToken),
+                Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
+
+            await _usersTableRepository.DidNotReceive().GetById(
+                Arg.Is<string>(usr => usr == _userId),
+                Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
+
+            await _googleFitImportService.DidNotReceive().ProcessDatasetRequests(
+                Arg.Is<GoogleFitUser>(user => user.Id == _googleUserId),
+                Arg.Is<IEnumerable<DataSource>>(list => list == _dataSourcesListResponse.DataSources),
+                Arg.Is<AuthTokensResponse>(tknrsp => tknrsp == _tokensResponse),
+                Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
+
+            await _googleFitUserTableRepository.DidNotReceive().Update(
+                Arg.Is<GoogleFitUser>(usr => usr == _googleFitUser),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken));
+
+            await _usersTableRepository.DidNotReceive().GetById(
+                Arg.Is<string>(userid => userid == _userId),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken));
+
+            await _usersTableRepository.DidNotReceive().Update(
+                Arg.Is<User>(usr => usr == _user),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }
 
         [Fact]
@@ -101,7 +111,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
-            _ = _googleFitClient.Received(1).DataSourcesListRequest(
+            await _googleFitClient.Received(1).DataSourcesListRequest(
                 Arg.Is<string>(access => access == _accessToken),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
         }
@@ -113,7 +123,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
-            _ = _usersTableRepository.Received(1).GetById(
+            await _usersTableRepository.Received(1).GetById(
                 Arg.Is<string>(usr => usr == _userId),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
         }
