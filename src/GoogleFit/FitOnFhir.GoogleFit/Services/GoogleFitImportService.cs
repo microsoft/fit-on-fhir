@@ -40,6 +40,8 @@ namespace FitOnFhir.GoogleFit.Services
             _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
         }
 
+        private int WorkItemCount { get; set; }
+
         /// <inheritdoc/>
         public async Task ProcessDatasetRequests(
             GoogleFitUser user,
@@ -71,11 +73,15 @@ namespace FitOnFhir.GoogleFit.Services
                         // Make the Dataset requests, requesting the next page of data if necessary
                         do
                         {
+                            var now = _utcNowFunc();
+                            var delayUntil = now.Add(GetRequestDelay());
+
                             _logger.LogInformation("Query Dataset: {0}", dataStreamId);
                             var medTechDataset = await _googleFitClient.DatasetRequest(
                                 tokensResponse.AccessToken,
                                 dataSource,
                                 datasetId,
+                                Options.DataPointPageLimit,
                                 cancellationToken,
                                 pageToken);
 
@@ -105,8 +111,18 @@ namespace FitOnFhir.GoogleFit.Services
                             // Use the producer client to send the batch of events to the event hub
                             await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
 
+                            DateTimeOffset syncTime = medTechDataset.GetMaxStartTime() != default ? medTechDataset.GetMaxStartTime() : currentTime;
+
                             // Update the last sync time for this DataSource in the GoogleFitUser
-                            user.SaveLastSyncTime(dataStreamId, currentTime);
+                            user.SaveLastSyncTime(dataStreamId, syncTime);
+
+                            // When large amounts of data are processd we may need to throttle requests to prevent
+                            // exceeding the API rate limits.
+                            now = _utcNowFunc();
+                            if (delayUntil > now)
+                            {
+                                await Task.Delay(delayUntil - now);
+                            }
                         }
                         while (pageToken != null);
                     }
@@ -118,6 +134,8 @@ namespace FitOnFhir.GoogleFit.Services
                         }
                     }
                 }));
+
+            WorkItemCount = workItems.Count();
 
             // Wait for the Dataset request tasks to finish
             await StartWorker(workItems);
@@ -139,6 +157,15 @@ namespace FitOnFhir.GoogleFit.Services
             var startDate = startDateDto.ToUnixTimeMilliseconds() * 1000000;
             var endDate = currentTime.ToUnixTimeMilliseconds() * 1000000;
             return startDate + "-" + endDate;
+        }
+
+        private TimeSpan GetRequestDelay()
+        {
+            GoogleFitImportOptions options = Options;
+            int parallelTaskCount = Math.Min(WorkItemCount, options.ParallelTaskOptions.MaxConcurrency);
+            double requestsPerMinute = Math.Floor((double)(options.MaximumRequestsPerMinute / parallelTaskCount));
+            double delayInSeconds = 60 / requestsPerMinute;
+            return TimeSpan.FromSeconds(delayInSeconds);
         }
 
         public async ValueTask DisposeAsync()

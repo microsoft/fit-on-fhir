@@ -52,7 +52,7 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly MedTechDataset _medTechDataset;
 
         private readonly IGoogleFitClient _googleFitClient;
-        private readonly GoogleFitImportOptions _options = new GoogleFitImportOptions();
+        private readonly GoogleFitImportOptions _options = new GoogleFitImportOptions(new GoogleFitDataImporterContext());
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly MockLogger<GoogleFitImportService> _importServiceLogger;
         private readonly ITelemetryLogger _telemetryLogger;
