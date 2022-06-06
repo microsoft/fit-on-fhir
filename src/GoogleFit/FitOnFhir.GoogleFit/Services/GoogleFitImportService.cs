@@ -10,7 +10,6 @@ using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Responses;
-using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Service;
 using Microsoft.Health.Logging.Telemetry;
@@ -27,7 +26,6 @@ namespace FitOnFhir.GoogleFit.Services
 
         public GoogleFitImportService(
             IGoogleFitClient googleFitClient,
-            IGoogleFitUserTableRepository googleFitUserTableRepository,
             EventHubProducerClient eventHubProducerClient,
             GoogleFitImportOptions options,
             Func<DateTimeOffset> utcNowFunc,
@@ -88,21 +86,21 @@ namespace FitOnFhir.GoogleFit.Services
                             }
 
                             // Save the NextPageToken
-                            pageToken = medTechDataset.GetDataset().NextPageToken;
+                            pageToken = medTechDataset.GetPageToken();
 
                             // Create a batch of events for MedTech Service
                             using var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
-                            _logger.LogInformation("Created EventHub Batch (size {0}, count {1})", eventBatch.SizeInBytes, eventBatch.Count);
 
                             _logger.LogInformation("Push Dataset: {0}", dataStreamId);
 
                             // Push dataset to MedTech Service
-                            // TODO should this be the GoogleFitUser ID or the top level Users partition ID?
                             if (!eventBatch.TryAdd(medTechDataset.ToEventData(user.Id)))
                             {
                                 var eventBatchException = new EventBatchException("Event is too large for the batch and cannot be sent.");
                                 _logger.LogError(eventBatchException, eventBatchException.Message);
                             }
+
+                            _logger.LogInformation("EventHub Batch (size {0}, count {1})", eventBatch.SizeInBytes, eventBatch.Count);
 
                             // Use the producer client to send the batch of events to the event hub
                             await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);

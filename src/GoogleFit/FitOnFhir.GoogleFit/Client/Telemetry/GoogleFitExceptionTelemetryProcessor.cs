@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.Health.Common.Telemetry;
 using Microsoft.Health.Logging.Telemetry;
 
 namespace FitOnFhir.GoogleFit.Client.Telemetry
@@ -20,7 +21,9 @@ namespace FitOnFhir.GoogleFit.Client.Telemetry
             EnsureArg.IsNotNull(ex, nameof(ex));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            return base.HandleException(ex, logger);
+            var exceptionTypeName = ex.GetType().Name;
+            var handledExceptionMetric = ex is NotSupportedException ? GoogleFitMetrics.NotSupported() : GoogleFitMetrics.HandledException(exceptionTypeName, GoogleFitMetrics.ImportOperation);
+            return HandleException(ex, logger, handledExceptionMetric, GoogleFitMetrics.UnhandledException(exceptionTypeName, GoogleFitMetrics.ImportOperation));
         }
     }
 }

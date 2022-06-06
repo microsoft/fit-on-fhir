@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FitOnFhir.GoogleFit.Client.Models
 {
-    public class MedTechDataset
+    public class MedTechDataset : IMedTechDataset
     {
         private readonly Dataset _dataset;
         private readonly DataSource _dataSource;
@@ -23,11 +23,13 @@ namespace FitOnFhir.GoogleFit.Client.Models
             _dataSource = EnsureArg.IsNotNull(dataSource, nameof(dataSource));
         }
 
-        /// <summary>
-        /// Creates an EventData object that includes a serialized JSON represention of the IomtDataset.
-        /// </summary>
-        /// <param name="userId">The oid of the user to include in the EventData.</param>
-        /// <returns><see cref="EventData"/></returns>
+        /// <inheritdoc/>
+        public virtual string GetPageToken()
+        {
+            return _dataset.NextPageToken;
+        }
+
+        /// <inheritdoc/>
         public EventData ToEventData(string userId)
         {
             EnsureArg.IsNotNullOrWhiteSpace(userId, nameof(userId));
@@ -37,15 +39,6 @@ namespace FitOnFhir.GoogleFit.Client.Models
             json[GoogleFitConstants.DeviceIdentifier] = GetDeviceId(userId);
 
             return new EventData(json.ToString());
-        }
-
-        /// <summary>
-        /// Accessor to the <see cref="Dataset"/>
-        /// </summary>
-        /// <returns>The current Dataset value.</returns>
-        public Dataset GetDataset()
-        {
-            return _dataset;
         }
 
         /// <summary>
