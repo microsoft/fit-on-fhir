@@ -4,15 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
+using FitOnFhir.Common.Models;
 using Google.Apis.Auth.OAuth2.Responses;
 
 namespace FitOnFhir.GoogleFit.Client.Responses
 {
-    public class AuthTokensResponse
+    public class AuthTokensResponse : AuthTokenBase
     {
         public string AccessToken { get; set; }
-
-        public string RefreshToken { get; set; }
 
         public JwtSecurityToken IdToken { get; set; }
 

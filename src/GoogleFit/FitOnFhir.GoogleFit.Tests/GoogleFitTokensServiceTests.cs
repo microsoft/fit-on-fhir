@@ -126,7 +126,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             _tokensServiceLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<TokenRefreshException>(),
+                Arg.Is<Exception>(ex => ex == exception),
                 Arg.Is<string>(msg => msg == exceptionMessage));
         }
 
@@ -146,7 +146,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             _tokensServiceLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<TokenRefreshException>(),
+                Arg.Is<Exception>(ex => ex == exception),
                 Arg.Is<string>(msg => msg == exceptionMessage));
         }
 
@@ -167,7 +167,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             _tokensServiceLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<TokenRefreshException>(),
+                Arg.Is<Exception>(ex => ex == exception),
                 Arg.Is<string>(msg => msg == exceptionMessage));
         }
 
@@ -180,11 +180,6 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitAuthService.RefreshTokensRequest(
                 Arg.Is<string>(refresh => refresh == _refreshToken),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_tokensResponse);
-
-            _ = _usersKeyvaultRepository.Upsert(
-                Arg.Is<string>(userid => userid == _googleUserId),
-                Arg.Is<string>(val => val == _tokensResponse.RefreshToken),
-                Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }
     }
 }

@@ -4,44 +4,38 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.Common.Exceptions;
 using FitOnFhir.Common.Repositories;
-using FitOnFhir.Common.Services;
 using FitOnFhir.GoogleFit.Client.Responses;
+using FitOnFhir.GoogleFit.Services;
 using Microsoft.Extensions.Logging;
 
-namespace FitOnFhir.GoogleFit.Services
+namespace FitOnFhir.GoogleFit.Tests.Mocks
 {
-    public class GoogleFitTokensService : TokensServiceBase<AuthTokensResponse>
+    public class MockFaultyGoogleFitTokenService : GoogleFitTokensService
     {
+        private readonly AuthTokensResponse _tokensResponse = default;
+
         private readonly IGoogleFitAuthService _googleFitAuthService;
         private readonly ILogger<GoogleFitTokensService> _logger;
 
-        public GoogleFitTokensService()
-        : base()
+        public MockFaultyGoogleFitTokenService()
+            : base()
         {
         }
 
-        public GoogleFitTokensService(
+        public MockFaultyGoogleFitTokenService(
             IGoogleFitAuthService googleFitAuthService,
             IUsersKeyVaultRepository usersKeyVaultRepository,
             ILogger<GoogleFitTokensService> logger)
-        : base(usersKeyVaultRepository, logger)
+            : base(googleFitAuthService, usersKeyVaultRepository, logger)
         {
             _googleFitAuthService = EnsureArg.IsNotNull(googleFitAuthService, nameof(googleFitAuthService));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        protected override async Task<AuthTokensResponse> UpdateRefreshToken(string refreshToken, CancellationToken cancellationToken)
+        protected override Task<AuthTokensResponse> UpdateRefreshToken(string refreshToken, CancellationToken cancellationToken)
         {
-            try
-            {
-                return await _googleFitAuthService.RefreshTokensRequest(refreshToken, cancellationToken);
-            }
-            catch (Google.Apis.Auth.OAuth2.Responses.TokenResponseException ex)
-            {
-                throw new TokenRefreshException(ex.Message);
-            }
+            return Task.FromResult(_tokensResponse);
         }
     }
 }

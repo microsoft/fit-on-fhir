@@ -4,16 +4,22 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FitOnFhir.Common.Exceptions;
+using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.Common.Services
 {
     public abstract class TokensServiceBase<TTokenResponse>
-        where TTokenResponse : class
+        where TTokenResponse : AuthTokenBase, new()
     {
         private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
         private readonly ILogger _logger;
+
+        public TokensServiceBase()
+        {
+        }
 
         public TokensServiceBase(IUsersKeyVaultRepository usersKeyVaultRepository, ILogger logger)
         {
@@ -21,26 +27,37 @@ namespace FitOnFhir.Common.Services
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        protected async Task<string> RetrieveRefreshToken(string userId, CancellationToken cancellationToken)
+        public async Task<TTokenResponse> RefreshToken(string userId, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Get RefreshToken from KV for {0}", userId);
-            return await _usersKeyVaultRepository.GetByName(userId, cancellationToken);
+            TTokenResponse tokenResponse = default;
+
+            try
+            {
+                _logger.LogInformation("Get RefreshToken from KV for {0}", userId);
+                var refreshToken = await _usersKeyVaultRepository.GetByName(userId, cancellationToken);
+
+                _logger.LogInformation("Refreshing the RefreshToken");
+                tokenResponse = await UpdateRefreshToken(refreshToken, cancellationToken);
+
+                if (!string.IsNullOrEmpty(tokenResponse.RefreshToken))
+                {
+                    _logger.LogInformation("Updating refreshToken in KV for {0}", userId);
+                    await _usersKeyVaultRepository.Upsert(userId, tokenResponse.RefreshToken, cancellationToken);
+                }
+                else
+                {
+                    _logger.LogInformation("RefreshToken is empty for {0}", userId);
+                }
+            }
+            catch (Exception ex) when (ex is not TokenRefreshException)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
+
+            return tokenResponse;
         }
 
-        protected async Task StoreRefreshToken(string userId, string refreshToken, CancellationToken cancellationToken)
-        {
-            if (!string.IsNullOrEmpty(refreshToken))
-            {
-                _logger.LogInformation("Updating refreshToken in KV for {0}", userId);
-                await _usersKeyVaultRepository.Upsert(userId, refreshToken, cancellationToken);
-            }
-            else
-            {
-                _logger.LogInformation("RefreshToken is empty for {0}", userId);
-            }
-        }
-
-        public virtual Task<TTokenResponse> RefreshToken(string userId, CancellationToken cancellationToken)
+        protected virtual Task<TTokenResponse> UpdateRefreshToken(string refreshToken, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

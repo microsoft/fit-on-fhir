@@ -19,7 +19,7 @@ namespace FitOnFhir.GoogleFit.Services
         private readonly IGoogleFitClient _googleFitClient;
         private readonly IGoogleFitImportService _googleFitImportService;
         private readonly ILogger<GoogleFitDataImporter> _logger;
-        private readonly IGoogleFitTokensService _googleFitTokensService;
+        private readonly GoogleFitTokensService _googleFitTokensService;
         private readonly Func<DateTimeOffset> _utcNowFunc;
 
         public GoogleFitDataImporter(
@@ -27,7 +27,7 @@ namespace FitOnFhir.GoogleFit.Services
             IGoogleFitUserTableRepository googleFitUserTableRepository,
             IGoogleFitClient googleFitClient,
             IGoogleFitImportService googleFitImportService,
-            IGoogleFitTokensService googleFitTokensService,
+            GoogleFitTokensService googleFitTokensService,
             Func<DateTimeOffset> utcNowFunc,
             ILogger<GoogleFitDataImporter> logger)
         {
@@ -46,7 +46,7 @@ namespace FitOnFhir.GoogleFit.Services
             AuthTokensResponse tokensResponse;
 
             tokensResponse = await _googleFitTokensService.RefreshToken(googleFitId, cancellationToken);
-            if (tokensResponse == null)
+            if (tokensResponse == default)
             {
                 return;
             }
