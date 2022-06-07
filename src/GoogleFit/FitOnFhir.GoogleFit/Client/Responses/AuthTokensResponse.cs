@@ -11,8 +11,6 @@ namespace FitOnFhir.GoogleFit.Client.Responses
 {
     public class AuthTokensResponse : AuthTokenBase
     {
-        public string AccessToken { get; set; }
-
         public JwtSecurityToken IdToken { get; set; }
 
         public static bool TryParse(TokenResponse tokenResponse, out AuthTokensResponse response)

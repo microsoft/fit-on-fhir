@@ -3,12 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace FitOnFhir.Common.Models
-{
-    public class AuthTokenBase
-    {
-        public string RefreshToken { get; set; }
+using FitOnFhir.Common.Interfaces;
+using FitOnFhir.GoogleFit.Client.Responses;
 
-        public string AccessToken { get; set; }
+namespace FitOnFhir.GoogleFit.Services
+{
+    public interface IGoogleFitTokensService : ITokensService<AuthTokensResponse>
+    {
     }
 }

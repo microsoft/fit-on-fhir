@@ -11,7 +11,6 @@ using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.GoogleFit.Services;
-using FitOnFhir.GoogleFit.Tests.Mocks;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -41,9 +40,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
         private readonly IGoogleFitAuthService _googleFitAuthService;
         private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
-        private readonly MockLogger<GoogleFitTokensService> _tokensServiceLogger;
-        private readonly MockGoogleFitTokenService _googleFitTokensService;
-        private readonly MockFaultyGoogleFitTokenService _faultyGoogleFitTokenService;
+        private readonly IGoogleFitTokensService _googleFitTokensService;
 
         public GoogleFitDataImporterTests()
         {
@@ -55,18 +52,9 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitClient = Substitute.For<IGoogleFitClient>();
             _dataImporterLogger = Substitute.For<MockLogger<GoogleFitDataImporter>>();
             _googleFitImportService = Substitute.For<IGoogleFitImportService>();
-
+            _googleFitTokensService = Substitute.For<IGoogleFitTokensService>();
             _googleFitAuthService = Substitute.For<IGoogleFitAuthService>();
             _usersKeyVaultRepository = Substitute.For<IUsersKeyVaultRepository>();
-            _tokensServiceLogger = Substitute.For<MockLogger<GoogleFitTokensService>>();
-            _googleFitTokensService = new MockGoogleFitTokenService(
-                _googleFitAuthService,
-                _usersKeyVaultRepository,
-                _tokensServiceLogger);
-            _faultyGoogleFitTokenService = new MockFaultyGoogleFitTokenService(
-                _googleFitAuthService,
-                _usersKeyVaultRepository,
-                _tokensServiceLogger);
 
             _utcNowFunc = Substitute.For<Func<DateTimeOffset>>();
             var now = DateTimeOffset.Parse("01/12/2004");
@@ -86,16 +74,11 @@ namespace FitOnFhir.GoogleFit.Tests
         [Fact]
         public async Task GivenRefreshTokenReturnsDefault_WhenImportIsCalled_ImportReturns()
         {
-            // create a different service, with a GoogleFitTokensService mock (_faultyGoogleFitTokensService)
-            // that uses an UpdateRefreshToken callback override which returns a default AuthTokensResponse
-            _googleFitDataImporter = new GoogleFitDataImporter(
-                _usersTableRepository,
-                _googleFitUserTableRepository,
-                _googleFitClient,
-                _googleFitImportService,
-                _faultyGoogleFitTokenService,
-                _utcNowFunc,
-                _dataImporterLogger);
+            AuthTokensResponse defaultAuthTokensResponse = default;
+
+            _googleFitTokensService.RefreshToken(
+                Arg.Is<string>(userid => userid == _googleUserId),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(defaultAuthTokensResponse);
 
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
@@ -234,6 +217,10 @@ namespace FitOnFhir.GoogleFit.Tests
 
         private void SetupMockSuccessReturns()
         {
+            _googleFitTokensService.RefreshToken(
+                Arg.Is<string>(userid => userid == _googleUserId),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_tokensResponse);
+
             _googleFitClient.DataSourcesListRequest(
               Arg.Is<string>(access => access == _tokensResponse.AccessToken),
               Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_dataSourcesListResponse);

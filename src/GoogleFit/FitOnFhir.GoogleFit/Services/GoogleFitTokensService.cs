@@ -12,15 +12,10 @@ using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.GoogleFit.Services
 {
-    public class GoogleFitTokensService : TokensServiceBase<AuthTokensResponse>
+    public class GoogleFitTokensService : TokensServiceBase<AuthTokensResponse>, IGoogleFitTokensService
     {
         private readonly IGoogleFitAuthService _googleFitAuthService;
         private readonly ILogger<GoogleFitTokensService> _logger;
-
-        public GoogleFitTokensService()
-        : base()
-        {
-        }
 
         public GoogleFitTokensService(
             IGoogleFitAuthService googleFitAuthService,

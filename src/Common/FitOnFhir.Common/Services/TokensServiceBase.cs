@@ -5,21 +5,18 @@
 
 using EnsureThat;
 using FitOnFhir.Common.Exceptions;
+using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.Common.Services
 {
-    public abstract class TokensServiceBase<TTokenResponse>
-        where TTokenResponse : AuthTokenBase, new()
+    public abstract class TokensServiceBase<TTokenResponse> : ITokensService<TTokenResponse>
+        where TTokenResponse : AuthTokenBase
     {
         private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
         private readonly ILogger _logger;
-
-        public TokensServiceBase()
-        {
-        }
 
         public TokensServiceBase(IUsersKeyVaultRepository usersKeyVaultRepository, ILogger logger)
         {
@@ -57,9 +54,6 @@ namespace FitOnFhir.Common.Services
             return tokenResponse;
         }
 
-        protected virtual Task<TTokenResponse> UpdateRefreshToken(string refreshToken, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        protected abstract Task<TTokenResponse> UpdateRefreshToken(string refreshToken, CancellationToken cancellationToken);
     }
 }
