@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Messaging.EventHubs;
+using FitOnFhir.GoogleFit.Client.Config;
 using Google.Apis.Fitness.v1.Data;
 
 namespace FitOnFhir.GoogleFit.Client.Models

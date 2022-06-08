@@ -5,7 +5,7 @@
 
 using Microsoft.Health.Common.Service;
 
-namespace FitOnFhir.GoogleFit.Client
+namespace FitOnFhir.GoogleFit.Client.Config
 {
     public class GoogleFitDataImporterContext
     {

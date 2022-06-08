@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.GoogleFit.Client;
+using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Responses;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
@@ -17,28 +17,28 @@ namespace FitOnFhir.GoogleFit.Services
     public class GoogleFitAuthService : IGoogleFitAuthService
     {
         private readonly ILogger<GoogleFitAuthService> _logger;
-        private readonly GoogleFitClientContext _clientContext;
+        private readonly GoogleFitAuthorizationConfiguration _authorizationConfiguration;
         private readonly GoogleAuthorizationCodeFlow _googleAuthorizationCodeFlow;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GoogleFitAuthService"/> class.
         /// </summary>
         /// <param name="logger">The <see cref="ILogger"/> for this service.</param>
-        /// <param name="clientContext">The <see cref="GoogleFitClientContext"/> to be used by this service.</param>
-        public GoogleFitAuthService(ILogger<GoogleFitAuthService> logger, GoogleFitClientContext clientContext)
+        /// <param name="authorizationConfiguration">The <see cref="GoogleFitAuthorizationConfiguration"/> to be used by this service.</param>
+        public GoogleFitAuthService(ILogger<GoogleFitAuthService> logger, GoogleFitAuthorizationConfiguration authorizationConfiguration)
         {
             _logger = EnsureArg.IsNotNull(logger);
-            _clientContext = EnsureArg.IsNotNull(clientContext);
+            _authorizationConfiguration = EnsureArg.IsNotNull(authorizationConfiguration);
             _googleAuthorizationCodeFlow = new GoogleAuthorizationCodeFlow(
                 new GoogleAuthorizationCodeFlow.Initializer
                 {
                     ClientSecrets = new ClientSecrets
                     {
-                        ClientId = clientContext.ClientId,
-                        ClientSecret = clientContext.ClientSecret,
+                        ClientId = authorizationConfiguration.ClientId,
+                        ClientSecret = authorizationConfiguration.ClientSecret,
                     },
 
-                    Scopes = clientContext.DefaultScopes,
+                    Scopes = authorizationConfiguration.DefaultScopes,
                 });
         }
 
@@ -47,7 +47,7 @@ namespace FitOnFhir.GoogleFit.Services
         {
             var request = new AuthorizationCodeWebApp(
                 _googleAuthorizationCodeFlow,
-                _clientContext.CallbackUri,
+                _authorizationConfiguration.CallbackUri,
                 string.Empty);
 
             var result = await request.AuthorizeAsync("user", cancellationToken);
@@ -70,7 +70,7 @@ namespace FitOnFhir.GoogleFit.Services
         /// <inheritdoc/>
         public async Task<AuthTokensResponse> AuthTokensRequest(string authCode, CancellationToken cancellationToken)
         {
-            TokenResponse tokenResponse = await _googleAuthorizationCodeFlow.ExchangeCodeForTokenAsync("me", authCode, _clientContext.CallbackUri, cancellationToken);
+            TokenResponse tokenResponse = await _googleAuthorizationCodeFlow.ExchangeCodeForTokenAsync("me", authCode, _authorizationConfiguration.CallbackUri, cancellationToken);
 
             AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
             return response;

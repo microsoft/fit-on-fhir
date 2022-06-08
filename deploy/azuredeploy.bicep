@@ -12,8 +12,8 @@ param google_client_secret string
 @description('Service prinicipal ID to give permissions for key vaults.')
 param spid string
 
-@description('The repository where the googlefit-on-fhir source code resides.')
-param repository_url string = 'https://github.com/Microsoft/googlefit-on-fhir'
+@description('The repository where the fit-on-fhir source code resides.')
+param repository_url string = 'https://github.com/Microsoft/fit-on-fhir'
 
 @description('The source code branch to be deployed')
 param repository_branch string = 'main'
@@ -310,14 +310,14 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/Authorization/FitOnFhir.Authorization/FitOnFhir.Authorization.csproj'
-    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    'AzureConfiguration__AzureWebJobsStorage': 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     WEBSITE_CONTENTSHARE: 'authorize-${basename}-${take(uniqueString('authorize-', basename), 4)}'
-    GOOGLE_OAUTH_CLIENT_ID: google_client_id
-    GOOGLE_OAUTH_CLIENT_SECRET: google_client_secret
-    USERS_KEY_VAULT_URI: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
+    'GoogleFitAuthorizationConfiguration__ClientId': google_client_id
+    'GoogleFitAuthorizationConfiguration__ClientSecret': google_client_secret
+    'AzureConfiguration__UsersKeyVaultUri': 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
   }
 }
 
@@ -363,7 +363,7 @@ resource import_timer_basename_appsettings 'Microsoft.Web/sites/config@2015-08-0
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/FitOnFhir.ImportTimerTrigger.csproj'
-    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    'AzureConfiguration__AzureWebJobsStorage': 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
@@ -417,15 +417,15 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/Import/FitOnFhir.Import/FitOnFhir.Import.csproj'
-    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    'AzureConfiguration__AzureWebJobsStorage': 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     WEBSITE_CONTENTSHARE: 'import-data-${basename}-${take(uniqueString('import-data-', basename), 4)}'
-    EventHubConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', split('${infraKvName}/eventhub-connection-string', '/')[0], split('${infraKvName}/eventhub-connection-string', '/')[1])).secretUriWithVersion})'
-    GOOGLE_OAUTH_CLIENT_ID: google_client_id
-    GOOGLE_OAUTH_CLIENT_SECRET: google_client_secret
-    USERS_KEY_VAULT_URI: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
+    'AzureConfiguration__EventHubConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', split('${infraKvName}/eventhub-connection-string', '/')[0], split('${infraKvName}/eventhub-connection-string', '/')[1])).secretUriWithVersion})'
+    'GoogleFitAuthorizationConfiguration__ClientId': google_client_id
+    'GoogleFitAuthorizationConfiguration__ClientSecret': google_client_secret
+    'AzureConfiguration__UsersKeyVaultUri': 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
   }
   dependsOn: [
     infraKvName_eventhub_connection_string
