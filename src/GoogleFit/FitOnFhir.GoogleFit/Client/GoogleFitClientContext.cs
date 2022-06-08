@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using EnsureThat;
 using FitOnFhir.GoogleFit.Common;
 using Google.Apis.Fitness.v1;

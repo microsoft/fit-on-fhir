@@ -52,11 +52,11 @@ namespace FitOnFhir.GoogleFit.Services
             }
 
             // Get DataSources list for this user
-            _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest");
+            _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest for user: {0}, platformId: {1}", userId, googleFitId);
             var dataSourcesList = await _googleFitClient.DataSourcesListRequest(tokensResponse.AccessToken, cancellationToken);
 
             // Get user sync times
-            _logger.LogInformation("Query userInfo");
+            _logger.LogInformation("Query userInfo for user: {0}, platformId: {1}", userId, googleFitId);
             var googleUser = await _googleFitUserTableRepository.GetById(googleFitId, cancellationToken);
 
             // Request the datasets from each datasource, based on the datasetId
@@ -72,12 +72,14 @@ namespace FitOnFhir.GoogleFit.Services
             await _googleFitUserTableRepository.Update(googleUser, cancellationToken);
 
             // Get user's info for LastSync date
-            _logger.LogInformation("Query userInfo");
+            _logger.LogInformation("Query userInfo for user: {0}, platformId: {1}", userId, googleFitId);
             var user = await _usersTableRepository.GetById(userId, cancellationToken);
 
             // Update LastSync column
             user.LastTouched = _utcNowFunc();
             await _usersTableRepository.Update(user, cancellationToken);
+
+            _logger.LogInformation("Import finalized: {0}, platformId", userId, googleFitId);
         }
     }
 }

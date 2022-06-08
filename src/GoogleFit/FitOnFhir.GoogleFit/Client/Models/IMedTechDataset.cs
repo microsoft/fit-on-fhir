@@ -16,13 +16,19 @@ namespace FitOnFhir.GoogleFit.Client.Models
         /// When NextPageToken is null, there are no more results left to retrieve from the <see cref="Google.Apis.Fitness.v1.Data.DataSource"/>
         /// for the data set ID specified.
         /// </summary>
-        public string GetPageToken();
+        string GetPageToken();
 
         /// <summary>
         /// Creates an EventData object that includes a serialized JSON represention of the IomtDataset.
         /// </summary>
         /// <param name="userId">The oid of the user to include in the EventData.</param>
         /// <returns><see cref="EventData"/></returns>
-        public EventData ToEventData(string userId);
+        EventData ToEventData(string userId);
+
+        /// <summary>
+        /// Gets the latest (most recent) start time from all points in the Dataset.
+        /// </summary>
+        /// <returns><see cref="DateTimeOffset"/></returns>
+        DateTimeOffset GetMaxStartTime();
     }
 }

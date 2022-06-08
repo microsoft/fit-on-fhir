@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Azure.Messaging.EventHubs;
-using FitOnFhir.Common.Exceptions;
 using FitOnFhir.Common.Tests.Mocks;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
@@ -27,7 +25,6 @@ namespace FitOnFhir.GoogleFit.Tests
         private const string _googleUserId = "me";
         private const string _accessToken = "AccessToken";
         private const string _refreshToken = "RefreshToken";
-        private const string _eventBody = "EventBody";
         private const string _dataStreamId = "DataStreamId";
         private const string _deviceUid = "DeviceUid";
         private const string _applicationPackageName = "ApplicationPackageName";
@@ -42,13 +39,15 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly DateTimeOffset _now =
             new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
 
+        private readonly DateTimeOffset _lastSyncTime =
+            new DateTimeOffset(2004, 1, 11, 11, 59, 59, new TimeSpan(-5, 0, 0));
+
         private readonly DateTimeOffset _oneDayBack =
             new DateTimeOffset(2004, 1, 11, 0, 0, 0, new TimeSpan(-5, 0, 0));
 
         private readonly GoogleFitUser _googleFitUser;
         private readonly MockEventHubProducerClient _eventHubProducerClient;
         private readonly MockFaultyEventHubProducerClient _faultyEventHubProducerClient;
-        private readonly EventData _eventData;
         private readonly MedTechDataset _medTechDataset;
 
         private readonly IGoogleFitClient _googleFitClient;
@@ -61,7 +60,6 @@ namespace FitOnFhir.GoogleFit.Tests
         public GoogleFitImportServiceTests()
         {
             _googleFitUser = Substitute.For<GoogleFitUser>(_googleUserId);
-            _eventData = new EventData(_eventBody);
 
             _medTechDataset = Substitute.For<MedTechDataset>(_dataset, _dataSource);
             _dataSources.Add(_dataSource);
@@ -96,6 +94,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Is<DataSource>(ds => ds == _dataSource),
                 Arg.Is<string>(str => str == thirtyDaysBackDataSetId),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }
 
@@ -117,6 +116,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Is<DataSource>(ds => ds == _dataSource),
                 Arg.Is<string>(str => str == oneDayBackDataSetId),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }
 
@@ -124,12 +124,13 @@ namespace FitOnFhir.GoogleFit.Tests
         public async Task GivenNoDataSetForDataSource_WhenDatasetRequestIsCalled_WorkerThreadContinues()
         {
             MedTechDataset nullMedTechDataset = null;
-            string loggerMsg = "No Dataset for: DataStreamId";
+            string loggerMsg = $"No Dataset for: DataStreamId for user: {_googleUserId}";
 
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(nullMedTechDataset);
 
             await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
@@ -146,7 +147,7 @@ namespace FitOnFhir.GoogleFit.Tests
         [Fact]
         public async Task GivenEventDataBatchTryAddReturnsFalse_WhenMedTechDatasetAdded_EventBatchExceptionIsLogged()
         {
-            string exceptionMessage = "Event is too large for the batch and cannot be sent.";
+            string errorMessaage = $"Event data too large, Dataset: 0, User: {_dataStreamId}";
 
             // create a different service, with an EventHubProducerClient mock (_faultyEventHubProducerClient)
             // that uses a TryAdd callback override which returns false
@@ -164,8 +165,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             _importServiceLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<EventBatchException>(),
-                Arg.Is<string>(msg => msg == exceptionMessage));
+                Arg.Is<string>(msg => msg == errorMessaage));
         }
 
         [Fact]
@@ -185,6 +185,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(datasetRequestException);
 
             Assert.ThrowsAsync<Exception>(async () => await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken));
@@ -207,6 +208,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(datasetRequestAggregateException);
 
             await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
@@ -221,6 +223,8 @@ namespace FitOnFhir.GoogleFit.Tests
         {
             string nextPageToken = "next page";
             string nullPageToken = null;
+            _medTechDataset.GetMaxStartTime().Returns(_lastSyncTime);
+            _medTechDataset.GetPageToken().Returns(nextPageToken);
 
             _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<DateTimeOffset>())
                 .Returns(x =>
@@ -235,16 +239,19 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
                 Arg.Is<string>(str => str == null)).Returns(_medTechDataset);
 
             MedTechDataset lastMedTechDataset = Substitute.For<MedTechDataset>(_dataset, _dataSource);
+            lastMedTechDataset.GetMaxStartTime().Returns(_lastSyncTime);
             lastMedTechDataset.GetPageToken().Returns(nullPageToken);
 
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
                 Arg.Is<string>(str => str == nextPageToken)).Returns(lastMedTechDataset);
 
@@ -253,7 +260,7 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<DateTimeOffset>());
             Assert.Equal(2, _eventHubProducerClient.CreateBatchAsyncCalls);
             Assert.Equal(2, _eventHubProducerClient.SendAsyncCalls);
-            _googleFitUser.Received(2).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<DateTimeOffset>(dto => dto == _utcNowFunc()));
+            _googleFitUser.Received(2).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<DateTimeOffset>(dto => dto == _lastSyncTime));
         }
 
         [Fact]
@@ -266,7 +273,20 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<DateTimeOffset>());
             Assert.Equal(1, _eventHubProducerClient.CreateBatchAsyncCalls);
             Assert.Equal(1, _eventHubProducerClient.SendAsyncCalls);
-            _googleFitUser.Received(1).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<DateTimeOffset>(dto => dto == _utcNowFunc()));
+            _googleFitUser.Received(1).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<DateTimeOffset>(dto => dto == _lastSyncTime));
+        }
+
+        [Fact]
+        public async Task GivenMaximumRequestsPerMinuteExceeded_WhenProcessDatasetRequestsIsCalled_RequestsAreThrottled()
+        {
+            SetupMockSuccessReturns();
+
+            await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
+
+            _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<DateTimeOffset>());
+            Assert.Equal(1, _eventHubProducerClient.CreateBatchAsyncCalls);
+            Assert.Equal(1, _eventHubProducerClient.SendAsyncCalls);
+            _googleFitUser.Received(1).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<DateTimeOffset>(dto => dto == _lastSyncTime));
         }
 
         private void SetupMockSuccessReturns()
@@ -274,6 +294,7 @@ namespace FitOnFhir.GoogleFit.Tests
             string nullPageToken = null;
 
             _medTechDataset.GetPageToken().Returns(nullPageToken);
+            _medTechDataset.GetMaxStartTime().Returns(_lastSyncTime);
 
             _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<DateTimeOffset>())
                 .Returns(x =>
@@ -286,6 +307,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
                 Arg.Is<string>(str => str == null)).Returns(_medTechDataset);
         }

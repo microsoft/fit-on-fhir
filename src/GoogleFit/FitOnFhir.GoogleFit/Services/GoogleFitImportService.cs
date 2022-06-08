@@ -5,7 +5,6 @@
 
 using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
-using FitOnFhir.Common.Exceptions;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Models;
@@ -58,25 +57,26 @@ namespace FitOnFhir.GoogleFit.Services
                         var dataStreamId = dataSource.DataStreamId;
                         string pageToken = null;
                         string datasetId;
-                        DateTimeOffset currentTime;
 
                         // Get the time this data stream was synced from the GoogleFitUser object
                         if (user.TryGetLastSyncTime(dataStreamId, out var lastSyncTime))
                         {
-                            datasetId = GenerateDataSetId(lastSyncTime, out currentTime);
+                            datasetId = GenerateDataSetId(lastSyncTime);
                         }
                         else
                         {
-                            datasetId = GenerateDataSetId(default, out currentTime);
+                            datasetId = GenerateDataSetId(default);
                         }
 
                         // Make the Dataset requests, requesting the next page of data if necessary
                         do
                         {
+                            // Calculate if a delay needs to be added after a request is made.
+                            // Requests may need to be throttled to avoid 429 responses from Google.
                             var now = _utcNowFunc();
                             var delayUntil = now.Add(GetRequestDelay());
 
-                            _logger.LogInformation("Query Dataset: {0}", dataStreamId);
+                            _logger.LogInformation("Query Dataset: {0} for user: {1}", dataStreamId, user.Id);
                             var medTechDataset = await _googleFitClient.DatasetRequest(
                                 tokensResponse.AccessToken,
                                 dataSource,
@@ -87,8 +87,8 @@ namespace FitOnFhir.GoogleFit.Services
 
                             if (medTechDataset == null)
                             {
-                                _logger.LogInformation("No Dataset for: {0}", dataStreamId);
-                                continue;
+                                _logger.LogInformation("No Dataset for: {0} for user: {1}", dataStreamId, user.Id);
+                                break;
                             }
 
                             // Save the NextPageToken
@@ -97,31 +97,44 @@ namespace FitOnFhir.GoogleFit.Services
                             // Create a batch of events for MedTech Service
                             using var eventBatch = await _eventHubProducerClient.CreateBatchAsync(cancellationToken);
 
-                            _logger.LogInformation("Push Dataset: {0}", dataStreamId);
+                            _logger.LogInformation("Push Dataset: {0} for user: {1}", dataStreamId, user.Id);
 
                             // Push dataset to MedTech Service
                             if (!eventBatch.TryAdd(medTechDataset.ToEventData(user.Id)))
                             {
-                                var eventBatchException = new EventBatchException("Event is too large for the batch and cannot be sent.");
-                                _logger.LogError(eventBatchException, eventBatchException.Message);
+                                _logger.LogError("Event data too large, Dataset: {1}, User: {2}", eventBatch.SizeInBytes, dataStreamId, user.Id);
                             }
 
-                            _logger.LogInformation("EventHub Batch (size {0}, count {1})", eventBatch.SizeInBytes, eventBatch.Count);
+                            _logger.LogInformation("EventHub Batch (actual bytes {0}, maximum bytes {1}), Dataset: {2}, User: {3}", eventBatch.SizeInBytes, eventBatch.MaximumSizeInBytes, dataStreamId, user.Id);
 
                             // Use the producer client to send the batch of events to the event hub
                             await _eventHubProducerClient.SendAsync(eventBatch, cancellationToken);
 
-                            DateTimeOffset syncTime = medTechDataset.GetMaxStartTime() != default ? medTechDataset.GetMaxStartTime() : currentTime;
+                            // Calculate the latest start time in the data set.
+                            // There might be a delay in when data arrives to the Google service,
+                            // so always sync from the last known start date of data.
+                            DateTimeOffset lastStartTime = medTechDataset.GetMaxStartTime();
 
-                            // Update the last sync time for this DataSource in the GoogleFitUser
-                            user.SaveLastSyncTime(dataStreamId, syncTime);
+                            if (lastStartTime != default)
+                            {
+                                // Update the last sync time for this DataSource in the GoogleFitUser
+                                _logger.LogInformation("Saving last sync time for Dataset: {0} for user: {1}", dataStreamId, user.Id);
+                                user.SaveLastSyncTime(dataStreamId, lastStartTime);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("No latest start date found for Dataset: {0} for user: {1}", dataStreamId, user.Id);
+                            }
 
                             // When large amounts of data are processd we may need to throttle requests to prevent
                             // exceeding the API rate limits.
                             now = _utcNowFunc();
                             if (delayUntil > now)
                             {
-                                await Task.Delay(delayUntil - now);
+                                TimeSpan delay = delayUntil - now;
+                                _logger.LogInformation("Throttling request for Dataset: {0} for user: {1}. Delay ms: {2}", dataStreamId, user.Id, delay.TotalMilliseconds);
+
+                                await Task.Delay(delay);
                             }
                         }
                         while (pageToken != null);
@@ -141,7 +154,7 @@ namespace FitOnFhir.GoogleFit.Services
             await StartWorker(workItems);
         }
 
-        private string GenerateDataSetId(DateTimeOffset lastSyncTime, out DateTimeOffset currentTime)
+        private string GenerateDataSetId(DateTimeOffset lastSyncTime)
         {
             // if this DataSource has never been synced before, then retrieve 30 days prior worth of data
             DateTimeOffset startDateDto = _utcNowFunc().AddDays(-30);
@@ -151,7 +164,7 @@ namespace FitOnFhir.GoogleFit.Services
             }
 
             // Convert to DateTimeOffset to so .NET unix conversion is usable
-            currentTime = _utcNowFunc();
+            DateTimeOffset currentTime = _utcNowFunc();
 
             // .NET unix conversion only goes as small as milliseconds, multiplying to get nanoseconds
             var startDate = startDateDto.ToUnixTimeMilliseconds() * 1000000;

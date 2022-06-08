@@ -60,6 +60,7 @@ namespace FitOnFhir.Import
             builder.Services.AddSingleton<GoogleFitDataImportHandler>();
             builder.Services.AddSingleton<UnknownDataImportHandler>();
             builder.Services.AddSingleton<IGoogleFitImportService, GoogleFitImportService>();
+            builder.Services.AddSingleton<GoogleFitDataImporterContext>();
             builder.Services.AddSingleton<GoogleFitImportOptions>();
             builder.Services.AddSingleton<GoogleFitExceptionTelemetryProcessor>();
             builder.Services.AddSingleton<ITelemetryLogger, TelemetryLogger>();

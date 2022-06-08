@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Runtime.ExceptionServices;
 using System.Text;
 using Azure.Messaging.EventHubs;
 using EnsureThat;
@@ -30,7 +29,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
             return _dataset.NextPageToken;
         }
 
-        public DateTimeOffset GetMaxStartTime()
+        public virtual DateTimeOffset GetMaxStartTime()
         {
             if (_dataset.Point != null && _dataset.Point.Any())
             {
