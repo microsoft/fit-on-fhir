@@ -3,7 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using FitOnFhir.Authorization;
 using FitOnFhir.Authorization.Services;
 using FitOnFhir.Common;
@@ -36,7 +39,16 @@ namespace FitOnFhir.Authorization
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
             builder.Services.AddConfiguration<AzureConfiguration>(configuration);
 
-            builder.Services.AddSingleton<StorageAccountContext>();
+            builder.Services.AddSingleton(sp =>
+            {
+                var azureConfiguration = sp.GetService<AzureConfiguration>();
+                return new StorageAccountContext(azureConfiguration.AzureWebJobsStorage);
+            });
+            builder.Services.AddSingleton(sp =>
+            {
+                var azureConfiguration = sp.GetService<AzureConfiguration>();
+                return new SecretClient(new Uri(azureConfiguration.UsersKeyVaultUri), new DefaultAzureCredential());
+            });
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();

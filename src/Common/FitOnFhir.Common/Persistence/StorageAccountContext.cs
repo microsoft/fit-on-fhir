@@ -3,15 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Config;
-
 namespace FitOnFhir.Common.Persistence
 {
     public class StorageAccountContext : ConnectionStringContext
     {
-        public StorageAccountContext(AzureConfiguration azureConfiguration)
+        public StorageAccountContext(string connectionString)
+            : base(connectionString)
         {
-            ConnectionString = azureConfiguration.AzureWebJobsStorage;
         }
     }
 }

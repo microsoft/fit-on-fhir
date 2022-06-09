@@ -5,7 +5,9 @@
 
 using System;
 using System.Threading.Tasks;
+using Azure.Identity;
 using Azure.Messaging.EventHubs.Producer;
+using Azure.Security.KeyVault.Secrets;
 using FitOnFhir.Common;
 using FitOnFhir.Common.Config;
 using FitOnFhir.Common.ExtensionMethods;
@@ -40,7 +42,21 @@ namespace FitOnFhir.Import
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
             builder.Services.AddConfiguration<AzureConfiguration>(configuration);
 
-            builder.Services.AddSingleton<StorageAccountContext>();
+            builder.Services.AddSingleton(sp =>
+            {
+                var azureConfiguration = sp.GetService<AzureConfiguration>();
+                return new StorageAccountContext(azureConfiguration.AzureWebJobsStorage);
+            });
+            builder.Services.AddSingleton(sp =>
+            {
+                var azureConfiguration = sp.GetService<AzureConfiguration>();
+                return new EventHubProducerClient(azureConfiguration.EventHubConnectionString);
+            });
+            builder.Services.AddSingleton(sp =>
+            {
+                var azureConfiguration = sp.GetService<AzureConfiguration>();
+                return new SecretClient(new Uri(azureConfiguration.UsersKeyVaultUri), new DefaultAzureCredential());
+            });
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
@@ -58,11 +74,6 @@ namespace FitOnFhir.Import
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton<IGoogleFitTokensService, GoogleFitTokensService>();
             builder.Services.AddSingleton(typeof(Func<DateTimeOffset>), () => DateTimeOffset.UtcNow);
-            builder.Services.AddSingleton(sp =>
-            {
-                var azureConfiguration = sp.GetService<AzureConfiguration>();
-                return new EventHubProducerClient(azureConfiguration.EventHubConnectionString);
-            });
             builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<ImportRequest, Task<bool?>>(typeof(GoogleFitDataImportHandler), typeof(UnknownDataImportHandler)));
         }
     }

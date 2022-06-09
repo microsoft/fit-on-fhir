@@ -7,6 +7,11 @@ namespace FitOnFhir.Common.Persistence
 {
     public class ConnectionStringContext
     {
+        public ConnectionStringContext(string connectionString)
+        {
+            ConnectionString = connectionString;
+        }
+
         public string ConnectionString { get; set; }
     }
 }
