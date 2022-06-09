@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.6.18.56646",
-      "templateHash": "10558320632758782820"
+      "templateHash": "9730854292908359556"
     }
   },
   "parameters": {
@@ -39,9 +39,9 @@
     },
     "repository_url": {
       "type": "string",
-      "defaultValue": "https://github.com/Microsoft/googlefit-on-fhir",
+      "defaultValue": "https://github.com/Microsoft/fit-on-fhir",
       "metadata": {
-        "description": "The repository where the googlefit-on-fhir source code resides."
+        "description": "The repository where the fit-on-fhir source code resides."
       }
     },
     "repository_branch": {
@@ -390,13 +390,14 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/Authorization/FitOnFhir.Authorization/FitOnFhir.Authorization.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "AzureConfiguration__AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "WEBSITE_CONTENTSHARE": "[format('authorize-{0}-{1}', parameters('basename'), take(uniqueString('authorize-', parameters('basename')), 4))]",
-        "GOOGLE_OAUTH_CLIENT_ID": "[parameters('google_client_id')]",
-        "GOOGLE_OAUTH_CLIENT_SECRET": "[parameters('google_client_secret')]",
-        "USERS_KEY_VAULT_URI": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
+        "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
+        "GoogleFitAuthorizationConfiguration__ClientSecret": "[parameters('google_client_secret')]",
+        "AzureConfiguration__UsersKeyVaultUri": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
@@ -453,6 +454,7 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/FitOnFhir.ImportTimerTrigger.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "AzureConfiguration__AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
@@ -515,14 +517,15 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/Import/FitOnFhir.Import/FitOnFhir.Import.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "AzureConfiguration__AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "WEBSITE_CONTENTSHARE": "[format('import-data-{0}-{1}', parameters('basename'), take(uniqueString('import-data-', parameters('basename')), 4))]",
-        "EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[0], split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[1])).secretUriWithVersion)]",
-        "GOOGLE_OAUTH_CLIENT_ID": "[parameters('google_client_id')]",
-        "GOOGLE_OAUTH_CLIENT_SECRET": "[parameters('google_client_secret')]",
-        "USERS_KEY_VAULT_URI": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
+        "AzureConfiguration__EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[0], split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[1])).secretUriWithVersion)]",
+        "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
+        "GoogleFitAuthorizationConfiguration__ClientSecret": "[parameters('google_client_secret')]",
+        "AzureConfiguration__UsersKeyVaultUri": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
