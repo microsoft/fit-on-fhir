@@ -5,6 +5,7 @@
 
 using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
+using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Models;
@@ -39,7 +40,7 @@ namespace FitOnFhir.GoogleFit.Services
             _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
         }
 
-        private int WorkItemCount { get; set; }
+        private RequestLimiter Limiter { get; set; }
 
         /// <inheritdoc/>
         public async Task ProcessDatasetRequests(
@@ -48,6 +49,8 @@ namespace FitOnFhir.GoogleFit.Services
             AuthTokensResponse tokensResponse,
             CancellationToken cancellationToken)
         {
+            Limiter = new RequestLimiter(Options.MaximumRequestsPerMinute, _utcNowFunc);
+
             var workItems = dataSources.Select(
                 dataSource => new Func<Task>(
                 async () =>
@@ -73,8 +76,12 @@ namespace FitOnFhir.GoogleFit.Services
                         {
                             // Calculate if a delay needs to be added after a request is made.
                             // Requests may need to be throttled to avoid 429 responses from Google.
-                            var now = _utcNowFunc();
-                            var delayUntil = now.Add(GetRequestDelay());
+                            if (Limiter.TryThrottle(cancellationToken, out Task delayTask, out double delayMs))
+                            {
+                                // When large amounts of data are processd we may need to throttle requests to prevent exceeding the API rate limits.
+                                _logger.LogInformation("Throttling request for Dataset: {0} for user: {1}. Delay ms: {2}", dataStreamId, user.Id, delayMs);
+                                await delayTask;
+                            }
 
                             _logger.LogInformation("Query Dataset: {0} for user: {1}", dataStreamId, user.Id);
                             var medTechDataset = await _googleFitClient.DatasetRequest(
@@ -125,17 +132,6 @@ namespace FitOnFhir.GoogleFit.Services
                             {
                                 _logger.LogWarning("No latest start date found for Dataset: {0} for user: {1}", dataStreamId, user.Id);
                             }
-
-                            // When large amounts of data are processd we may need to throttle requests to prevent
-                            // exceeding the API rate limits.
-                            now = _utcNowFunc();
-                            if (delayUntil > now)
-                            {
-                                TimeSpan delay = delayUntil - now;
-                                _logger.LogInformation("Throttling request for Dataset: {0} for user: {1}. Delay ms: {2}", dataStreamId, user.Id, delay.TotalMilliseconds);
-
-                                await Task.Delay(delay);
-                            }
                         }
                         while (pageToken != null);
                     }
@@ -147,8 +143,6 @@ namespace FitOnFhir.GoogleFit.Services
                         }
                     }
                 }));
-
-            WorkItemCount = workItems.Count();
 
             // Wait for the Dataset request tasks to finish
             await StartWorker(workItems);
@@ -170,15 +164,6 @@ namespace FitOnFhir.GoogleFit.Services
             var startDate = startDateDto.ToUnixTimeMilliseconds() * 1000000;
             var endDate = currentTime.ToUnixTimeMilliseconds() * 1000000;
             return startDate + "-" + endDate;
-        }
-
-        private TimeSpan GetRequestDelay()
-        {
-            GoogleFitImportOptions options = Options;
-            int parallelTaskCount = Math.Min(WorkItemCount, options.ParallelTaskOptions.MaxConcurrency);
-            double requestsPerMinute = Math.Floor((double)(options.MaximumRequestsPerMinute / parallelTaskCount));
-            double delayInSeconds = 60 / requestsPerMinute;
-            return TimeSpan.FromSeconds(delayInSeconds);
         }
 
         public async ValueTask DisposeAsync()

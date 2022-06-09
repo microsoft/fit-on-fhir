@@ -14,6 +14,7 @@ using Google.Apis.Fitness.v1.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
+using NSubstitute.Core;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 using DataSource = FitOnFhir.GoogleFit.Client.Models.DataSource;
@@ -276,17 +277,93 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitUser.Received(1).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<DateTimeOffset>(dto => dto == _lastSyncTime));
         }
 
-        [Fact]
-        public async Task GivenMaximumRequestsPerMinuteExceeded_WhenProcessDatasetRequestsIsCalled_RequestsAreThrottled()
+        [Theory]
+        [InlineData(300, 300, 1, 60, 66)]
+        [InlineData(300, 1, 300, 60, 66)]
+        [InlineData(300, 30, 10, 60, 66)]
+        [InlineData(300, 5, 60, 60, 66)]
+        [InlineData(1200, 60, 20, 60, 66)]
+        [InlineData(int.MaxValue, 300, 1, 0, 5)]
+        [InlineData(int.MaxValue, 1, 300, 0, 5)]
+        [InlineData(int.MaxValue, 30, 10, 0, 5)]
+        [InlineData(int.MaxValue, 5, 60, 0, 5)]
+        [InlineData(int.MaxValue, 60, 20, 0, 5)]
+        public async Task GivenMaximumRequestsPerMinuteIsSet_WhenProcessDatasetRequestsIsCalled_RequestsAreThrottledAsExpected(int maxRequestsPerMinute, int dataSourcesCount, int pageCount, int minSeconds, int maxSeconds)
         {
-            SetupMockSuccessReturns();
+            var context = new GoogleFitDataImporterContext
+            {
+                MaxRequestsPerMinute = maxRequestsPerMinute,
+            };
 
-            await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
+            var options = new GoogleFitImportOptions(context);
 
-            _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<DateTimeOffset>());
-            Assert.Equal(1, _eventHubProducerClient.CreateBatchAsyncCalls);
-            Assert.Equal(1, _eventHubProducerClient.SendAsyncCalls);
-            _googleFitUser.Received(1).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<DateTimeOffset>(dto => dto == _lastSyncTime));
+            _googleFitImportService = new GoogleFitImportService(
+                _googleFitClient,
+                _eventHubProducerClient,
+                options,
+                () => DateTimeOffset.UtcNow,
+                _importServiceLogger,
+                _telemetryLogger);
+
+            _googleFitUser.TryGetLastSyncTime(Arg.Any<string>(), out Arg.Any<DateTimeOffset>())
+                .Returns(x =>
+                {
+                    x[1] = _oneDayBack;
+                    return true;
+                });
+
+            var dataSources = new List<DataSource>();
+
+            for (int i = 0; i < dataSourcesCount; i++)
+            {
+                MedTechDataset dataset = Substitute.For<MedTechDataset>(_dataset, _dataSource);
+                dataset.GetMaxStartTime().Returns(_lastSyncTime);
+
+                if (pageCount <= 1)
+                {
+                    dataset.GetPageToken().Returns((string)null);
+                }
+                else
+                {
+                    string nextPageToken = "nextPage";
+                    var pageTokenResponses = new List<Func<CallInfo, string>>();
+
+                    for (int j = 1; j < pageCount; j++)
+                    {
+                        if (j == pageCount - 1)
+                        {
+                            pageTokenResponses.Add(x => null);
+                            continue;
+                        }
+
+                        pageTokenResponses.Add(x => nextPageToken);
+                    }
+
+                    dataset.GetPageToken().Returns(x => nextPageToken, pageTokenResponses.ToArray());
+                }
+
+                DataSource dataSource = new DataSource($"{_dataStreamId}{i}", _deviceUid, _applicationPackageName);
+                dataSources.Add(dataSource);
+
+                _googleFitClient.DatasetRequest(
+                Arg.Is<string>(access => access == _tokensResponse.AccessToken),
+                Arg.Is<DataSource>(d => d == dataSource),
+                Arg.Any<string>(),
+                Arg.Any<int>(),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken),
+                Arg.Any<string>()).Returns(dataset);
+            }
+
+            DateTimeOffset before = DateTimeOffset.Now;
+
+            await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, dataSources, _tokensResponse, _cancellationToken);
+
+            DateTimeOffset after = DateTimeOffset.Now;
+
+            TimeSpan totalProcessTime = after - before;
+
+            Assert.True(totalProcessTime > TimeSpan.FromSeconds(minSeconds));
+            Assert.False(totalProcessTime > TimeSpan.FromSeconds(maxSeconds));
         }
 
         private void SetupMockSuccessReturns()
