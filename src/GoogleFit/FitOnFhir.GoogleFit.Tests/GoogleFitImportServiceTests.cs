@@ -10,10 +10,12 @@ using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Responses;
+using FitOnFhir.GoogleFit.Client.Telemetry;
 using FitOnFhir.GoogleFit.Services;
 using FitOnFhir.GoogleFit.Tests.Mocks;
 using Google.Apis.Fitness.v1.Data;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Common.Config;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -52,7 +54,7 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly MedTechDataset _medTechDataset;
 
         private readonly IGoogleFitClient _googleFitClient;
-        private readonly GoogleFitImportOptions _options = new GoogleFitImportOptions();
+        private readonly GoogleFitImportOptions _options;
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly MockLogger<GoogleFitImportService> _importServiceLogger;
         private readonly ITelemetryLogger _telemetryLogger;
@@ -66,6 +68,12 @@ namespace FitOnFhir.GoogleFit.Tests
             _medTechDataset = Substitute.For<MedTechDataset>(_dataset, _dataSource);
             _dataSources.Add(_dataSource);
             _faultyEventHubProducerClient = new MockFaultyEventHubProducerClient();
+
+            var parallelTaskOptions = new ParallelTaskOptions() { MaxConcurrency = 10 };
+            _options = Substitute.For<GoogleFitImportOptions>();
+            _options.ParallelTaskOptions.Returns(parallelTaskOptions);
+            var telemetryLogger = new GoogleFitExceptionTelemetryProcessor();
+            _options.ExceptionService.Returns(telemetryLogger);
 
             // GoogleFitImportService dependencies
             _googleFitClient = Substitute.For<IGoogleFitClient>();
