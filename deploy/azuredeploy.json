@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.6.18.56646",
-      "templateHash": "9730854292908359556"
+      "templateHash": "8669916884154778762"
     }
   },
   "parameters": {
@@ -58,6 +58,27 @@
     "infraKvName": {
       "type": "string",
       "defaultValue": "[format('kv-infra-{0}', parameters('basename'))]"
+    },
+    "google_dataset_request_limit": {
+      "type": "string",
+      "defaultValue": "1000",
+      "metadata": {
+        "description": "The maximum Google Fit data results returned per request"
+      }
+    },
+    "google_max_concurrency": {
+      "type": "string",
+      "defaultValue": "10",
+      "metadata": {
+        "description": "The maximum concurrent tasks allowed for fetching Google Fit data"
+      }
+    },
+    "google_fit_scopes": {
+      "type": "string",
+      "defaultValue": "https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read",
+      "metadata": {
+        "description": "The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)"
+      }
     }
   },
   "variables": {
@@ -397,6 +418,7 @@
         "WEBSITE_CONTENTSHARE": "[format('authorize-{0}-{1}', parameters('basename'), take(uniqueString('authorize-', parameters('basename')), 4))]",
         "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
         "GoogleFitAuthorizationConfiguration__ClientSecret": "[parameters('google_client_secret')]",
+        "GoogleFitAuthorizationConfiguration__DefaultScopes": "[parameters('google_fit_scopes')]",
         "AzureConfiguration__UsersKeyVaultUri": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [
@@ -525,6 +547,9 @@
         "AzureConfiguration__EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[0], split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[1])).secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
         "GoogleFitAuthorizationConfiguration__ClientSecret": "[parameters('google_client_secret')]",
+        "GoogleFitAuthorizationConfiguration__DefaultScopes": "[parameters('google_fit_scopes')]",
+        "GoogleFitDataImporterConfiguration__DatasetRequestLimit": "[parameters('google_dataset_request_limit')]",
+        "GoogleFitDataImporterConfiguration__MaxConcurrency": "[parameters('google_max_concurrency')]",
         "AzureConfiguration__UsersKeyVaultUri": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [

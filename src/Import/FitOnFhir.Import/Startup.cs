@@ -40,6 +40,7 @@ namespace FitOnFhir.Import
         {
             builder.Services.AddLogging();
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
+            builder.Services.AddConfiguration<GoogleFitDataImporterConfiguration>(configuration);
             builder.Services.AddConfiguration<AzureConfiguration>(configuration);
 
             builder.Services.AddSingleton(sp =>

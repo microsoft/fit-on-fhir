@@ -3,30 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
 using FitOnFhir.GoogleFit.Common;
-using Google.Apis.Fitness.v1;
 
 namespace FitOnFhir.GoogleFit.Client.Config
 {
     public class GoogleFitAuthorizationConfiguration
     {
-        private IEnumerable<string> _defaultScopes = new[]
-        {
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/userinfo.profile",
-            FitnessService.Scope.FitnessActivityRead,
-            FitnessService.Scope.FitnessSleepRead,
-            FitnessService.Scope.FitnessReproductiveHealthRead,
-            FitnessService.Scope.FitnessOxygenSaturationRead,
-            FitnessService.Scope.FitnessNutritionRead,
-            FitnessService.Scope.FitnessLocationRead,
-            FitnessService.Scope.FitnessBodyTemperatureRead,
-            FitnessService.Scope.FitnessBodyRead,
-            FitnessService.Scope.FitnessBloodPressureRead,
-            FitnessService.Scope.FitnessBloodGlucoseRead,
-            FitnessService.Scope.FitnessHeartRateRead,
-        };
+        private IEnumerable<string> _defaultScopes;
 
         public string ClientId { get; set; }
 
@@ -41,6 +24,14 @@ namespace FitOnFhir.GoogleFit.Client.Config
             }
         }
 
-        public IEnumerable<string> DefaultScopes => _defaultScopes;
+        public IEnumerable<string> DefaultScopes
+        {
+            get => _defaultScopes;
+            set
+            {
+                string[] scopes = value.First().Split(',');
+                _defaultScopes = (scopes ?? Array.Empty<string>()).ToList();
+            }
+        }
     }
 }
