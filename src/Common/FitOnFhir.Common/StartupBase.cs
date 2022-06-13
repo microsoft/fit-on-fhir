@@ -4,9 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FitOnFhir.Common.Config;
 using FitOnFhir.Common.Interfaces;
+using FitOnFhir.Common.Repositories;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Common.DependencyInjection;
 
 namespace FitOnFhir.Common
 {
@@ -21,6 +25,9 @@ namespace FitOnFhir.Common
             IConfiguration config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .Build();
+
+            builder.Services.AddConfiguration<AzureConfiguration>(config);
+            builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
 
             Configure(_hostBuilder, config);
         }

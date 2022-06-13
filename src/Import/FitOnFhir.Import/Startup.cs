@@ -5,7 +5,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Azure.Messaging.EventHubs.Producer;
 using FitOnFhir.Common;
 using FitOnFhir.Common.Config;
 using FitOnFhir.Common.ExtensionMethods;
@@ -17,6 +16,7 @@ using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Handlers;
 using FitOnFhir.GoogleFit.Client.Telemetry;
+using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.GoogleFit.Services;
 using FitOnFhir.Import;
@@ -31,24 +31,17 @@ using Microsoft.Health.Logging.Telemetry;
 
 namespace FitOnFhir.Import
 {
-    public class Startup : StartupBase
+    public class Startup : GoogleFitStartupBase
     {
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
+            base.Configure(builder, configuration);
             builder.Services.AddLogging();
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
             builder.Services.AddConfiguration<GoogleFitDataImporterConfiguration>(configuration);
-            builder.Services.AddConfiguration<AzureConfiguration>(configuration);
-
-            builder.Services.AddSingleton(sp =>
-            {
-                var azureConfiguration = sp.GetService<AzureConfiguration>();
-                return new EventHubProducerClient(azureConfiguration.EventHubConnectionString);
-            });
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
-            builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();

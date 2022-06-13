@@ -6,8 +6,6 @@
 using System.Threading.Tasks;
 using FitOnFhir.Authorization;
 using FitOnFhir.Authorization.Services;
-using FitOnFhir.Common;
-using FitOnFhir.Common.Config;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
 using FitOnFhir.Common.Repositories;
@@ -15,7 +13,7 @@ using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Handlers;
-using FitOnFhir.GoogleFit.Repositories;
+using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -27,18 +25,16 @@ using Microsoft.Health.Common.DependencyInjection;
 
 namespace FitOnFhir.Authorization
 {
-    public class Startup : StartupBase
+    public class Startup : GoogleFitStartupBase
     {
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
+            base.Configure(builder, configuration);
             builder.Services.AddLogging();
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
-            builder.Services.AddConfiguration<AzureConfiguration>(configuration);
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
-            builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
-            builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IRoutingService, RoutingService>();

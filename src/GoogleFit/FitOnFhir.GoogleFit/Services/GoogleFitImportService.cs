@@ -5,6 +5,7 @@
 
 using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
+using FitOnFhir.Common.Config;
 using FitOnFhir.Common.Exceptions;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
@@ -23,6 +24,22 @@ namespace FitOnFhir.GoogleFit.Services
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly ILogger<GoogleFitImportService> _logger;
         private readonly ITelemetryLogger _telemetryLogger;
+
+        public GoogleFitImportService(
+            IGoogleFitClient googleFitClient,
+            AzureConfiguration azureConfiguration,
+            GoogleFitImportOptions options,
+            Func<DateTimeOffset> utcNowFunc,
+            ILogger<GoogleFitImportService> logger,
+            ITelemetryLogger telemetryLogger)
+            : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
+        {
+            _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
+            _eventHubProducerClient = new EventHubProducerClient(azureConfiguration.EventHubConnectionString);
+            _utcNowFunc = utcNowFunc;
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
+        }
 
         public GoogleFitImportService(
             IGoogleFitClient googleFitClient,
