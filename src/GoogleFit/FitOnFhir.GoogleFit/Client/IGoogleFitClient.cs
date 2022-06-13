@@ -36,10 +36,11 @@ namespace FitOnFhir.GoogleFit.Client
         /// <param name="dataSetId">Dataset identifier that is a composite of the minimum data point start time and maximum data point
         /// end time represented as nanoseconds from the epoch. The ID is formatted like: "startTime-endTime"
         /// where startTime and endTime are 64 bit integers.</param>
+        /// <param name="limit">The limit to the number of points returned in the request.</param>
         /// <param name="cancellationToken">The cancellation token used to cancel the request, if necessary.</param>
         /// <param name="pageToken">The continuation token, which is used to page through large result sets. To get the next page of
         /// results, set this parameter to the value of nextPageToken from the previous response.</param>
         /// <returns>The dataset result formatted as a <see cref="MedTechDataset"/>.</returns>
-        Task<MedTechDataset> DatasetRequest(string accessToken, DataSource dataSource, string dataSetId, CancellationToken cancellationToken, string pageToken = null);
+        Task<MedTechDataset> DatasetRequest(string accessToken, DataSource dataSource, string dataSetId, int limit, CancellationToken cancellationToken, string pageToken = null);
     }
 }

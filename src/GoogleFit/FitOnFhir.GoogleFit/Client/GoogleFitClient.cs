@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Requests;
 using FitOnFhir.GoogleFit.Client.Responses;
@@ -25,9 +24,9 @@ namespace FitOnFhir.GoogleFit.Client
         }
 
         /// <inheritdoc/>
-        public Task<MedTechDataset> DatasetRequest(string accessToken, DataSource dataSource, string dataSetId, CancellationToken cancellationToken, string pageToken = null)
+        public Task<MedTechDataset> DatasetRequest(string accessToken, DataSource dataSource, string dataSetId, int limit, CancellationToken cancellationToken, string pageToken = null)
         {
-            return new DatasetRequest(accessToken, dataSource, dataSetId, GoogleFitDataImporterConfiguration.DatasetRequestLimit, pageToken).ExecuteAsync(cancellationToken);
+            return new DatasetRequest(accessToken, dataSource, dataSetId, limit, pageToken).ExecuteAsync(cancellationToken);
         }
     }
 }

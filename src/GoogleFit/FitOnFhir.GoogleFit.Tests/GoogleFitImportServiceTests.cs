@@ -104,6 +104,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Is<DataSource>(ds => ds == _dataSource),
                 Arg.Is<string>(str => str == thirtyDaysBackDataSetId),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }
 
@@ -125,6 +126,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Is<DataSource>(ds => ds == _dataSource),
                 Arg.Is<string>(str => str == oneDayBackDataSetId),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }
 
@@ -138,6 +140,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(nullMedTechDataset);
 
             await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
@@ -193,6 +196,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(datasetRequestException);
 
             Assert.ThrowsAsync<Exception>(async () => await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken));
@@ -215,6 +219,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(datasetRequestAggregateException);
 
             await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
@@ -243,6 +248,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
                 Arg.Is<string>(str => str == null)).Returns(_medTechDataset);
 
@@ -253,6 +259,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
                 Arg.Is<string>(str => str == nextPageToken)).Returns(lastMedTechDataset);
 
@@ -294,6 +301,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
                 Arg.Any<string>(),
+                Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
                 Arg.Is<string>(str => str == null)).Returns(_medTechDataset);
         }

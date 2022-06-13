@@ -7,7 +7,7 @@ namespace FitOnFhir.Common.Config
 {
     public class AzureConfiguration
     {
-        public string AzureWebJobsStorage { get; set; }
+        public string StorageAccountConnectionString { get; set; }
 
         public string UsersKeyVaultUri { get; set; }
 

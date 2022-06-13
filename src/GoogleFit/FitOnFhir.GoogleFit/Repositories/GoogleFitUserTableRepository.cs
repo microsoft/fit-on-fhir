@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using FitOnFhir.Common.Config;
 using FitOnFhir.Common.Persistence;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.GoogleFit.Client.Models;
@@ -13,8 +14,8 @@ namespace FitOnFhir.GoogleFit.Repositories
 {
     public class GoogleFitUserTableRepository : TableRepository<GoogleFitUser>, IGoogleFitUserTableRepository
     {
-        public GoogleFitUserTableRepository(StorageAccountContext storageAccountContext, ILogger<GoogleFitUserTableRepository> logger)
-            : base(storageAccountContext, logger)
+        public GoogleFitUserTableRepository(AzureConfiguration azureConfiguration, ILogger<GoogleFitUserTableRepository> logger)
+            : base(azureConfiguration.StorageAccountConnectionString, logger)
         {
             PartitionKey = GoogleFitConstants.GoogleFitPartitionKey;
         }

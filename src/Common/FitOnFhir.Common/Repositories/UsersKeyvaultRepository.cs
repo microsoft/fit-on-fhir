@@ -17,10 +17,10 @@ namespace FitOnFhir.Common.Repositories
         private readonly ILogger<UsersKeyVaultRepository> _logger;
 
         public UsersKeyVaultRepository(
-            SecretClient secretClient,
+            AzureConfiguration azureConfiguration,
             ILogger<UsersKeyVaultRepository> logger)
         {
-            _secretClient = EnsureArg.IsNotNull(secretClient, nameof(secretClient));
+            _secretClient = new SecretClient(new Uri(azureConfiguration.UsersKeyVaultUri), new DefaultAzureCredential());
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 

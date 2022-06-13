@@ -12,12 +12,12 @@ namespace FitOnFhir.GoogleFit.Client.Config
         /// <summary>
         /// Sets the results limit of a Dataset request
         /// </summary>
-        public static int DatasetRequestLimit { get; set; }
+        public int DatasetRequestLimit { get; set; }
 
         /// <summary>
         /// The maximum number of <see cref="ParallelTaskWorker{TOptions}"/> worker threads that are allowed to
         /// be active for this platform, at one time.
         /// </summary>
-        public static int MaxConcurrency { get; set; }
+        public int MaxConcurrency { get; set; }
     }
 }

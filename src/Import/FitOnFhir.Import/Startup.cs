@@ -5,15 +5,12 @@
 
 using System;
 using System.Threading.Tasks;
-using Azure.Identity;
 using Azure.Messaging.EventHubs.Producer;
-using Azure.Security.KeyVault.Secrets;
 using FitOnFhir.Common;
 using FitOnFhir.Common.Config;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
 using FitOnFhir.Common.Interfaces;
-using FitOnFhir.Common.Persistence;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Client;
@@ -46,17 +43,7 @@ namespace FitOnFhir.Import
             builder.Services.AddSingleton(sp =>
             {
                 var azureConfiguration = sp.GetService<AzureConfiguration>();
-                return new StorageAccountContext(azureConfiguration.AzureWebJobsStorage);
-            });
-            builder.Services.AddSingleton(sp =>
-            {
-                var azureConfiguration = sp.GetService<AzureConfiguration>();
                 return new EventHubProducerClient(azureConfiguration.EventHubConnectionString);
-            });
-            builder.Services.AddSingleton(sp =>
-            {
-                var azureConfiguration = sp.GetService<AzureConfiguration>();
-                return new SecretClient(new Uri(azureConfiguration.UsersKeyVaultUri), new DefaultAzureCredential());
             });
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();

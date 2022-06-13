@@ -76,6 +76,7 @@ namespace FitOnFhir.GoogleFit.Services
                                 tokensResponse.AccessToken,
                                 dataSource,
                                 datasetId,
+                                Options.DataPointPageLimit,
                                 cancellationToken,
                                 pageToken);
 

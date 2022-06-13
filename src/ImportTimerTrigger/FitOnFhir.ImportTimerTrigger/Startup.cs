@@ -24,11 +24,6 @@ namespace FitOnFhir.ImportTimerTrigger
         {
             builder.Services.AddConfiguration<AzureConfiguration>(configuration);
 
-            builder.Services.AddSingleton(sp =>
-            {
-                var azureConfiguration = sp.GetService<AzureConfiguration>();
-                return new StorageAccountContext(azureConfiguration.AzureWebJobsStorage);
-            });
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
             builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
         }

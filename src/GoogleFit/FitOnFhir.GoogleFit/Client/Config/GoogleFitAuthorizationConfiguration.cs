@@ -9,7 +9,7 @@ namespace FitOnFhir.GoogleFit.Client.Config
 {
     public class GoogleFitAuthorizationConfiguration
     {
-        private string[] _defaultScopes;
+        private string[] _scopes;
 
         public string ClientId { get; set; }
 
@@ -24,15 +24,15 @@ namespace FitOnFhir.GoogleFit.Client.Config
             }
         }
 
-        public IEnumerable<string> Scopes => _defaultScopes;
+        public IEnumerable<string> AuthorizedScopes => _scopes;
 
-        public string DefaultScopes
+        public string Scopes
         {
             get
             {
-                if (_defaultScopes != null && _defaultScopes.Any())
+                if (_scopes != null && _scopes.Any())
                 {
-                    return string.Join(", ", _defaultScopes);
+                    return string.Join(", ", _scopes);
                 }
 
                 return null;
@@ -42,7 +42,7 @@ namespace FitOnFhir.GoogleFit.Client.Config
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    _defaultScopes = value.Replace(" ", string.Empty).Split(',');
+                    _scopes = value.Replace(" ", string.Empty).Split(',');
                     return;
                 }
             }
