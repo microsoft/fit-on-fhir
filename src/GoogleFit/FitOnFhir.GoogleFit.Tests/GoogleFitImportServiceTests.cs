@@ -278,11 +278,11 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Theory]
-        [InlineData(300, 300, 1, 60, 66)]
-        [InlineData(300, 1, 300, 60, 66)]
-        [InlineData(300, 30, 10, 60, 66)]
-        [InlineData(300, 5, 60, 60, 66)]
-        [InlineData(1200, 60, 20, 60, 66)]
+        [InlineData(300, 300, 1, 60, 70)]
+        [InlineData(300, 1, 300, 60, 70)]
+        [InlineData(300, 30, 10, 60, 70)]
+        [InlineData(300, 5, 60, 60, 70)]
+        [InlineData(1200, 60, 20, 60, 70)]
         [InlineData(int.MaxValue, 300, 1, 0, 5)]
         [InlineData(int.MaxValue, 1, 300, 0, 5)]
         [InlineData(int.MaxValue, 30, 10, 0, 5)]
