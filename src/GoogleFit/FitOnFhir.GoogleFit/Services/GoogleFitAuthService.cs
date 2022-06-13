@@ -38,7 +38,7 @@ namespace FitOnFhir.GoogleFit.Services
                         ClientSecret = authorizationConfiguration.ClientSecret,
                     },
 
-                    Scopes = authorizationConfiguration.DefaultScopes,
+                    Scopes = authorizationConfiguration.Scopes,
                 });
         }
 
