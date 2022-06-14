@@ -2,6 +2,7 @@
     "line-length": false,
     "no-duplicate-heading": false,
     "no-inline-html": false,
+    "no-bare-urls": false,
     "ul-indent": {
         "indent": 4
     }

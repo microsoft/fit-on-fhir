@@ -12,7 +12,7 @@ Your authorization endpoint is hosted by the Authorization Function. The endpoin
 
 ## Finding your Authorization Function Base URL
 
-In your resource group, find the Authorization Function. It will be named **authorize-{YOUR_BASE_NAME}**, where, YOUR_BASE_NAME is the basename parameter provided when the resources were deployed. 
+In your resource group, find the Authorization Function. It will be named **authorize-{YOUR_BASE_NAME}**, where, YOUR_BASE_NAME is the basename parameter provided when the resources were deployed.
 ![Auth Function in Resource Group](../media/auth-function-resource-group.png)
 
 In the overview section of the Function copy the base URL. Append the base URL with **api/googlefit/authorize**.

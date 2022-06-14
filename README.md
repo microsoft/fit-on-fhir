@@ -34,7 +34,6 @@ The following is a visual representation of the architecture that gets deployed 
     * 3.5 The access token is used to retrieve user data from teh Google Fit REST API.
     * 3.6 Data is sent to the MedTech Service through an Event Hub, eventually persisted in FHIR as an Observation.  
 
-
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit [https://cla.opensource.microsoft.com](https://cla.opensource.microsoft.com).
