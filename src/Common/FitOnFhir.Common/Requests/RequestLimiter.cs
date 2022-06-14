@@ -7,10 +7,17 @@ namespace FitOnFhir.Common.Requests
 {
     public class RequestLimiter : IRequestLimiter
     {
+        private const int SecondsPerMinute = 60;
+        private const double DelayMultiplier = 2; // Default value is 2. This will keep the request rate at desired maxRequestsPerMinute.
         private readonly int _maxRequestsPerMinute;
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly object lockObject = new object();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RequestLimiter"/> class.
+        /// </summary>
+        /// <param name="maxRequestsPerMinute">The target allowed maximum requests per minute.</param>
+        /// <param name="utcNowFunc">A function that provides <see cref="DateTimeOffset"/> for now.</param>
         public RequestLimiter(int maxRequestsPerMinute, Func<DateTimeOffset> utcNowFunc)
         {
             _maxRequestsPerMinute = maxRequestsPerMinute;
@@ -39,9 +46,9 @@ namespace FitOnFhir.Common.Requests
                     else
                     {
                         // Calculate the required delay to remain under the requests per minute limit.
-                        double averageRequiredRequestDurationInSeconds = 120 / (float)_maxRequestsPerMinute;
-                        double currentRequestDurationInSeconds = 1 / (RequestCount / (_utcNowFunc() - ProcessStartTime).TotalSeconds);
-                        double delayInSeconds = averageRequiredRequestDurationInSeconds - currentRequestDurationInSeconds;
+                        double averageRequiredRequestDurationInSeconds = SecondsPerMinute / (float)_maxRequestsPerMinute;
+                        double currentRequestDurationInSeconds = (_utcNowFunc() - ProcessStartTime).TotalSeconds / RequestCount;
+                        double delayInSeconds = (averageRequiredRequestDurationInSeconds * DelayMultiplier) - currentRequestDurationInSeconds;
 
                         if (delayInSeconds > 0)
                         {
