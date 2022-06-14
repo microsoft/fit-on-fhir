@@ -86,6 +86,7 @@ namespace FitOnFhir.GoogleFit.Tests
             // create the service
             _googleFitImportService = new GoogleFitImportService(
                 _googleFitClient,
+                null,
                 _eventHubProducerClient,
                 _options,
                 _utcNowFunc,
@@ -163,6 +164,7 @@ namespace FitOnFhir.GoogleFit.Tests
             // that uses a TryAdd callback override which returns false
             _googleFitImportService = new GoogleFitImportService(
                 _googleFitClient,
+                null,
                 _faultyEventHubProducerClient,
                 _options,
                 _utcNowFunc,

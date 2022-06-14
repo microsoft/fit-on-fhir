@@ -28,21 +28,6 @@ namespace FitOnFhir.GoogleFit.Services
         public GoogleFitImportService(
             IGoogleFitClient googleFitClient,
             AzureConfiguration azureConfiguration,
-            GoogleFitImportOptions options,
-            Func<DateTimeOffset> utcNowFunc,
-            ILogger<GoogleFitImportService> logger,
-            ITelemetryLogger telemetryLogger)
-            : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
-        {
-            _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
-            _eventHubProducerClient = new EventHubProducerClient(azureConfiguration.EventHubConnectionString);
-            _utcNowFunc = utcNowFunc;
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-            _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
-        }
-
-        public GoogleFitImportService(
-            IGoogleFitClient googleFitClient,
             EventHubProducerClient eventHubProducerClient,
             GoogleFitImportOptions options,
             Func<DateTimeOffset> utcNowFunc,
@@ -51,7 +36,16 @@ namespace FitOnFhir.GoogleFit.Services
             : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
         {
             _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
-            _eventHubProducerClient = EnsureArg.IsNotNull(eventHubProducerClient, nameof(eventHubProducerClient));
+            if (eventHubProducerClient == null)
+            {
+                var connectionString = EnsureArg.IsNotEmptyOrWhiteSpace(azureConfiguration.EventHubConnectionString);
+                _eventHubProducerClient = new EventHubProducerClient(connectionString);
+            }
+            else
+            {
+                _eventHubProducerClient = eventHubProducerClient;
+            }
+
             _utcNowFunc = utcNowFunc;
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
