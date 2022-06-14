@@ -11,9 +11,11 @@ You can start the deploying to your Azure subscription by simply clicking the bu
 </a>
 
 ### Prerequisites
+
 To run this ARM template the following additional items must be set up before execution:
 
 ### Parameters
+
 You must provide the following parameters when deploying the ARM Template.
 
 |Parameter|Use|Required
@@ -30,6 +32,7 @@ You must provide the following parameters when deploying the ARM Template.
 You can use the [azuredeploy.parameters.json](../deploy/azuredeploy.parameters.json) file to supply parameters listed above or you can manually supply the parameters using key-value pairs. Documentation about the az deployment group create command can be founde [here](https://docs.microsoft.com/en-us/cli/azure/deployment/group?view=azure-cli-latest#az-deployment-group-create).
 
 ### Using the azuredeploy.parameters.json file
+
 ```sh
 az deployment group create \
     --name deployment01 \
@@ -41,6 +44,7 @@ az deployment group create \
 or
 
 ### Using key-value pairs
+
 ```sh
 az deployment group create \
     --name deployment01 \

@@ -22,4 +22,3 @@ If you did not add test users when following the guide to setting up Google APIs
 ## On board users
 
 With your Google APIs and OAuth credentials setup, the Azure resources deployed and test users added, Fit on FHIR should be ready to collect data from Google Fit users and persist the data as FHIR Observations. To on-board a user, have them navigate to the authorize API. Complete instructions can be found [here](using-fit-on-fhir.md#user-authorization-endpoint).
-

@@ -61,9 +61,9 @@ next step below.
 
 **Note -** The first time you create an OAuth client ID, you will be redirected to configure your OAuth concent screen. the only required data are:
 
- * App name
- * User support email
- * Developer contact information
+* App name
+* User support email
+* Developer contact information
 
  While these are the only data required, it would be useful to also provide a list of test users that are allowed access to your app. You can also update the list of test users later in the **OAuth consent screen** in the left side pane.
 

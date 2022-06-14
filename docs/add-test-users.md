@@ -10,5 +10,4 @@ Scroll to the Test users section and click the Add users button to add test user
 
 ![Add Test Users Button](../media/add-users.png)
 
-**It's important to note that there is a limit of 100 test users that can be added to a project.** 
-
+**It's important to note that there is a limit of 100 test users that can be added to a project.**
