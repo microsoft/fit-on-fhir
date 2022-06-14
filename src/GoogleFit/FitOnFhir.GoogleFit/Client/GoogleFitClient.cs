@@ -28,10 +28,5 @@ namespace FitOnFhir.GoogleFit.Client
         {
             return new DatasetRequest(accessToken, dataSource, dataSetId, limit, pageToken).ExecuteAsync(cancellationToken);
         }
-
-        public Task<MedTechDataset> DatasetRequest(string accessToken, DataSource dataSource, string dataSetId, CancellationToken cancellationToken, string pageToken = null)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

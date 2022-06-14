@@ -3,7 +3,13 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "basename": {
-            "value": "fitonfhir"
+            "value": ""
+        },
+        "google_client_id": {
+            "value": ""
+        },
+        "google_client_secret": {
+            "value": ""
         }
     }
 }

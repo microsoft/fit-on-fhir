@@ -3,8 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using EnsureThat;
+using FitOnFhir.Common.Config;
 using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.Common.Repositories
@@ -15,10 +17,10 @@ namespace FitOnFhir.Common.Repositories
         private readonly ILogger<UsersKeyVaultRepository> _logger;
 
         public UsersKeyVaultRepository(
-            SecretClient secretClient,
+            AzureConfiguration azureConfiguration,
             ILogger<UsersKeyVaultRepository> logger)
         {
-            _secretClient = EnsureArg.IsNotNull(secretClient, nameof(secretClient));
+            _secretClient = new SecretClient(new Uri(azureConfiguration.UsersKeyVaultUri), new DefaultAzureCredential());
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 

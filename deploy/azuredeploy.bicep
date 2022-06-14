@@ -1,30 +1,41 @@
-@description('Base name that is used to name provisioned resources. Should be alphanumeric and less than 16 characters.')
+@description('Base name that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters.')
 @minLength(3)
 @maxLength(16)
-param basename string = 'fitonfhir'
+param basename string
 
-@description('Service prinicipal ID to give permissions for key vaults.')
+@description('The location where the resources(s) are deployed.')
 param location string = resourceGroup().location
+
+@description('The Google OAuth2 web application client id.')
 param google_client_id string
+
+@description('The Google OAuth2 web application client secret.')
 @secure()
 param google_client_secret string
 
-@description('Service prinicipal ID to give permissions for key vaults.')
-param spid string
+@description('The repository where the fit-on-fhir source code resides.')
+param repository_url string = 'https://github.com/Microsoft/fit-on-fhir'
 
-@description('The repository where the googlefit-on-fhir source code resides.')
-param repository_url string = 'https://github.com/Microsoft/googlefit-on-fhir'
-
-@description('The source code branch to be deployed')
+@description('The source code branch to be deployed.')
 param repository_branch string = 'main'
-param usersKvName string = 'kv-users-${basename}'
-param infraKvName string = 'kv-infra-${basename}'
+
+@description('The maximum Google Fit data points returned per dataset request.')
+param google_dataset_request_limit string = '1000'
+
+@description('The maximum concurrent tasks allowed per Google Fit dataset request.')
+param google_max_concurrency string = '10'
+
+@description('The maximum number of requests that can be made to the Google APIs in a one minute period.')
+param google_max_requests_per_minute string = '300'
+
+@description('The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)')
+param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read'
 
 var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
 var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
 
 resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: usersKvName
+  name: 'kv-users-${basename}'
   location: location
   properties: {
     sku: {
@@ -59,15 +70,6 @@ resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
           ]
         }
       }
-      {
-        tenantId: subscription().tenantId
-        objectId: spid
-        permissions: {
-          secrets: [
-            'all'
-          ]
-        }
-      }
     ]
     tenantId: subscription().tenantId
     enableSoftDelete: true
@@ -77,7 +79,7 @@ resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
 }
 
 resource infraKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: infraKvName
+  name: 'kv-infra-${basename}'
   location: location
   properties: {
     accessPolicies: []
@@ -310,14 +312,16 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/Authorization/FitOnFhir.Authorization/FitOnFhir.Authorization.csproj'
-    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+	  AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    'AzureConfiguration__StorageAccountConnectionString': 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     WEBSITE_CONTENTSHARE: 'authorize-${basename}-${take(uniqueString('authorize-', basename), 4)}'
-    GOOGLE_OAUTH_CLIENT_ID: google_client_id
-    GOOGLE_OAUTH_CLIENT_SECRET: google_client_secret
-    USERS_KEY_VAULT_URI: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
+    'GoogleFitAuthorizationConfiguration__ClientId': google_client_id
+    'GoogleFitAuthorizationConfiguration__ClientSecret': google_client_secret
+	  'GoogleFitAuthorizationConfiguration__Scopes': google_fit_scopes
+    'AzureConfiguration__UsersKeyVaultUri': 'https://kv-users-${basename}${environment().suffixes.keyvaultDns}'
   }
 }
 
@@ -364,15 +368,13 @@ resource import_timer_basename_appsettings 'Microsoft.Web/sites/config@2015-08-0
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/FitOnFhir.ImportTimerTrigger.csproj'
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    'AzureConfiguration__StorageAccountConnectionString': 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     WEBSITE_CONTENTSHARE: 'import-timer-${basename}-${take(uniqueString('import-timer-', basename), 4)}'
     SCHEDULE: '0 0 * * * *'
   }
-  dependsOn: [
-    authorize_basename
-  ]
 }
 
 resource import_timer_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
@@ -418,14 +420,19 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/Import/FitOnFhir.Import/FitOnFhir.Import.csproj'
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    'AzureConfiguration__StorageAccountConnectionString': 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
     WEBSITE_CONTENTSHARE: 'import-data-${basename}-${take(uniqueString('import-data-', basename), 4)}'
-    EventHubConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', split('${infraKvName}/eventhub-connection-string', '/')[0], split('${infraKvName}/eventhub-connection-string', '/')[1])).secretUriWithVersion})'
-    GOOGLE_OAUTH_CLIENT_ID: google_client_id
-    GOOGLE_OAUTH_CLIENT_SECRET: google_client_secret
-    USERS_KEY_VAULT_URI: 'https://${usersKvName}${environment().suffixes.keyvaultDns}'
+    'AzureConfiguration__EventHubConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', split('kv-infra-${basename}/eventhub-connection-string', '/')[0], split('kv-infra-${basename}/eventhub-connection-string', '/')[1])).secretUriWithVersion})'
+    'GoogleFitAuthorizationConfiguration__ClientId': google_client_id
+    'GoogleFitAuthorizationConfiguration__ClientSecret': google_client_secret
+	  'GoogleFitAuthorizationConfiguration__Scopes': google_fit_scopes
+	  'GoogleFitDataImporterConfiguration__DatasetRequestLimit': google_dataset_request_limit
+	  'GoogleFitDataImporterConfiguration__MaxConcurrency': google_max_concurrency
+    'GoogleFitDataImporterConfiguration__MaxRequestsPerMinute': google_max_requests_per_minute
+    'AzureConfiguration__UsersKeyVaultUri': 'https://kv-users-${basename}${environment().suffixes.keyvaultDns}'
   }
   dependsOn: [
     infraKvName_eventhub_connection_string
@@ -529,41 +536,147 @@ resource hw_basename_hi_basename 'Microsoft.HealthcareApis/workspaces/iotconnect
           {
             templateType: 'CalculatedContent'
             template: {
-              typeName: 'com.google.blood_glucose'
-              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.blood_glucose\' && $.dataSourceId =~ /com.google.android.apps.fitness/)]'
-              deviceIdExpression: '$.deviceIdentifier'
-              patientIdExpression: '$.patientIdentifier'
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.blood_glucose\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merged/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
               timestampExpression: {
                 value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
                 language: 'JmesPath'
               }
               values: [
                 {
-                  required: 'true'
-                  valueExpression: 'matchedToken.value[0].fpVal'
                   valueName: 'blood_glucose_level'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
                 }
                 {
-                  required: 'false'
-                  valueExpression: 'matchedToken.value[1].intVal'
                   valueName: 'temporal_relation_to_meal'
+                  valueExpression: 'matchedToken.value[1].intVal'
                 }
                 {
-                  required: 'false'
-                  valueExpression: 'matchedToken.value[2].intVal'
                   valueName: 'meal_type'
+                  valueExpression: 'matchedToken.value[2].intVal'
                 }
                 {
-                  required: 'false'
-                  valueExpression: 'matchedToken.value[3].intVal'
                   valueName: 'temporal_relation_to_sleep'
+                  valueExpression: 'matchedToken.value[3].intVal'
                 }
                 {
-                  required: 'false'
-                  valueExpression: 'matchedToken.value[4].intVal'
                   valueName: 'blood_glucose_specimen_source'
+                  valueExpression: 'matchedToken.value[4].intVal'
                 }
               ]
+              typeName: '3ag4h5u7xcmu69zxupcx'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.blood_pressure\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merged/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'blood_pressure_systolic'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'blood_pressure_diastolic'
+                  valueExpression: 'matchedToken.value[1].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'body_position'
+                  valueExpression: 'matchedToken.value[2].intVal'
+                }
+                {
+                  valueName: 'blood_pressure_measurement_location'
+                  valueExpression: 'matchedToken.value[3].intVal'
+                }
+              ]
+              typeName: 'lwo9eoim0lfnurbfdlfk'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.heart_rate.bpm\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merge_heart_rate_bpm/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'bpm'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'qucm2rppd42yod4rpt14'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.oxygen_saturation\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merged/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'oxygen_saturation'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'supplemental_oxygen_flow_rate'
+                  valueExpression: 'matchedToken.value[1].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'oxygen_therapy_administration_mode'
+                  valueExpression: 'matchedToken.value[2].intVal'
+                }
+                {
+                  valueName: 'oxygen_saturation_system'
+                  valueExpression: 'matchedToken.value[3].intVal'
+                }
+                {
+                  valueName: 'oxygen_saturation_measurement_method'
+                  valueExpression: 'matchedToken.value[4].intVal'
+                }
+              ]
+              typeName: 'h3yjzapqywycu85xk8g0'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.step_count.delta\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merge_step_deltas/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'steps'
+                  valueExpression: 'matchedToken.value[0].intVal'
+                  required: true
+                }
+              ]
+              typeName: 'ioaj1bdvxoztpyjgwufq'
             }
           }
         ]
@@ -610,14 +723,158 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
           {
             templateType: 'CodeValueFhir'
             template: {
-              typeName: 'com.google.blood_glucose'
+              codes: [
+                {
+                  code: '15074-8'
+                  display: 'Glucose [Moles/volume] in Blood'
+                  system: 'http://loinc.org'
+                }
+                {
+                  code: '434912009'
+                  display: 'Blood glucose concentration'
+                  system: 'http://snomed.info/sct'
+                }
+              ]
+              typeName: '3ag4h5u7xcmu69zxupcx'
               value: {
                 valueName: 'blood_glucose_level'
                 valueType: 'Quantity'
+                code: 'mmol/L'
                 unit: 'mmol/L'
                 system: 'http://loinc.org'
               }
-              codes: []
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: '85354-9'
+                  display: 'Blood pressure panel'
+                  system: 'http://loinc.org'
+                }
+                {
+                  code: '75367002'
+                  display: 'Blood pressure'
+                  system: 'http://snomed.info/sct'
+                }
+              ]
+              typeName: 'lwo9eoim0lfnurbfdlfk'
+              components: [
+                {
+                  codes: [
+                    {
+                      code: '8867-4'
+                      display: 'Diastolic blood pressure'
+                      system: 'http://loinc.org'
+                    }
+                    {
+                      code: '271650006'
+                      display: 'Diastolic blood pressure'
+                      system: 'http://snomed.info/sct'
+                    }
+                  ]
+                  value: {
+                    system: 'http://unitsofmeasure.org'
+                    code: 'mmHg'
+                    unit: 'mmHg'
+                    valueName: 'blood_pressure_diastolic'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: '8480-6'
+                      display: 'Systolic blood pressure'
+                      system: 'http://loinc.org'
+                    }
+                    {
+                      code: '271649006'
+                      display: 'Systolic blood pressure'
+                      system: 'http://snomed.info/sct'
+                    }
+                  ]
+                  value: {
+                    system: 'http://unitsofmeasure.org'
+                    code: 'mmHg'
+                    unit: 'mmHg'
+                    valueName: 'blood_pressure_systolic'
+                    valueType: 'Quantity'
+                  }
+                }
+              ]
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: '8867-4'
+                  system: 'http://loinc.org'
+                  display: 'Heart rate'
+                }
+                {
+                  code: '364075005'
+                  system: 'http://snomed.info/sct'
+                  display: 'Heart rate'
+                }
+              ]
+              typeName: 'qucm2rppd42yod4rpt14'
+              value: {
+                system: 'http://unitsofmeasure.org'
+                code: 'count/min'
+                unit: 'count/min'
+                valueName: 'bpm'
+                valueType: 'Quantity'
+              }
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  system: 'http://loinc.org'
+                  code: '2708-6'
+                  display: 'Oxygen saturation in Arterial blood'
+                }
+                {
+                  system: 'http://snomed.info/sct'
+                  code: '103228002'
+                  display: 'Hemoglobin saturation with oxygen '
+                }
+              ]
+              typeName: 'h3yjzapqywycu85xk8g0'
+              value: {
+                system: 'http://unitsofmeasure.org'
+                code: '%'
+                unit: '%'
+                valueName: 'oxygen_saturation'
+                valueType: 'Quantity'
+              }
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: '55423-8'
+                  system: 'http://loinc.org'
+                  display: 'Number of steps'
+                }
+              ]
+              typeName: 'ioaj1bdvxoztpyjgwufq'
+              value: {
+                system: 'http://unitsofmeasure.org'
+                code: 'count'
+                unit: 'count'
+                valueName: 'steps'
+                valueType: 'Quantity'
+              }
             }
           }
         ]
@@ -629,8 +886,6 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
   ]
 }
 
-output usersKeyVaultName string = usersKvName
-output infraKeyVaultName string = infraKvName
 output authorizeAppName string = 'authorize-${basename}'
 output importTimerAppName string = 'import-timer-${basename}'
 output importDataAppName string = 'import-data-${basename}'

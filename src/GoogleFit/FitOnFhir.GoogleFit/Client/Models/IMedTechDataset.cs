@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Messaging.EventHubs;
+using FitOnFhir.GoogleFit.Client.Config;
 using Google.Apis.Fitness.v1.Data;
 
 namespace FitOnFhir.GoogleFit.Client.Models
@@ -12,7 +13,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
     {
         /// <summary>
         /// Used to retrieve the next page of <see cref="Dataset"/> results, when a <see cref="Dataset"/> request would
-        /// result in number of values that exceeds the value defined in <see cref="GoogleFitDataImporterContext"/>.GoogleFitDatasetRequestLimit.
+        /// result in number of values that exceeds the value defined in <see cref="GoogleFitDataImporterConfiguration"/>.GoogleFitDatasetRequestLimit.
         /// When NextPageToken is null, there are no more results left to retrieve from the <see cref="Google.Apis.Fitness.v1.Data.DataSource"/>
         /// for the data set ID specified.
         /// </summary>

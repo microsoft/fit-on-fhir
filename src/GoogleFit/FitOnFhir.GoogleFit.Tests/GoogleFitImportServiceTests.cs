@@ -8,10 +8,12 @@ using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Responses;
+using FitOnFhir.GoogleFit.Client.Telemetry;
 using FitOnFhir.GoogleFit.Services;
 using FitOnFhir.GoogleFit.Tests.Mocks;
 using Google.Apis.Fitness.v1.Data;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Common.Config;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
 using NSubstitute.Core;
@@ -52,7 +54,7 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly MedTechDataset _medTechDataset;
 
         private readonly IGoogleFitClient _googleFitClient;
-        private readonly GoogleFitImportOptions _options = new GoogleFitImportOptions(new GoogleFitDataImporterContext());
+        private readonly GoogleFitImportOptions _options;
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly MockLogger<GoogleFitImportService> _importServiceLogger;
         private readonly ITelemetryLogger _telemetryLogger;
@@ -66,6 +68,12 @@ namespace FitOnFhir.GoogleFit.Tests
             _dataSources.Add(_dataSource);
             _faultyEventHubProducerClient = new MockFaultyEventHubProducerClient();
 
+            var parallelTaskOptions = new ParallelTaskOptions() { MaxConcurrency = 10 };
+            _options = Substitute.For<GoogleFitImportOptions>();
+            _options.ParallelTaskOptions.Returns(parallelTaskOptions);
+            var telemetryLogger = new GoogleFitExceptionTelemetryProcessor();
+            _options.ExceptionService.Returns(telemetryLogger);
+
             // GoogleFitImportService dependencies
             _googleFitClient = Substitute.For<IGoogleFitClient>();
             _eventHubProducerClient = new MockEventHubProducerClient();
@@ -77,6 +85,7 @@ namespace FitOnFhir.GoogleFit.Tests
             // create the service
             _googleFitImportService = new GoogleFitImportService(
                 _googleFitClient,
+                null,
                 _eventHubProducerClient,
                 _options,
                 _utcNowFunc,
@@ -154,6 +163,7 @@ namespace FitOnFhir.GoogleFit.Tests
             // that uses a TryAdd callback override which returns false
             _googleFitImportService = new GoogleFitImportService(
                 _googleFitClient,
+                null,
                 _faultyEventHubProducerClient,
                 _options,
                 _utcNowFunc,
@@ -290,15 +300,17 @@ namespace FitOnFhir.GoogleFit.Tests
         [InlineData(int.MaxValue, 60, 20, 0, 5)]
         public async Task GivenMaximumRequestsPerMinuteIsSet_WhenProcessDatasetRequestsIsCalled_RequestsAreThrottledAsExpected(int maxRequestsPerMinute, int dataSourcesCount, int pageCount, int minSeconds, int maxSeconds)
         {
-            var context = new GoogleFitDataImporterContext
+            var context = new GoogleFitDataImporterConfiguration
             {
                 MaxRequestsPerMinute = maxRequestsPerMinute,
+                MaxConcurrency = 10,
             };
 
             var options = new GoogleFitImportOptions(context);
 
             _googleFitImportService = new GoogleFitImportService(
                 _googleFitClient,
+                azureConfiguration: null,
                 _eventHubProducerClient,
                 options,
                 () => DateTimeOffset.UtcNow,

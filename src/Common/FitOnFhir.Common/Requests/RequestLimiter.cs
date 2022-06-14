@@ -20,7 +20,8 @@ namespace FitOnFhir.Common.Requests
         /// <param name="utcNowFunc">A function that provides <see cref="DateTimeOffset"/> for now.</param>
         public RequestLimiter(int maxRequestsPerMinute, Func<DateTimeOffset> utcNowFunc)
         {
-            _maxRequestsPerMinute = maxRequestsPerMinute;
+            // If maxRequestsPerMinute is zero or a negative number, assume no throttling is required.
+            _maxRequestsPerMinute = maxRequestsPerMinute > 0 ? maxRequestsPerMinute : int.MaxValue;
             _utcNowFunc = utcNowFunc;
         }
 
