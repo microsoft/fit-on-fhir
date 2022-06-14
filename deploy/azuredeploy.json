@@ -4,44 +4,43 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.6.18.56646",
-      "templateHash": "10558320632758782820"
+      "version": "0.7.4.23292",
+      "templateHash": "2767067176532269389"
     }
   },
   "parameters": {
     "basename": {
       "type": "string",
-      "defaultValue": "fitonfhir",
       "maxLength": 16,
       "minLength": 3,
       "metadata": {
-        "description": "Base name that is used to name provisioned resources. Should be alphanumeric and less than 16 characters."
+        "description": "Base name that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
       }
     },
     "location": {
       "type": "string",
       "defaultValue": "[resourceGroup().location]",
       "metadata": {
-        "description": "Service prinicipal ID to give permissions for key vaults."
+        "description": "The location where the resources(s) are deployed."
       }
     },
     "google_client_id": {
-      "type": "string"
-    },
-    "google_client_secret": {
-      "type": "secureString"
-    },
-    "spid": {
       "type": "string",
       "metadata": {
-        "description": "Service prinicipal ID to give permissions for key vaults."
+        "description": "The Google OAuth2 web application client id."
+      }
+    },
+    "google_client_secret": {
+      "type": "secureString",
+      "metadata": {
+        "description": "The Google OAuth2 web application client secret."
       }
     },
     "repository_url": {
       "type": "string",
-      "defaultValue": "https://github.com/Microsoft/googlefit-on-fhir",
+      "defaultValue": "https://github.com/Microsoft/fit-on-fhir",
       "metadata": {
-        "description": "The repository where the googlefit-on-fhir source code resides."
+        "description": "The repository where the fit-on-fhir source code resides."
       }
     },
     "repository_branch": {
@@ -50,14 +49,6 @@
       "metadata": {
         "description": "The source code branch to be deployed"
       }
-    },
-    "usersKvName": {
-      "type": "string",
-      "defaultValue": "[format('kv-users-{0}', parameters('basename'))]"
-    },
-    "infraKvName": {
-      "type": "string",
-      "defaultValue": "[format('kv-infra-{0}', parameters('basename'))]"
     }
   },
   "variables": {
@@ -68,7 +59,7 @@
     {
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2019-09-01",
-      "name": "[parameters('usersKvName')]",
+      "name": "[format('kv-users-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "properties": {
         "sku": {
@@ -102,15 +93,6 @@
                 "all"
               ]
             }
-          },
-          {
-            "tenantId": "[subscription().tenantId]",
-            "objectId": "[parameters('spid')]",
-            "permissions": {
-              "secrets": [
-                "all"
-              ]
-            }
           }
         ],
         "tenantId": "[subscription().tenantId]",
@@ -127,7 +109,7 @@
     {
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2019-09-01",
-      "name": "[parameters('infraKvName')]",
+      "name": "[format('kv-infra-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "properties": {
         "accessPolicies": [],
@@ -144,7 +126,7 @@
     {
       "type": "Microsoft.KeyVault/vaults/accessPolicies",
       "apiVersion": "2019-09-01",
-      "name": "[format('{0}/{1}', parameters('infraKvName'), 'add')]",
+      "name": "[format('{0}/{1}', format('kv-infra-{0}', parameters('basename')), 'add')]",
       "properties": {
         "accessPolicies": [
           {
@@ -169,7 +151,7 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]"
+        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]"
       ]
     },
     {
@@ -285,25 +267,25 @@
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2019-09-01",
-      "name": "[format('{0}/{1}', parameters('infraKvName'), 'queue-connection-string')]",
+      "name": "[format('{0}/{1}', format('kv-infra-{0}', parameters('basename')), 'queue-connection-string')]",
       "properties": {
         "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]",
+        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2019-09-01",
-      "name": "[format('{0}/{1}', parameters('infraKvName'), 'eventhub-connection-string')]",
+      "name": "[format('{0}/{1}', format('kv-infra-{0}', parameters('basename')), 'eventhub-connection-string')]",
       "properties": {
         "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender'), '2021-01-01-preview').primaryConnectionString]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]",
-        "[resourceId('Microsoft.KeyVault/vaults', parameters('infraKvName'))]"
+        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]"
       ]
     },
     {
@@ -396,7 +378,7 @@
         "WEBSITE_CONTENTSHARE": "[format('authorize-{0}-{1}', parameters('basename'), take(uniqueString('authorize-', parameters('basename')), 4))]",
         "GOOGLE_OAUTH_CLIENT_ID": "[parameters('google_client_id')]",
         "GOOGLE_OAUTH_CLIENT_SECRET": "[parameters('google_client_secret')]",
-        "USERS_KEY_VAULT_URI": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
+        "USERS_KEY_VAULT_URI": "[format('https://kv-users-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
@@ -461,7 +443,6 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
@@ -519,15 +500,15 @@
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "WEBSITE_CONTENTSHARE": "[format('import-data-{0}-{1}', parameters('basename'), take(uniqueString('import-data-', parameters('basename')), 4))]",
-        "EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[0], split(format('{0}/eventhub-connection-string', parameters('infraKvName')), '/')[1])).secretUriWithVersion)]",
+        "EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('kv-infra-{0}/eventhub-connection-string', parameters('basename')), '/')[0], split(format('kv-infra-{0}/eventhub-connection-string', parameters('basename')), '/')[1])).secretUriWithVersion)]",
         "GOOGLE_OAUTH_CLIENT_ID": "[parameters('google_client_id')]",
         "GOOGLE_OAUTH_CLIENT_SECRET": "[parameters('google_client_secret')]",
-        "USERS_KEY_VAULT_URI": "[format('https://{0}{1}', parameters('usersKvName'), environment().suffixes.keyvaultDns)]"
+        "USERS_KEY_VAULT_URI": "[format('https://kv-users-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', parameters('infraKvName'), 'eventhub-connection-string')]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-infra-{0}', parameters('basename')), 'eventhub-connection-string')]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
@@ -643,41 +624,147 @@
               {
                 "templateType": "CalculatedContent",
                 "template": {
-                  "typeName": "com.google.blood_glucose",
-                  "typeMatchExpression": "$..[?(@dataTypeName == 'com.google.blood_glucose' && $.dataSourceId =~ /com.google.android.apps.fitness/)]",
-                  "deviceIdExpression": "$.deviceIdentifier",
-                  "patientIdExpression": "$.patientIdentifier",
+                  "typeMatchExpression": "$..[?(@dataTypeName == 'com.google.blood_glucose' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merged/)]",
+                  "deviceIdExpression": "$.Body.deviceIdentifier",
+                  "patientIdExpression": "$.Body.patientIdentifier",
                   "timestampExpression": {
                     "value": "fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))",
                     "language": "JmesPath"
                   },
                   "values": [
                     {
-                      "required": "true",
+                      "valueName": "blood_glucose_level",
                       "valueExpression": "matchedToken.value[0].fpVal",
-                      "valueName": "blood_glucose_level"
+                      "required": true
                     },
                     {
-                      "required": "false",
-                      "valueExpression": "matchedToken.value[1].intVal",
-                      "valueName": "temporal_relation_to_meal"
+                      "valueName": "temporal_relation_to_meal",
+                      "valueExpression": "matchedToken.value[1].intVal"
                     },
                     {
-                      "required": "false",
-                      "valueExpression": "matchedToken.value[2].intVal",
-                      "valueName": "meal_type"
+                      "valueName": "meal_type",
+                      "valueExpression": "matchedToken.value[2].intVal"
                     },
                     {
-                      "required": "false",
-                      "valueExpression": "matchedToken.value[3].intVal",
-                      "valueName": "temporal_relation_to_sleep"
+                      "valueName": "temporal_relation_to_sleep",
+                      "valueExpression": "matchedToken.value[3].intVal"
                     },
                     {
-                      "required": "false",
-                      "valueExpression": "matchedToken.value[4].intVal",
-                      "valueName": "blood_glucose_specimen_source"
+                      "valueName": "blood_glucose_specimen_source",
+                      "valueExpression": "matchedToken.value[4].intVal"
                     }
-                  ]
+                  ],
+                  "typeName": "3ag4h5u7xcmu69zxupcx"
+                }
+              },
+              {
+                "templateType": "CalculatedContent",
+                "template": {
+                  "typeMatchExpression": "$..[?(@dataTypeName == 'com.google.blood_pressure' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merged/)]",
+                  "deviceIdExpression": "$.Body.deviceIdentifier",
+                  "patientIdExpression": "$.Body.patientIdentifier",
+                  "timestampExpression": {
+                    "value": "fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))",
+                    "language": "JmesPath"
+                  },
+                  "values": [
+                    {
+                      "valueName": "blood_pressure_systolic",
+                      "valueExpression": "matchedToken.value[0].fpVal",
+                      "required": true
+                    },
+                    {
+                      "valueName": "blood_pressure_diastolic",
+                      "valueExpression": "matchedToken.value[1].fpVal",
+                      "required": true
+                    },
+                    {
+                      "valueName": "body_position",
+                      "valueExpression": "matchedToken.value[2].intVal"
+                    },
+                    {
+                      "valueName": "blood_pressure_measurement_location",
+                      "valueExpression": "matchedToken.value[3].intVal"
+                    }
+                  ],
+                  "typeName": "lwo9eoim0lfnurbfdlfk"
+                }
+              },
+              {
+                "templateType": "CalculatedContent",
+                "template": {
+                  "typeMatchExpression": "$..[?(@dataTypeName == 'com.google.heart_rate.bpm' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merge_heart_rate_bpm/)]",
+                  "deviceIdExpression": "$.Body.deviceIdentifier",
+                  "patientIdExpression": "$.Body.patientIdentifier",
+                  "timestampExpression": {
+                    "value": "fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))",
+                    "language": "JmesPath"
+                  },
+                  "values": [
+                    {
+                      "valueName": "bpm",
+                      "valueExpression": "matchedToken.value[0].fpVal",
+                      "required": true
+                    }
+                  ],
+                  "typeName": "qucm2rppd42yod4rpt14"
+                }
+              },
+              {
+                "templateType": "CalculatedContent",
+                "template": {
+                  "typeMatchExpression": "$..[?(@dataTypeName == 'com.google.oxygen_saturation' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merged/)]",
+                  "deviceIdExpression": "$.Body.deviceIdentifier",
+                  "patientIdExpression": "$.Body.patientIdentifier",
+                  "timestampExpression": {
+                    "value": "fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))",
+                    "language": "JmesPath"
+                  },
+                  "values": [
+                    {
+                      "valueName": "oxygen_saturation",
+                      "valueExpression": "matchedToken.value[0].fpVal",
+                      "required": true
+                    },
+                    {
+                      "valueName": "supplemental_oxygen_flow_rate",
+                      "valueExpression": "matchedToken.value[1].fpVal",
+                      "required": true
+                    },
+                    {
+                      "valueName": "oxygen_therapy_administration_mode",
+                      "valueExpression": "matchedToken.value[2].intVal"
+                    },
+                    {
+                      "valueName": "oxygen_saturation_system",
+                      "valueExpression": "matchedToken.value[3].intVal"
+                    },
+                    {
+                      "valueName": "oxygen_saturation_measurement_method",
+                      "valueExpression": "matchedToken.value[4].intVal"
+                    }
+                  ],
+                  "typeName": "h3yjzapqywycu85xk8g0"
+                }
+              },
+              {
+                "templateType": "CalculatedContent",
+                "template": {
+                  "typeMatchExpression": "$..[?(@dataTypeName == 'com.google.step_count.delta' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merge_step_deltas/)]",
+                  "deviceIdExpression": "$.Body.deviceIdentifier",
+                  "patientIdExpression": "$.Body.patientIdentifier",
+                  "timestampExpression": {
+                    "value": "fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))",
+                    "language": "JmesPath"
+                  },
+                  "values": [
+                    {
+                      "valueName": "steps",
+                      "valueExpression": "matchedToken.value[0].intVal",
+                      "required": true
+                    }
+                  ],
+                  "typeName": "ioaj1bdvxoztpyjgwufq"
                 }
               }
             ]
@@ -734,14 +821,158 @@
               {
                 "templateType": "CodeValueFhir",
                 "template": {
-                  "typeName": "com.google.blood_glucose",
+                  "codes": [
+                    {
+                      "code": "15074-8",
+                      "display": "Glucose [Moles/volume] in Blood",
+                      "system": "http://loinc.org"
+                    },
+                    {
+                      "code": "434912009",
+                      "display": "Blood glucose concentration",
+                      "system": "http://snomed.info/sct"
+                    }
+                  ],
+                  "typeName": "3ag4h5u7xcmu69zxupcx",
                   "value": {
                     "valueName": "blood_glucose_level",
                     "valueType": "Quantity",
+                    "code": "mmol/L",
                     "unit": "mmol/L",
                     "system": "http://loinc.org"
-                  },
-                  "codes": []
+                  }
+                }
+              },
+              {
+                "templateType": "CodeValueFhir",
+                "template": {
+                  "codes": [
+                    {
+                      "code": "85354-9",
+                      "display": "Blood pressure panel",
+                      "system": "http://loinc.org"
+                    },
+                    {
+                      "code": "75367002",
+                      "display": "Blood pressure",
+                      "system": "http://snomed.info/sct"
+                    }
+                  ],
+                  "typeName": "lwo9eoim0lfnurbfdlfk",
+                  "components": [
+                    {
+                      "codes": [
+                        {
+                          "code": "8867-4",
+                          "display": "Diastolic blood pressure",
+                          "system": "http://loinc.org"
+                        },
+                        {
+                          "code": "271650006",
+                          "display": "Diastolic blood pressure",
+                          "system": "http://snomed.info/sct"
+                        }
+                      ],
+                      "value": {
+                        "system": "http://unitsofmeasure.org",
+                        "code": "mmHg",
+                        "unit": "mmHg",
+                        "valueName": "blood_pressure_diastolic",
+                        "valueType": "Quantity"
+                      }
+                    },
+                    {
+                      "codes": [
+                        {
+                          "code": "8480-6",
+                          "display": "Systolic blood pressure",
+                          "system": "http://loinc.org"
+                        },
+                        {
+                          "code": "271649006",
+                          "display": "Systolic blood pressure",
+                          "system": "http://snomed.info/sct"
+                        }
+                      ],
+                      "value": {
+                        "system": "http://unitsofmeasure.org",
+                        "code": "mmHg",
+                        "unit": "mmHg",
+                        "valueName": "blood_pressure_systolic",
+                        "valueType": "Quantity"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "templateType": "CodeValueFhir",
+                "template": {
+                  "codes": [
+                    {
+                      "code": "8867-4",
+                      "system": "http://loinc.org",
+                      "display": "Heart rate"
+                    },
+                    {
+                      "code": "364075005",
+                      "system": "http://snomed.info/sct",
+                      "display": "Heart rate"
+                    }
+                  ],
+                  "typeName": "qucm2rppd42yod4rpt14",
+                  "value": {
+                    "system": "http://unitsofmeasure.org",
+                    "code": "count/min",
+                    "unit": "count/min",
+                    "valueName": "bpm",
+                    "valueType": "Quantity"
+                  }
+                }
+              },
+              {
+                "templateType": "CodeValueFhir",
+                "template": {
+                  "codes": [
+                    {
+                      "system": "http://loinc.org",
+                      "code": "2708-6",
+                      "display": "Oxygen saturation in Arterial blood"
+                    },
+                    {
+                      "system": "http://snomed.info/sct",
+                      "code": "103228002",
+                      "display": "Hemoglobin saturation with oxygen "
+                    }
+                  ],
+                  "typeName": "h3yjzapqywycu85xk8g0",
+                  "value": {
+                    "system": "http://unitsofmeasure.org",
+                    "code": "%",
+                    "unit": "%",
+                    "valueName": "oxygen_saturation",
+                    "valueType": "Quantity"
+                  }
+                }
+              },
+              {
+                "templateType": "CodeValueFhir",
+                "template": {
+                  "codes": [
+                    {
+                      "code": "55423-8",
+                      "system": "http://loinc.org",
+                      "display": "Number of steps"
+                    }
+                  ],
+                  "typeName": "ioaj1bdvxoztpyjgwufq",
+                  "value": {
+                    "system": "http://unitsofmeasure.org",
+                    "code": "count",
+                    "unit": "count",
+                    "valueName": "steps",
+                    "valueType": "Quantity"
+                  }
                 }
               }
             ]
@@ -756,14 +987,6 @@
     }
   ],
   "outputs": {
-    "usersKeyVaultName": {
-      "type": "string",
-      "value": "[parameters('usersKvName')]"
-    },
-    "infraKeyVaultName": {
-      "type": "string",
-      "value": "[parameters('infraKvName')]"
-    },
     "authorizeAppName": {
       "type": "string",
       "value": "[format('authorize-{0}', parameters('basename'))]"
