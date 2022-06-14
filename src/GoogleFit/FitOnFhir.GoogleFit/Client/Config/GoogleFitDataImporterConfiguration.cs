@@ -5,19 +5,19 @@
 
 using Microsoft.Health.Common.Service;
 
-namespace FitOnFhir.GoogleFit.Client
+namespace FitOnFhir.GoogleFit.Client.Config
 {
-    public class GoogleFitDataImporterContext
+    public class GoogleFitDataImporterConfiguration
     {
         /// <summary>
         /// Sets the results limit of a Dataset request
         /// </summary>
-        public static int GoogleFitDatasetRequestLimit => 100;
+        public int DatasetRequestLimit { get; set; }
 
         /// <summary>
         /// The maximum number of <see cref="ParallelTaskWorker{TOptions}"/> worker threads that are allowed to
         /// be active for this platform, at one time.
         /// </summary>
-        public static int MaxConcurrency => 10;
+        public int MaxConcurrency { get; set; }
     }
 }

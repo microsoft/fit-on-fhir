@@ -11,8 +11,23 @@ namespace FitOnFhir.GoogleFit.Client.Config
 {
     public class GoogleFitImportOptions
     {
-        public virtual ParallelTaskOptions ParallelTaskOptions { get; } = new ParallelTaskOptions { MaxConcurrency = GoogleFitDataImporterContext.MaxConcurrency };
+        public GoogleFitImportOptions()
+        {
+        }
+
+        public GoogleFitImportOptions(GoogleFitDataImporterConfiguration config)
+        {
+            ParallelTaskOptions = new ParallelTaskOptions { MaxConcurrency = config.MaxConcurrency };
+            DataPointPageLimit = config.DatasetRequestLimit;
+            MaximumRequestsPerMinute = config.MaxConcurrency;
+        }
+
+        public virtual ParallelTaskOptions ParallelTaskOptions { get; }
 
         public virtual IExceptionTelemetryProcessor ExceptionService { get; } = new GoogleFitExceptionTelemetryProcessor();
+
+        public virtual int DataPointPageLimit { get; }
+
+        public virtual int MaximumRequestsPerMinute { get; }
     }
 }

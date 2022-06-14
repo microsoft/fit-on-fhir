@@ -3,28 +3,22 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using FitOnFhir.Common.Persistence;
-using FitOnFhir.Common.Repositories;
+using FitOnFhir.Common;
+using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.ImportTimerTrigger;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
 namespace FitOnFhir.ImportTimerTrigger
 {
-    public class Startup : FunctionsStartup
+    public class Startup : StartupBase
     {
-        public override void Configure(IFunctionsHostBuilder builder)
+        public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
-            string storageAccountConnectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-
-            builder.Services.AddSingleton(sp => new StorageAccountContext(storageAccountConnectionString));
-
-            builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
-
             builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
         }
     }
