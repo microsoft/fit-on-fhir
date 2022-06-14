@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.7.4.23292",
-      "templateHash": "2767067176532269389"
+      "templateHash": "4675433999784342601"
     }
   },
   "parameters": {
@@ -47,7 +47,28 @@
       "type": "string",
       "defaultValue": "main",
       "metadata": {
-        "description": "The source code branch to be deployed"
+        "description": "The source code branch to be deployed."
+      }
+    },
+    "google_dataset_request_limit": {
+      "type": "string",
+      "defaultValue": "1000",
+      "metadata": {
+        "description": "The maximum Google Fit data points returned per dataset request."
+      }
+    },
+    "google_max_concurrency": {
+      "type": "string",
+      "defaultValue": "10",
+      "metadata": {
+        "description": "The maximum concurrent tasks allowed per Google Fit dataset request."
+      }
+    },
+    "google_fit_scopes": {
+      "type": "string",
+      "defaultValue": "https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read",
+      "metadata": {
+        "description": "The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)"
       }
     }
   },
@@ -372,13 +393,15 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/Authorization/FitOnFhir.Authorization/FitOnFhir.Authorization.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "AzureConfiguration__StorageAccountConnectionString": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "WEBSITE_CONTENTSHARE": "[format('authorize-{0}-{1}', parameters('basename'), take(uniqueString('authorize-', parameters('basename')), 4))]",
-        "GOOGLE_OAUTH_CLIENT_ID": "[parameters('google_client_id')]",
-        "GOOGLE_OAUTH_CLIENT_SECRET": "[parameters('google_client_secret')]",
-        "USERS_KEY_VAULT_URI": "[format('https://kv-users-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
+        "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
+        "GoogleFitAuthorizationConfiguration__ClientSecret": "[parameters('google_client_secret')]",
+        "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
+        "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-users-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
@@ -435,6 +458,7 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/FitOnFhir.ImportTimerTrigger.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "AzureConfiguration__StorageAccountConnectionString": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
@@ -496,14 +520,18 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/Import/FitOnFhir.Import/FitOnFhir.Import.csproj",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "AzureConfiguration__StorageAccountConnectionString": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
         "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
         "WEBSITE_CONTENTSHARE": "[format('import-data-{0}-{1}', parameters('basename'), take(uniqueString('import-data-', parameters('basename')), 4))]",
-        "EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('kv-infra-{0}/eventhub-connection-string', parameters('basename')), '/')[0], split(format('kv-infra-{0}/eventhub-connection-string', parameters('basename')), '/')[1])).secretUriWithVersion)]",
-        "GOOGLE_OAUTH_CLIENT_ID": "[parameters('google_client_id')]",
-        "GOOGLE_OAUTH_CLIENT_SECRET": "[parameters('google_client_secret')]",
-        "USERS_KEY_VAULT_URI": "[format('https://kv-users-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
+        "AzureConfiguration__EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('kv-infra-{0}/eventhub-connection-string', parameters('basename')), '/')[0], split(format('kv-infra-{0}/eventhub-connection-string', parameters('basename')), '/')[1])).secretUriWithVersion)]",
+        "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
+        "GoogleFitAuthorizationConfiguration__ClientSecret": "[parameters('google_client_secret')]",
+        "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
+        "GoogleFitDataImporterConfiguration__DatasetRequestLimit": "[parameters('google_dataset_request_limit')]",
+        "GoogleFitDataImporterConfiguration__MaxConcurrency": "[parameters('google_max_concurrency')]",
+        "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-users-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
