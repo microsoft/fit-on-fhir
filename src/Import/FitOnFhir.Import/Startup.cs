@@ -6,7 +6,6 @@
 using System;
 using System.Threading.Tasks;
 using FitOnFhir.Common;
-using FitOnFhir.Common.Config;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
 using FitOnFhir.Common.Interfaces;
@@ -16,7 +15,6 @@ using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Handlers;
 using FitOnFhir.GoogleFit.Client.Telemetry;
-using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.GoogleFit.Services;
 using FitOnFhir.Import;
@@ -31,11 +29,10 @@ using Microsoft.Health.Logging.Telemetry;
 
 namespace FitOnFhir.Import
 {
-    public class Startup : GoogleFitStartupBase
+    public class Startup : StartupBase
     {
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
-            base.Configure(builder, configuration);
             builder.Services.AddLogging();
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
             builder.Services.AddConfiguration<GoogleFitDataImporterConfiguration>(configuration);

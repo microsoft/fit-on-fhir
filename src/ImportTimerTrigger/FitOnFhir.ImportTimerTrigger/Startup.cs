@@ -15,11 +15,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FitOnFhir.ImportTimerTrigger
 {
-    public class Startup : GoogleFitStartupBase
+    public class Startup : StartupBase
     {
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
-            base.Configure(builder, configuration);
             builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
         }
     }
