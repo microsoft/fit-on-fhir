@@ -278,16 +278,16 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Theory]
-        [InlineData(300, 300, 1, 59, 61)]
-        [InlineData(300, 1, 300, 59, 61)]
-        [InlineData(300, 30, 10, 59, 61)]
-        [InlineData(300, 5, 60, 59, 61)]
-        [InlineData(1200, 60, 20, 59, 61)]
-        [InlineData(int.MaxValue, 300, 1, 0, 1)]
-        [InlineData(int.MaxValue, 1, 300, 0, 1)]
-        [InlineData(int.MaxValue, 30, 10, 0, 1)]
-        [InlineData(int.MaxValue, 5, 60, 0, 1)]
-        [InlineData(int.MaxValue, 60, 20, 0, 1)]
+        [InlineData(300, 300, 1, 59, 65)]
+        [InlineData(300, 1, 300, 59, 65)]
+        [InlineData(300, 30, 10, 59, 65)]
+        [InlineData(300, 5, 60, 59, 65)]
+        [InlineData(1200, 60, 20, 59, 65)]
+        [InlineData(int.MaxValue, 300, 1, 0, 5)]
+        [InlineData(int.MaxValue, 1, 300, 0, 5)]
+        [InlineData(int.MaxValue, 30, 10, 0, 5)]
+        [InlineData(int.MaxValue, 5, 60, 0, 5)]
+        [InlineData(int.MaxValue, 60, 20, 0, 5)]
         public async Task GivenMaximumRequestsPerMinuteIsSet_WhenProcessDatasetRequestsIsCalled_RequestsAreThrottledAsExpected(int maxRequestsPerMinute, int dataSourcesCount, int pageCount, int minSeconds, int maxSeconds)
         {
             var context = new GoogleFitDataImporterContext
