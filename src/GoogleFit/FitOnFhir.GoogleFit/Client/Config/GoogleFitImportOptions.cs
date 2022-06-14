@@ -19,7 +19,8 @@ namespace FitOnFhir.GoogleFit.Client.Config
         {
             ParallelTaskOptions = new ParallelTaskOptions { MaxConcurrency = config.MaxConcurrency };
             DataPointPageLimit = config.DatasetRequestLimit;
-            MaximumRequestsPerMinute = config.MaxConcurrency;
+            MaxConcurrency = config.MaxConcurrency;
+            MaxRequestsPerMinute = config.MaxRequestsPerMinute;
         }
 
         public virtual ParallelTaskOptions ParallelTaskOptions { get; }
@@ -28,6 +29,8 @@ namespace FitOnFhir.GoogleFit.Client.Config
 
         public virtual int DataPointPageLimit { get; }
 
-        public virtual int MaximumRequestsPerMinute { get; }
+        public virtual int MaxConcurrency { get; }
+
+        public virtual int MaxRequestsPerMinute { get; }
     }
 }

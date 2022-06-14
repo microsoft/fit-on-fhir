@@ -19,5 +19,10 @@ namespace FitOnFhir.GoogleFit.Client.Config
         /// be active for this platform, at one time.
         /// </summary>
         public int MaxConcurrency { get; set; }
+
+        /// <summary>
+        /// The maximum number of requests that can he handled per minute by the Google APIs.
+        /// </summary>
+        public int MaxRequestsPerMinute { get; set; }
     }
 }

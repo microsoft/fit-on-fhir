@@ -28,11 +28,12 @@ You must provide the following parameters when deploying the ARM Template.
 |**repository_branch**|**The source code branch to be deployed.** *The default value is 'main'*|false
 |**google_dataset_request_limit**|**The maximum Google Fit data points returned per dataset request.** *The default value is 1000*|false
 |**google_max_concurrency**|**The maximum concurrent tasks allowed per Google Fit dataset request.** *The default value is 10*|false
-|**google_fit_scopes**|**The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)** *Defaults to all available scopes*|false
+|**google_fit_scopes**|**The Google Fit data authorization scopes allowed for users of this service (see [https://developers.google.com/fit/datatypes#authorization_scopes](https://developers.google.com/fit/datatypes#authorization_scopes) for more info).** *Defaults to all available scopes*|false
+|**google_max_requests_per_minute**|**The maximum number of requests that can be made to the Google APIs in a one minute period.** *Defaults to 300*|false
 
 ## Provision using Azure CLI (Bicep or ARM)
 
-You can use the [azuredeploy.parameters.json](../deploy/azuredeploy.parameters.json) file to supply parameters listed above or you can manually supply the parameters using key-value pairs. Documentation about the az deployment group create command can be founde [here](https://docs.microsoft.com/en-us/cli/azure/deployment/group?view=azure-cli-latest#az-deployment-group-create).
+You can use the [azuredeploy.parameters.json](../deploy/azuredeploy.parameters.json) file to supply parameters listed above or you can manually supply the parameters using key-value pairs. Documentation about the az deployment group create command can be found [here](https://docs.microsoft.com/en-us/cli/azure/deployment/group?view=azure-cli-latest#az-deployment-group-create).
 
 ### Using the azuredeploy.parameters.json file
 
