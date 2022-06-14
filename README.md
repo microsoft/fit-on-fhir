@@ -29,9 +29,9 @@ The following is a visual representation of the architecture that gets deployed 
 3. Import Data Triggered (runs when there are 1 or more import messages in the queue)
     * 3.1 The import message is evaluated to ensure an import should be performed.
     * 3.2 The refresh token is retrieved from Key Vault.
-    * 3.3 A new access token (and refresh token) is retrieved from teh Google Oauth Service.
+    * 3.3 A new access token (and refresh token) is retrieved from the Google Oauth Service.
     * 3.4 The new refresh token is stored securely in Key Vault.
-    * 3.5 The access token is used to retrieve user data from teh Google Fit REST API.
+    * 3.5 The access token is used to retrieve user data from the Google Fit REST API.
     * 3.6 Data is sent to the MedTech Service through an Event Hub, eventually persisted in FHIR as an Observation.  
 
 ## Contributing

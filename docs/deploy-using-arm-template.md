@@ -26,6 +26,9 @@ You must provide the following parameters when deploying the ARM Template.
 |**google_client_secret**|**The Google OAuth2 web application secret.**|true
 |**repository_url**|**The repository where the fit-on-fhir source code resides.** *The default value is 'https://github.com/Microsoft/fit-on-fhir'*|false
 |**repository_branch**|**The source code branch to be deployed.** *The default value is 'main'*|false
+|**google_dataset_request_limit**|**The maximum Google Fit data points returned per dataset request.** *The default value is 1000*|false
+|**google_max_concurrency**|**The maximum concurrent tasks allowed per Google Fit dataset request.** *The default value is 10*|false
+|**google_fit_scopes**|**The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)** *Defaults to all available scopes*|false
 
 ## Provision using Azure CLI (Bicep or ARM)
 

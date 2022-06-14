@@ -5,7 +5,7 @@ This guide provides step-by-step instructions on how to deploy a working fit-on-
 ## Prerequisites
 
 1. **Azure Subscription** - Make sure you have an active Azure Subscription. If you don't you can create a free Azure account [here](https://azure.microsoft.com/en-us/free/).
-1. **Google Account** - If you have an existing gmail account, you can use it, or you can create a new account [here](https://accounts.google.com/signup/v2/).
+1. **Google Account** - If you have an existing gmail account, you can use it, or you can create a new account [here](https://accounts.google.com).
 
 ## Setup Google APIs and OAuth Client Credentials
 
