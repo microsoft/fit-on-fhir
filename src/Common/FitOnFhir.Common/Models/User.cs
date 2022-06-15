@@ -13,7 +13,7 @@ namespace FitOnFhir.Common.Models
     public class User : EntityBase
     {
         private const string _platformsKey = "Platforms";
-        private ConcurrentBag<PlatformUserInfo> _platformUserInfo = new ConcurrentBag<PlatformUserInfo>();
+        private ConcurrentDictionary<string, PlatformUserInfo> _platformUserInfo = new ConcurrentDictionary<string, PlatformUserInfo>();
 
         public User()
             : base(new TableEntity())
@@ -32,8 +32,8 @@ namespace FitOnFhir.Common.Models
 
             if (serializedPlatformInfo != null)
             {
-                PlatformUserInfo[] platformUserInfo = JsonConvert.DeserializeObject<PlatformUserInfo[]>(serializedPlatformInfo);
-                _platformUserInfo = new ConcurrentBag<PlatformUserInfo>(platformUserInfo);
+                ConcurrentDictionary<string, PlatformUserInfo> platformUserInfo = JsonConvert.DeserializeObject<ConcurrentDictionary<string, PlatformUserInfo>>(serializedPlatformInfo);
+                _platformUserInfo = new ConcurrentDictionary<string, PlatformUserInfo>(platformUserInfo);
             }
         }
 
@@ -45,7 +45,8 @@ namespace FitOnFhir.Common.Models
         /// <returns>A collection of <see cref="PlatformUserInfo"/></returns>
         public IEnumerable<PlatformUserInfo> GetPlatformUserInfo()
         {
-            return _platformUserInfo;
+            return _platformUserInfo.ToArray().Select(info =>
+                new PlatformUserInfo(info.Value.PlatformName, info.Value.UserId, info.Value.ImportState));
         }
 
         /// <summary>
@@ -56,7 +57,26 @@ namespace FitOnFhir.Common.Models
         {
             EnsureArg.IsNotNull(platformUserInfo, nameof(platformUserInfo));
 
-            _platformUserInfo.Add(platformUserInfo);
+            _platformUserInfo.AddOrUpdate(
+                platformUserInfo.PlatformName,
+                platformUserInfo,
+                (key, info) => platformUserInfo != info ? info : platformUserInfo);
+        }
+
+        /// <summary>
+        /// Updates the ImportState property for the specified platform.
+        /// </summary>
+        /// <param name="platformName">The platform to update.</param>
+        /// <param name="dataImportState">The new <see cref="DataImportState"/> value.</param>
+        public void UpdateImportState(string platformName, DataImportState dataImportState)
+        {
+            var exists = _platformUserInfo.TryGetValue(platformName, out var currentInfo);
+
+            if (exists)
+            {
+                var updateInfo = new PlatformUserInfo(platformName, currentInfo.UserId, dataImportState);
+                _platformUserInfo.TryUpdate(platformName, updateInfo, currentInfo);
+            }
         }
 
         public override TableEntity ToTableEntity()

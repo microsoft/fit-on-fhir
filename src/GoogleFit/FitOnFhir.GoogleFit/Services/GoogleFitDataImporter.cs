@@ -4,9 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FitOnFhir.Common.Exceptions;
+using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Responses;
+using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
 
@@ -45,9 +48,20 @@ namespace FitOnFhir.GoogleFit.Services
         {
             AuthTokensResponse tokensResponse;
 
-            tokensResponse = await _googleFitTokensService.RefreshToken(googleFitId, cancellationToken);
-            if (tokensResponse == default)
+            // Get user's info for LastSync date
+            _logger.LogInformation("Query userInfo for user: {0}, platformId: {1}", userId, googleFitId);
+            var user = await _usersTableRepository.GetById(userId, cancellationToken);
+
+            user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, DataImportState.Syncing);
+
+            try
             {
+                tokensResponse = await _googleFitTokensService.RefreshToken(googleFitId, cancellationToken);
+            }
+            catch (TokenRefreshException ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, DataImportState.Unauthorized);
                 return;
             }
 
@@ -71,12 +85,9 @@ namespace FitOnFhir.GoogleFit.Services
 
             await _googleFitUserTableRepository.Update(googleUser, cancellationToken);
 
-            // Get user's info for LastSync date
-            _logger.LogInformation("Query userInfo for user: {0}, platformId: {1}", userId, googleFitId);
-            var user = await _usersTableRepository.GetById(userId, cancellationToken);
-
-            // Update LastSync column
+            // Update LastSync column and ImportState
             user.LastTouched = _utcNowFunc();
+            user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, DataImportState.ReadyToSync);
             await _usersTableRepository.Update(user, cancellationToken);
 
             _logger.LogInformation("Import finalized: {0}, platformId", userId, googleFitId);
