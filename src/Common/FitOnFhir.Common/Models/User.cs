@@ -44,8 +44,7 @@ namespace FitOnFhir.Common.Models
         /// <returns>A collection of <see cref="PlatformUserInfo"/></returns>
         public IEnumerable<PlatformUserInfo> GetPlatformUserInfo()
         {
-            return _platformUserInfo.ToArray().Select(info =>
-                new PlatformUserInfo(info.Value.PlatformName, info.Value.UserId, info.Value.ImportState));
+            return _platformUserInfo.ToArray().Select(info => info.Value);
         }
 
         /// <summary>
@@ -59,7 +58,7 @@ namespace FitOnFhir.Common.Models
             _platformUserInfo.AddOrUpdate(
                 platformUserInfo.PlatformName,
                 platformUserInfo,
-                (key, info) => platformUserInfo != info ? info : platformUserInfo);
+                (key, info) => platformUserInfo != info ? platformUserInfo : info);
         }
 
         /// <summary>

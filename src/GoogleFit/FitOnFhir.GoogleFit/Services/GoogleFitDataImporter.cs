@@ -51,8 +51,7 @@ namespace FitOnFhir.GoogleFit.Services
             // Get user's info for LastSync date
             _logger.LogInformation("Query userInfo for user: {0}, platformId: {1}", userId, googleFitId);
             var user = await _usersTableRepository.GetById(userId, cancellationToken);
-
-            user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, DataImportState.Importing);
+            await UpdateUserAndImportState(user, DataImportState.Importing, cancellationToken);
 
             try
             {
@@ -61,7 +60,7 @@ namespace FitOnFhir.GoogleFit.Services
             catch (TokenRefreshException ex)
             {
                 _logger.LogError(ex, ex.Message);
-                user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, DataImportState.Unauthorized);
+                await UpdateUserAndImportState(user, DataImportState.Unauthorized, cancellationToken);
                 return;
             }
 
@@ -85,12 +84,17 @@ namespace FitOnFhir.GoogleFit.Services
 
             await _googleFitUserTableRepository.Update(googleUser, cancellationToken);
 
-            // Update LastSync column and ImportState
-            user.LastTouched = _utcNowFunc();
-            user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, DataImportState.ReadyToImport);
-            await _usersTableRepository.Update(user, cancellationToken);
+            // Update the user as ready to import for GoogleFit
+            await UpdateUserAndImportState(user, DataImportState.ReadyToImport, cancellationToken);
 
             _logger.LogInformation("Import finalized: {0}, platformId", userId, googleFitId);
+        }
+
+        private async Task UpdateUserAndImportState(User user, DataImportState dataImportState, CancellationToken cancellationToken)
+        {
+            user.LastTouched = _utcNowFunc();
+            user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, dataImportState);
+            await _usersTableRepository.Update(user, cancellationToken);
         }
     }
 }

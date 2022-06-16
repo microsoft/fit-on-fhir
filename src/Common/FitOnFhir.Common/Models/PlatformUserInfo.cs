@@ -34,7 +34,7 @@ namespace FitOnFhir.Common.Models
 
         public override int GetHashCode()
         {
-            return PlatformName.GetHashCode() ^ UserId.GetHashCode();
+            return PlatformName.GetHashCode() ^ UserId.GetHashCode() ^ ImportState.GetHashCode();
         }
     }
 }

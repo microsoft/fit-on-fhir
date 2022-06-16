@@ -94,6 +94,10 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(usr => usr == _userId),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
 
+            await _usersTableRepository.Received(2).Update(
+                Arg.Is<User>(usr => usr == _user),
+                Arg.Is<CancellationToken>(token => token == _cancellationToken));
+
             Assert.Equal(DataImportState.Unauthorized, _user.GetPlatformUserInfo().First().ImportState);
 
             await _googleFitClient.DidNotReceive().DataSourcesListRequest(
@@ -108,10 +112,6 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitUserTableRepository.DidNotReceive().Update(
                 Arg.Is<GoogleFitUser>(usr => usr == _googleFitUser),
-                Arg.Is<CancellationToken>(token => token == _cancellationToken));
-
-            await _usersTableRepository.DidNotReceive().Update(
-                Arg.Is<User>(usr => usr == _user),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }
 
@@ -216,7 +216,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
-            await _usersTableRepository.Received(1).Update(
+            await _usersTableRepository.Received(2).Update(
                 Arg.Is<User>(usr => usr == _user),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }
