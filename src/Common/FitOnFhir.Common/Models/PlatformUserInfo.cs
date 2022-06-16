@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace FitOnFhir.Common.Models
 {
@@ -20,6 +22,7 @@ namespace FitOnFhir.Common.Models
 
         public string UserId { get; set; }
 
+        [JsonConverter(typeof(StringEnumConverter))]
         public DataImportState ImportState { get; set; }
 
         public bool Equals(PlatformUserInfo other)
