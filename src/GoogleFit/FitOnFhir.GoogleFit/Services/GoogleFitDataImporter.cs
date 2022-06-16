@@ -52,7 +52,7 @@ namespace FitOnFhir.GoogleFit.Services
             _logger.LogInformation("Query userInfo for user: {0}, platformId: {1}", userId, googleFitId);
             var user = await _usersTableRepository.GetById(userId, cancellationToken);
 
-            user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, DataImportState.Syncing);
+            user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, DataImportState.Importing);
 
             try
             {
@@ -87,7 +87,7 @@ namespace FitOnFhir.GoogleFit.Services
 
             // Update LastSync column and ImportState
             user.LastTouched = _utcNowFunc();
-            user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, DataImportState.ReadyToSync);
+            user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, DataImportState.ReadyToImport);
             await _usersTableRepository.Update(user, cancellationToken);
 
             _logger.LogInformation("Import finalized: {0}, platformId", userId, googleFitId);

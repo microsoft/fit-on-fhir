@@ -32,8 +32,7 @@ namespace FitOnFhir.Common.Models
 
             if (serializedPlatformInfo != null)
             {
-                ConcurrentDictionary<string, PlatformUserInfo> platformUserInfo = JsonConvert.DeserializeObject<ConcurrentDictionary<string, PlatformUserInfo>>(serializedPlatformInfo);
-                _platformUserInfo = new ConcurrentDictionary<string, PlatformUserInfo>(platformUserInfo);
+                _platformUserInfo = JsonConvert.DeserializeObject<ConcurrentDictionary<string, PlatformUserInfo>>(serializedPlatformInfo);
             }
         }
 
@@ -70,12 +69,9 @@ namespace FitOnFhir.Common.Models
         /// <param name="dataImportState">The new <see cref="DataImportState"/> value.</param>
         public void UpdateImportState(string platformName, DataImportState dataImportState)
         {
-            var exists = _platformUserInfo.TryGetValue(platformName, out var currentInfo);
-
-            if (exists)
+            if (_platformUserInfo.TryGetValue(platformName, out var currentInfo))
             {
-                var updateInfo = new PlatformUserInfo(platformName, currentInfo.UserId, dataImportState);
-                _platformUserInfo.TryUpdate(platformName, updateInfo, currentInfo);
+                currentInfo.ImportState = dataImportState;
             }
         }
 
@@ -88,7 +84,7 @@ namespace FitOnFhir.Common.Models
 
             if (_platformUserInfo != null && _platformUserInfo.Count > 0)
             {
-                string serializedPlatformInfo = JsonConvert.SerializeObject(_platformUserInfo.ToArray());
+                string serializedPlatformInfo = JsonConvert.SerializeObject(_platformUserInfo);
                 InternalTableEntity.Add(_platformsKey, serializedPlatformInfo);
             }
 

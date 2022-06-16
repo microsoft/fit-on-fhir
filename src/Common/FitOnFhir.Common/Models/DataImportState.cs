@@ -15,12 +15,12 @@ namespace FitOnFhir.Common.Models
         /// <summary>
         /// Indicates that the data for this platform is currently being imported
         /// </summary>
-        Syncing,
+        Importing,
 
         /// <summary>
         /// Indicates that the data for this platform is ready to be synced
         /// </summary>
-        ReadyToSync,
+        ReadyToImport,
 
         /// <summary>
         /// Indicates that this platform is no longer authorized to import data for this user

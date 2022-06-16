@@ -47,7 +47,7 @@ namespace FitOnFhir.GoogleFit.Tests
         public GoogleFitDataImporterTests()
         {
             _googleFitUser = new GoogleFitUser(_googleUserId);
-            _user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, _googleUserId, DataImportState.ReadyToSync));
+            _user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, _googleUserId, DataImportState.ReadyToImport));
 
             // GoogleFitDataImporter dependencies
             _usersTableRepository = Substitute.For<IUsersTableRepository>();
@@ -228,7 +228,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
-            Assert.Equal(DataImportState.ReadyToSync, _user.GetPlatformUserInfo().First().ImportState);
+            Assert.Equal(DataImportState.ReadyToImport, _user.GetPlatformUserInfo().First().ImportState);
         }
 
         private void SetupMockSuccessReturns()

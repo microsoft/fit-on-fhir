@@ -7,7 +7,7 @@ using EnsureThat;
 
 namespace FitOnFhir.Common.Models
 {
-    public class PlatformUserInfo
+    public class PlatformUserInfo : IEquatable<PlatformUserInfo>
     {
         public PlatformUserInfo(string platformName, string userId, DataImportState dataImportState)
         {
@@ -21,5 +21,17 @@ namespace FitOnFhir.Common.Models
         public string UserId { get; set; }
 
         public DataImportState ImportState { get; set; }
+
+        public bool Equals(PlatformUserInfo other)
+        {
+            return PlatformName == other.PlatformName &&
+                   UserId == other.UserId &&
+                   ImportState == other.ImportState;
+        }
+
+        public override int GetHashCode()
+        {
+            return PlatformName.GetHashCode() ^ UserId.GetHashCode();
+        }
     }
 }
