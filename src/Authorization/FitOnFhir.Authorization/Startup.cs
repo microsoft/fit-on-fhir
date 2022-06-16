@@ -21,6 +21,9 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Common.DependencyInjection;
+using Microsoft.Health.Extensions.Fhir;
+using Microsoft.Health.Extensions.Fhir.Service;
+using Microsoft.Health.Logging.Telemetry;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -39,6 +42,10 @@ namespace FitOnFhir.Authorization
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IRoutingService, RoutingService>();
+            builder.Services.AddSingleton<ITelemetryLogger, TelemetryLogger>();
+            builder.Services.AddFhirClient(configuration);
+            builder.Services.AddSingleton<IFhirService, FhirService>();
+            builder.Services.AddSingleton<ResourceManagementService>();
             builder.Services.AddSingleton<GoogleFitAuthorizationHandler>();
             builder.Services.AddSingleton<UnknownAuthorizationHandler>();
             builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(GoogleFitAuthorizationHandler), typeof(UnknownAuthorizationHandler)));

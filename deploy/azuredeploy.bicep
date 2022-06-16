@@ -31,6 +31,7 @@ param google_max_requests_per_minute string = '300'
 @description('The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)')
 param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read'
 
+var fhirServiceUrl = 'https://${replace('hw-${basename}', '-', '')}-fs-${basename}.fhir.azurehealthcareapis.com'
 var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
 var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
 
@@ -322,6 +323,8 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
     'GoogleFitAuthorizationConfiguration__ClientSecret': google_client_secret
 	  'GoogleFitAuthorizationConfiguration__Scopes': google_fit_scopes
     'AzureConfiguration__UsersKeyVaultUri': 'https://kv-users-${basename}${environment().suffixes.keyvaultDns}'
+    'FhirService__Url': fhirServiceUrl
+    'FhirClient__UseManagedIdentity': 'true'
   }
 }
 
@@ -508,7 +511,7 @@ resource hw_basename_fs_basename 'Microsoft.HealthcareApis/workspaces/fhirservic
   properties: {
     authenticationConfiguration: {
       authority: '${environment().authentication.loginEndpoint}${subscription().tenantId}'
-      audience: 'https://${replace('hw-${basename}', '-', '')}-fs-${basename}.fhir.azurehealthcareapis.com'
+      audience: fhirServiceUrl
       smartProxyEnabled: false
     }
   }
@@ -697,6 +700,15 @@ resource id_FhirWriter 'Microsoft.Authorization/roleAssignments@2020-08-01-previ
   properties: {
     roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${fhirWriterRoleId}'
     principalId: reference(hw_basename_hi_basename.id, '2021-06-01-preview', 'Full').identity.principalId
+  }
+}
+
+resource auth_FhirWriter 'Microsoft.Authorization/roleAssignments@2020-08-01-preview' = {
+  scope: hw_basename_fs_basename
+  name: guid('${resourceGroup().id}-AuthFhirWriter')
+  properties: {
+    roleDefinitionId: '${subscription().id}/providers/Microsoft.Authorization/roleDefinitions/${fhirWriterRoleId}'
+    principalId: reference(authorize_basename.id, '2022-03-01', 'Full').identity.principalId
   }
 }
 
