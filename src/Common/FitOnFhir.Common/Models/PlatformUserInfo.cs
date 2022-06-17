@@ -3,18 +3,38 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace FitOnFhir.Common.Models
 {
-    public class PlatformUserInfo
+    public class PlatformUserInfo : IEquatable<PlatformUserInfo>
     {
-        public PlatformUserInfo(string platformName, string userId)
+        public PlatformUserInfo(string platformName, string userId, DataImportState dataImportState)
         {
-            PlatformName = platformName;
-            UserId = userId;
+            PlatformName = EnsureArg.IsNotEmptyOrWhiteSpace(platformName, nameof(platformName));
+            UserId = EnsureArg.IsNotEmptyOrWhiteSpace(userId, nameof(userId));
+            ImportState = dataImportState;
         }
 
         public string PlatformName { get; set; }
 
         public string UserId { get; set; }
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        public DataImportState ImportState { get; set; }
+
+        public bool Equals(PlatformUserInfo other)
+        {
+            return PlatformName == other.PlatformName &&
+                   UserId == other.UserId &&
+                   ImportState == other.ImportState;
+        }
+
+        public override int GetHashCode()
+        {
+            return PlatformName.GetHashCode() ^ UserId.GetHashCode() ^ ImportState.GetHashCode();
+        }
     }
 }

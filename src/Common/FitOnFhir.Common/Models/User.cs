@@ -13,7 +13,7 @@ namespace FitOnFhir.Common.Models
     public class User : EntityBase
     {
         private const string _platformsKey = "Platforms";
-        private ConcurrentBag<PlatformUserInfo> _platformUserInfo = new ConcurrentBag<PlatformUserInfo>();
+        private ConcurrentDictionary<string, PlatformUserInfo> _platformUserInfo = new ConcurrentDictionary<string, PlatformUserInfo>();
 
         public User()
             : base(new TableEntity())
@@ -32,8 +32,7 @@ namespace FitOnFhir.Common.Models
 
             if (serializedPlatformInfo != null)
             {
-                PlatformUserInfo[] platformUserInfo = JsonConvert.DeserializeObject<PlatformUserInfo[]>(serializedPlatformInfo);
-                _platformUserInfo = new ConcurrentBag<PlatformUserInfo>(platformUserInfo);
+                _platformUserInfo = JsonConvert.DeserializeObject<ConcurrentDictionary<string, PlatformUserInfo>>(serializedPlatformInfo);
             }
         }
 
@@ -45,7 +44,7 @@ namespace FitOnFhir.Common.Models
         /// <returns>A collection of <see cref="PlatformUserInfo"/></returns>
         public IEnumerable<PlatformUserInfo> GetPlatformUserInfo()
         {
-            return _platformUserInfo;
+            return _platformUserInfo.ToArray().Select(info => info.Value);
         }
 
         /// <summary>
@@ -56,7 +55,23 @@ namespace FitOnFhir.Common.Models
         {
             EnsureArg.IsNotNull(platformUserInfo, nameof(platformUserInfo));
 
-            _platformUserInfo.Add(platformUserInfo);
+            _platformUserInfo.AddOrUpdate(
+                platformUserInfo.PlatformName,
+                platformUserInfo,
+                (key, info) => platformUserInfo != info ? platformUserInfo : info);
+        }
+
+        /// <summary>
+        /// Updates the ImportState property for the specified platform.
+        /// </summary>
+        /// <param name="platformName">The platform to update.</param>
+        /// <param name="dataImportState">The new <see cref="DataImportState"/> value.</param>
+        public void UpdateImportState(string platformName, DataImportState dataImportState)
+        {
+            if (_platformUserInfo.TryGetValue(platformName, out var currentInfo))
+            {
+                currentInfo.ImportState = dataImportState;
+            }
         }
 
         public override TableEntity ToTableEntity()
@@ -68,7 +83,7 @@ namespace FitOnFhir.Common.Models
 
             if (_platformUserInfo != null && _platformUserInfo.Count > 0)
             {
-                string serializedPlatformInfo = JsonConvert.SerializeObject(_platformUserInfo.ToArray());
+                string serializedPlatformInfo = JsonConvert.SerializeObject(_platformUserInfo);
                 InternalTableEntity.Add(_platformsKey, serializedPlatformInfo);
             }
 
