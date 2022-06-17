@@ -85,6 +85,20 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(userid => userid == _userId),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_user);
 
+            _usersTableRepository.Update(Arg.Any<User>(), Arg.Is<CancellationToken>(token => token == _cancellationToken)).
+                Returns(
+                    x =>
+                    {
+                        var user = new User(_userGuid);
+                        user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, _googleUserId, DataImportState.Importing));
+                        return user;
+                    }, x =>
+                    {
+                        var user = new User(_userGuid);
+                        user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, _googleUserId, DataImportState.Unauthorized));
+                        return user;
+                    });
+
             // override ProcessDatasetRequests to throw an exception
             string exceptionMessage = "token refresh exception";
             var exception = new TokenRefreshException(exceptionMessage);
@@ -98,19 +112,16 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(usr => usr == _userId),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
 
-            var expectedImportingUser = new User(_userGuid);
-            expectedImportingUser.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, _googleUserId, DataImportState.Importing));
+            Received.InOrder(async () =>
+            {
+                await _usersTableRepository.Update(
+                    Arg.Is<User>(usr => IsExpected(usr, DataImportState.Importing)),
+                    Arg.Is<CancellationToken>(token => token == _cancellationToken));
 
-            await _usersTableRepository.Received().Update(
-                Arg.Is<User>(usr => IsExpected(expectedImportingUser, DataImportState.Importing)),
-                Arg.Is<CancellationToken>(token => token == _cancellationToken));
-
-            var expectedUnauthorizedUser = new User(_userGuid);
-            expectedUnauthorizedUser.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, _googleUserId, DataImportState.Unauthorized));
-
-            await _usersTableRepository.Received().Update(
-                Arg.Is<User>(usr => IsExpected(expectedUnauthorizedUser, DataImportState.Unauthorized)),
-                Arg.Is<CancellationToken>(token => token == _cancellationToken));
+                await _usersTableRepository.Update(
+                    Arg.Is<User>(usr => IsExpected(usr, DataImportState.Unauthorized)),
+                    Arg.Is<CancellationToken>(token => token == _cancellationToken));
+            });
 
             await _googleFitClient.DidNotReceive().DataSourcesListRequest(
                 Arg.Is<string>(access => access == _accessToken),
@@ -228,19 +239,16 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
-            var expectedImportingUser = new User(_userGuid);
-            expectedImportingUser.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, _googleUserId, DataImportState.Importing));
+            Received.InOrder(async () =>
+            {
+                await _usersTableRepository.Update(
+                    Arg.Is<User>(usr => IsExpected(usr, DataImportState.Importing)),
+                    Arg.Is<CancellationToken>(token => token == _cancellationToken));
 
-            await _usersTableRepository.Received().Update(
-                Arg.Is<User>(usr => IsExpected(expectedImportingUser, DataImportState.Importing)),
-                Arg.Is<CancellationToken>(token => token == _cancellationToken));
-
-            var expectedReadyToImportUser = new User(_userGuid);
-            expectedReadyToImportUser.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, _googleUserId, DataImportState.ReadyToImport));
-
-            await _usersTableRepository.Received().Update(
-               Arg.Is<User>(usr => IsExpected(expectedReadyToImportUser, DataImportState.ReadyToImport)),
-               Arg.Is<CancellationToken>(token => token == _cancellationToken));
+                await _usersTableRepository.Update(
+                    Arg.Is<User>(usr => IsExpected(usr, DataImportState.ReadyToImport)),
+                    Arg.Is<CancellationToken>(token => token == _cancellationToken));
+            });
         }
 
         private void SetupMockSuccessReturns()
@@ -260,6 +268,20 @@ namespace FitOnFhir.GoogleFit.Tests
             _usersTableRepository.GetById(
                 Arg.Is<string>(userid => userid == _userId),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_user);
+
+            _usersTableRepository.Update(Arg.Any<User>(), Arg.Is<CancellationToken>(token => token == _cancellationToken)).
+                Returns(
+                    x =>
+                {
+                    var user = new User(_userGuid);
+                    user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, _googleUserId, DataImportState.Importing));
+                    return user;
+                }, x =>
+                    {
+                        var user = new User(_userGuid);
+                        user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, _googleUserId, DataImportState.ReadyToImport));
+                        return user;
+                    });
         }
 
         private bool IsExpected(User user, DataImportState dataImportState)

@@ -7,7 +7,6 @@ using Azure;
 using Azure.Data.Tables;
 using EnsureThat;
 using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Persistence;
 using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.Common.Repositories
@@ -48,7 +47,7 @@ namespace FitOnFhir.Common.Repositories
             return null;
         }
 
-        public async Task Insert(TEntity entity, CancellationToken cancellationToken)
+        public async Task<TEntity> Insert(TEntity entity, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
 
@@ -60,9 +59,11 @@ namespace FitOnFhir.Common.Repositories
             {
                 _logger.LogError(ex, ex.Message);
             }
+
+            return await GetById(entity.Id, cancellationToken);
         }
 
-        public async Task Update(TEntity entity, CancellationToken cancellationToken)
+        public async Task<TEntity> Update(TEntity entity, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
 
@@ -74,9 +75,11 @@ namespace FitOnFhir.Common.Repositories
             {
                 _logger.LogError(ex, ex.Message);
             }
+
+            return await GetById(entity.Id, cancellationToken);
         }
 
-        public async Task Upsert(TEntity entity, CancellationToken cancellationToken)
+        public async Task<TEntity> Upsert(TEntity entity, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
 
@@ -88,6 +91,8 @@ namespace FitOnFhir.Common.Repositories
             {
                 _logger.LogError(ex, ex.Message);
             }
+
+            return await GetById(entity.Id, cancellationToken);
         }
 
         public async Task Delete(TEntity entity, CancellationToken cancellationToken)

@@ -68,7 +68,7 @@ namespace FitOnFhir.GoogleFit.Services
             user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, googleUserId, DataImportState.ReadyToImport));
 
             // Insert user into Users Table
-            await _usersTableRepository.Upsert(user, cancellationToken);
+            user = await _usersTableRepository.Upsert(user, cancellationToken);
 
             GoogleFitUser googleFitUser = new GoogleFitUser(googleUserId);
 

@@ -51,7 +51,7 @@ namespace FitOnFhir.GoogleFit.Services
             // Get user's info for LastSync date
             _logger.LogInformation("Query userInfo for user: {0}, platformId: {1}", userId, googleFitId);
             var user = await _usersTableRepository.GetById(userId, cancellationToken);
-            await UpdateUserAndImportState(user, DataImportState.Importing, cancellationToken);
+            user = await UpdateUserAndImportState(user, DataImportState.Importing, cancellationToken);
 
             try
             {
@@ -90,11 +90,11 @@ namespace FitOnFhir.GoogleFit.Services
             _logger.LogInformation("Import finalized: {0}, platformId", userId, googleFitId);
         }
 
-        private async Task UpdateUserAndImportState(User user, DataImportState dataImportState, CancellationToken cancellationToken)
+        private async Task<User> UpdateUserAndImportState(User user, DataImportState dataImportState, CancellationToken cancellationToken)
         {
             user.LastTouched = _utcNowFunc();
             user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, dataImportState);
-            await _usersTableRepository.Update(user, cancellationToken);
+            return await _usersTableRepository.Update(user, cancellationToken);
         }
     }
 }
