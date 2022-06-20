@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using FitOnFhir.Common;
-using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.ImportTimerTrigger;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;

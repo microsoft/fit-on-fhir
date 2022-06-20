@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
-using System.Threading.Tasks;
 using FitOnFhir.GoogleFit.Client.Responses;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.PeopleService.v1;

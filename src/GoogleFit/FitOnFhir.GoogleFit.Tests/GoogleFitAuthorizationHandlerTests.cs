@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Client.Handlers;
 using FitOnFhir.GoogleFit.Client.Responses;
@@ -72,7 +71,7 @@ namespace FitOnFhir.GoogleFit.Tests
         [Fact]
         public async Task GivenRequestHandledAndUserExists_WhenRequestIsCallback_ReturnsOkResult()
         {
-            _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User(Guid.NewGuid()));
+            _usersService.ProcessAuthorizationCallback(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
@@ -86,7 +85,7 @@ namespace FitOnFhir.GoogleFit.Tests
         [Fact]
         public async Task GivenRequestHandledAndExceptionIsThrown_WhenRequestIsCallback_ReturnsNotFoundResult()
         {
-            _usersService.Initiate(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception("exception"));
+            _usersService.ProcessAuthorizationCallback(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception("exception"));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);

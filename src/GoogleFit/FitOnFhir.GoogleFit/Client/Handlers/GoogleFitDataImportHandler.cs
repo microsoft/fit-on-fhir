@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Diagnostics.Eventing.Reader;
 using EnsureThat;
 using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Requests;

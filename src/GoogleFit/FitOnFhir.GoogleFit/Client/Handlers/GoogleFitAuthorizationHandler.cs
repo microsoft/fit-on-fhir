@@ -70,7 +70,7 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
             try
             {
                 var accessCode = EnsureArg.IsNotNullOrWhiteSpace(request?.HttpRequest?.Query?["code"], "accessCode");
-                await _usersService.Initiate(accessCode, request.Token);
+                await _usersService.ProcessAuthorizationCallback(accessCode, request.Token);
                 return new OkObjectResult("auth flow success");
             }
             catch (Exception ex)

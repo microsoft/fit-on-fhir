@@ -37,11 +37,17 @@ namespace FitOnFhir.Common.Repositories
         {
             EnsureArg.IsNotNullOrWhiteSpace(id, nameof(id));
 
-            var response = await _tableClient.GetEntityAsync<TableEntity>(PartitionKey, id, cancellationToken: cancellationToken);
-
-            if (response?.Value != null)
+            try
             {
-                return (TEntity)Activator.CreateInstance(typeof(TEntity), response.Value);
+                var response = await _tableClient.GetEntityAsync<TableEntity>(PartitionKey, id, cancellationToken: cancellationToken);
+
+                if (response?.Value != null)
+                {
+                    return (TEntity)Activator.CreateInstance(typeof(TEntity), response.Value);
+                }
+            }
+            catch (RequestFailedException e) when (e.Status == 404)
+            {
             }
 
             return null;
