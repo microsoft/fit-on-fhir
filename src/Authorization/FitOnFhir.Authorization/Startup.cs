@@ -9,8 +9,10 @@ using FitOnFhir.Authorization.Services;
 using FitOnFhir.Common;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
+using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Requests;
+using FitOnFhir.Common.Services;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Config;
 using FitOnFhir.GoogleFit.Client.Handlers;
@@ -41,6 +43,7 @@ namespace FitOnFhir.Authorization
             builder.Services.AddSingleton<IRoutingService, RoutingService>();
             builder.Services.AddSingleton<GoogleFitAuthorizationHandler>();
             builder.Services.AddSingleton<UnknownAuthorizationHandler>();
+            builder.Services.AddSingleton<IQueueService, QueueService>();
             builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(GoogleFitAuthorizationHandler), typeof(UnknownAuthorizationHandler)));
         }
     }

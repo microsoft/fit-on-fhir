@@ -18,5 +18,10 @@ namespace FitOnFhir.Common
         /// Partition key for the Users partition
         /// </summary>
         public const string UsersPartitionKey = "Users";
+
+        /// <summary>
+        /// The name of the Azure storage queue
+        /// </summary>
+        public const string QueueName = "import-data";
     }
 }

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Data.Tables;
+using FitOnFhir.Common;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using Microsoft.Azure.WebJobs;
@@ -30,7 +31,7 @@ namespace FitOnFhir.ImportTimerTrigger
         [FunctionName("import-timer")]
         public async Task Run(
             [TimerTrigger("%SCHEDULE%")] TimerInfo myTimer,
-            [Queue("import-data", Connection = "AzureWebJobsStorage")] ICollector<string> queueService,
+            [Queue(Constants.QueueName, Connection = "AzureWebJobsStorage")] ICollector<string> queueService,
             ILogger logger,
             CancellationToken cancellationToken)
         {

@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
+using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.GoogleFit.Client;
@@ -24,6 +26,7 @@ namespace FitOnFhir.GoogleFit.Services
         private readonly ILogger<UsersService> _logger;
         private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
         private readonly IGoogleFitAuthService _authService;
+        private readonly IQueueService _queueService;
 
         public UsersService(
             IUsersTableRepository usersTableRepository,
@@ -31,13 +34,15 @@ namespace FitOnFhir.GoogleFit.Services
             IGoogleFitClient googleFitClient,
             IUsersKeyVaultRepository usersKeyvaultRepository,
             IGoogleFitAuthService authService,
+            IQueueService queueService,
             ILogger<UsersService> logger)
         {
-            _usersTableRepository = usersTableRepository;
-            _googleFitUserRepository = googleFitUserRepository;
-            _googleFitClient = googleFitClient;
-            _usersKeyvaultRepository = usersKeyvaultRepository;
-            _authService = authService;
+            _usersTableRepository = EnsureArg.IsNotNull(usersTableRepository, nameof(usersTableRepository));
+            _googleFitUserRepository = EnsureArg.IsNotNull(googleFitUserRepository, nameof(googleFitUserRepository));
+            _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
+            _usersKeyvaultRepository = EnsureArg.IsNotNull(usersKeyvaultRepository, nameof(usersKeyvaultRepository));
+            _authService = EnsureArg.IsNotNull(authService, nameof(authService));
+            _queueService = EnsureArg.IsNotNull(queueService, nameof(queueService));
             _logger = logger;
         }
 
@@ -78,11 +83,18 @@ namespace FitOnFhir.GoogleFit.Services
             // Insert refresh token into users KV by userId
             await _usersKeyvaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
 
+            QueueFitnessImport(user);
+
             return user;
         }
 
         public void QueueFitnessImport(User user)
         {
+            var googleUserInfo = user.GetPlatformUserInfo().FirstOrDefault(usr => usr.PlatformName == GoogleFitConstants.GoogleFitPlatformName);
+            if (googleUserInfo != null)
+            {
+                _queueService.SendQueueMessage(user.Id, googleUserInfo.UserId, googleUserInfo.PlatformName);
+            }
         }
     }
 }
