@@ -8,6 +8,7 @@ using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Responses;
 using Google.Apis.Fitness.v1.Data;
 using Hl7.Fhir.Model;
+using Claim = System.Security.Claims.Claim;
 
 namespace FitOnFhir.GoogleFit.Tests
 {
@@ -59,7 +60,7 @@ namespace FitOnFhir.GoogleFit.Tests
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                IdToken = new JwtSecurityToken(issuer: Issuer, claims: new List<System.Security.Claims.Claim>() { new System.Security.Claims.Claim("sub", GoogleUserId) }),
+                IdToken = new JwtSecurityToken(issuer: Issuer, claims: new List<Claim>() { new Claim("sub", GoogleUserId) }),
             };
         }
 

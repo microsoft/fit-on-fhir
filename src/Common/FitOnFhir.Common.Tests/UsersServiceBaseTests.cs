@@ -8,6 +8,9 @@ using FitOnFhir.Common.Repositories;
 using Microsoft.Health.Extensions.Fhir.Service;
 using NSubstitute;
 using Xunit;
+using Bundle = Hl7.Fhir.Model.Bundle;
+using Patient = Hl7.Fhir.Model.Patient;
+using ResourceType = Hl7.Fhir.Model.ResourceType;
 
 namespace FitOnFhir.Common.Tests
 {
@@ -22,8 +25,8 @@ namespace FitOnFhir.Common.Tests
             UsersTableRepository = Substitute.For<IUsersTableRepository>();
 
             // Default responses.
-            _fhirService.SearchForResourceAsync(Hl7.Fhir.Model.ResourceType.Patient, Arg.Any<string>()).Returns(Task.FromResult(PatientBundle));
-            _fhirService.CreateResourceAsync(Arg.Any<Hl7.Fhir.Model.Patient>()).Returns(Task.FromResult(PatientBundle.Entry[0].Resource as Hl7.Fhir.Model.Patient));
+            _fhirService.SearchForResourceAsync(ResourceType.Patient, Arg.Any<string>()).Returns(Task.FromResult(PatientBundle));
+            _fhirService.CreateResourceAsync(Arg.Any<Patient>()).Returns(Task.FromResult(PatientBundle.Entry[0].Resource as Patient));
             UsersTableRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User(Guid.NewGuid()));
         }
 
@@ -31,7 +34,7 @@ namespace FitOnFhir.Common.Tests
 
         protected IUsersTableRepository UsersTableRepository { get; }
 
-        protected abstract Hl7.Fhir.Model.Bundle PatientBundle { get; }
+        protected abstract Bundle PatientBundle { get; }
 
         protected abstract string ExpectedPatientId { get; }
 
@@ -46,11 +49,11 @@ namespace FitOnFhir.Common.Tests
         [Fact]
         public async Task GivenPatientDoesNotExist_WhenProcessAuthorizationCallbackCalled_NewPatientIsCreated()
         {
-            _fhirService.SearchForResourceAsync(Hl7.Fhir.Model.ResourceType.Patient, Arg.Any<string>()).Returns(Task.FromResult(new Hl7.Fhir.Model.Bundle()));
+            _fhirService.SearchForResourceAsync(ResourceType.Patient, Arg.Any<string>()).Returns(Task.FromResult(new Bundle()));
 
             await ExecuteAuthorizationCallback();
 
-            await _fhirService.Received(1).CreateResourceAsync(Arg.Is<Hl7.Fhir.Model.Patient>(x => IsExpected(x)));
+            await _fhirService.Received(1).CreateResourceAsync(Arg.Is<Patient>(x => IsExpected(x)));
         }
 
         [Fact]
@@ -58,7 +61,7 @@ namespace FitOnFhir.Common.Tests
         {
             await ExecuteAuthorizationCallback();
 
-            await _fhirService.DidNotReceive().CreateResourceAsync(Arg.Any<Hl7.Fhir.Model.Patient>());
+            await _fhirService.DidNotReceive().CreateResourceAsync(Arg.Any<Patient>());
         }
 
         [Fact]
@@ -68,7 +71,7 @@ namespace FitOnFhir.Common.Tests
 
             await ExecuteAuthorizationCallback();
 
-            await UsersTableRepository.Received().Insert(Arg.Is<User>(x => IsExpected(x)), Arg.Any<CancellationToken>());
+            await UsersTableRepository.Received(1).Insert(Arg.Is<User>(x => IsExpected(x)), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -79,7 +82,7 @@ namespace FitOnFhir.Common.Tests
             await UsersTableRepository.DidNotReceive().Insert(Arg.Any<User>(), Arg.Any<CancellationToken>());
         }
 
-        private bool IsExpected(Hl7.Fhir.Model.Patient patient)
+        private bool IsExpected(Patient patient)
         {
             return string.Equals(ExpectedPatientIdentifierSystem, patient.Identifier[0].System, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(ExpectedPlatformUserId, patient.Identifier[0].Value, StringComparison.OrdinalIgnoreCase);

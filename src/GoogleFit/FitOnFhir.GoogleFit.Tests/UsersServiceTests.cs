@@ -14,6 +14,7 @@ using FitOnFhir.GoogleFit.Services;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
+using Bundle = Hl7.Fhir.Model.Bundle;
 
 namespace FitOnFhir.GoogleFit.Tests
 {
@@ -44,7 +45,7 @@ namespace FitOnFhir.GoogleFit.Tests
             _authService.AuthTokensRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(Data.GetAuthTokensResponse()));
         }
 
-        protected override Hl7.Fhir.Model.Bundle PatientBundle => Data.GetBundle(Data.GetPatient());
+        protected override Bundle PatientBundle => Data.GetBundle(Data.GetPatient());
 
         protected override Func<Task> ExecuteAuthorizationCallback => () => _usersService.ProcessAuthorizationCallback("TestAuthCode", CancellationToken.None);
 
@@ -77,7 +78,7 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenAuthServiceAuthTokensRequestReturnsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThown()
+        public async Task GivenAuthServiceAuthTokensRequestReturnsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
         {
             _authService.AuthTokensRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult<AuthTokensResponse>(null));
 
@@ -85,17 +86,17 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenAllContitionsMet_WhenProcessAuthorizationCallbackCalled_GoogleFitUserPersisted()
+        public async Task GivenAllConditionsMet_WhenProcessAuthorizationCallbackCalled_GoogleFitUserPersisted()
         {
-            await _usersService.ProcessAuthorizationCallback("TestAuthCode", CancellationToken.None);
+            await ExecuteAuthorizationCallback();
 
             await _googleFitUserRepository.Received(1).Upsert(Arg.Is<GoogleFitUser>(x => x.Id.Equals(Data.GoogleUserId)), Arg.Any<CancellationToken>());
         }
 
         [Fact]
-        public async Task GivenAllContitionsMet_WhenProcessAuthorizationCallbackCalled_RefreshTokenPersisted()
+        public async Task GivenAllConditionsMet_WhenProcessAuthorizationCallbackCalled_RefreshTokenPersisted()
         {
-            await _usersService.ProcessAuthorizationCallback("TestAuthCode", CancellationToken.None);
+            await ExecuteAuthorizationCallback();
 
             await _usersKeyVaultRepository.Received(1).Upsert(Data.GoogleUserId, Data.RefreshToken, Arg.Any<CancellationToken>());
         }

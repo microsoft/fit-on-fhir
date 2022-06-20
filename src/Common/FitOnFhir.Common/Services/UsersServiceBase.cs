@@ -6,8 +6,9 @@
 using EnsureThat;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
-using Hl7.Fhir.Model;
 using Microsoft.Health.Extensions.Fhir.Service;
+using Identifier = Hl7.Fhir.Model.Identifier;
+using Patient = Hl7.Fhir.Model.Patient;
 
 namespace FitOnFhir.Common.Services
 {
@@ -22,7 +23,7 @@ namespace FitOnFhir.Common.Services
             _usersTableRepository = EnsureArg.IsNotNull(usersTableRepository, nameof(usersTableRepository));
         }
 
-        public async System.Threading.Tasks.Task EnsurePatientAndUser(string platformName, string identifier, string system, CancellationToken cancellationToken)
+        public async Task EnsurePatientAndUser(string platformName, string identifier, string system, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(platformName, nameof(platformName));
             EnsureArg.IsNotNullOrWhiteSpace(identifier, nameof(identifier));
