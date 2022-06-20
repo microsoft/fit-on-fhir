@@ -71,7 +71,7 @@ namespace FitOnFhir.Common.Tests
 
             await ExecuteAuthorizationCallback();
 
-            await UsersTableRepository.Received(1).Insert(Arg.Is<User>(x => IsExpected(x)), Arg.Any<CancellationToken>());
+            await UsersTableRepository.Received(1).Insert(Arg.Is<User>(x => IsExpected(x, DataImportState.ReadyToImport)), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -88,13 +88,14 @@ namespace FitOnFhir.Common.Tests
                 string.Equals(ExpectedPlatformUserId, patient.Identifier[0].Value, StringComparison.OrdinalIgnoreCase);
         }
 
-        private bool IsExpected(User user)
+        private bool IsExpected(User user, DataImportState expectedImportState)
         {
             return string.Equals(ExpectedPatientId, user.Id, StringComparison.OrdinalIgnoreCase) &&
                 user.GetPlatformUserInfo().Any(x =>
                 {
                     return string.Equals(ExpectedPlatform, x.PlatformName, StringComparison.OrdinalIgnoreCase) &&
-                        string.Equals(ExpectedPlatformUserId, x.UserId, StringComparison.OrdinalIgnoreCase);
+                        string.Equals(ExpectedPlatformUserId, x.UserId, StringComparison.OrdinalIgnoreCase) &&
+                        expectedImportState == x.ImportState;
                 });
         }
     }

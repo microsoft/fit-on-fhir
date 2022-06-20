@@ -42,7 +42,7 @@ namespace FitOnFhir.Common.Services
             {
                 // If a user does not exist, create a new user and add it to the repository.
                 user = new User(Guid.Parse(patient.Id));
-                user.AddPlatformUserInfo(new PlatformUserInfo(platformName, identifier));
+                user.AddPlatformUserInfo(new PlatformUserInfo(platformName, identifier, DataImportState.ReadyToImport));
                 await _usersTableRepository.Insert(user, cancellationToken);
             }
         }

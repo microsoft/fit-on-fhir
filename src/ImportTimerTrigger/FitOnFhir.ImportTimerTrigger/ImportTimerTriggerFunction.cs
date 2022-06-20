@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -42,9 +43,11 @@ namespace FitOnFhir.ImportTimerTrigger
                 User user = new User(entity);
 
                 logger.LogInformation("Adding {0} to queue", user.Id);
-                IEnumerable<PlatformUserInfo> userPlatformInformation = user.GetPlatformUserInfo();
+                IEnumerable<PlatformUserInfo> userPlatformInformation = user.GetPlatformUserInfo().Where(upi => upi.ImportState == DataImportState.ReadyToImport);
                 foreach (var userPlatformInfo in userPlatformInformation)
                 {
+                    user.UpdateImportState(userPlatformInfo.PlatformName, DataImportState.Queued);
+                    user = await _usersTableRepository.Update(user, cancellationToken);
                     queueService.Add(JsonConvert.SerializeObject(new QueueMessage(user.Id, userPlatformInfo.UserId, userPlatformInfo.PlatformName)));
                 }
             }
