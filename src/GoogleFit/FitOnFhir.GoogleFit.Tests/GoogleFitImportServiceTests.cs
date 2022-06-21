@@ -244,7 +244,7 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<long>());
             Assert.Equal(2, _eventHubProducerClient.CreateBatchAsyncCalls);
             Assert.Equal(2, _eventHubProducerClient.SendAsyncCalls);
-            _googleFitUser.Received(2).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<long>(dto => dto == _lastSyncTime));
+            _googleFitUser.Received(2).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<long>(dto => dto == _lastSyncTime + 1));
         }
 
         [Fact]
@@ -257,7 +257,7 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<long>());
             Assert.Equal(1, _eventHubProducerClient.CreateBatchAsyncCalls);
             Assert.Equal(1, _eventHubProducerClient.SendAsyncCalls);
-            _googleFitUser.Received(1).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<long>(dto => dto == _lastSyncTime));
+            _googleFitUser.Received(1).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<long>(dto => dto == _lastSyncTime + 1));
         }
 
         [Theory]
