@@ -136,9 +136,10 @@ namespace FitOnFhir.GoogleFit.Services
                             if (lastStartTime != default)
                             {
                                 // Update the last sync time for this DataSource in the GoogleFitUser
+                                // 1 nanosecond is added here to prevent resubmitting the last data point.
                                 // *NOTE* The value is not persisted until all work items complete.
                                 _logger.LogInformation("Saving last sync time for Dataset: {0} for user: {1}", dataStreamId, user.Id);
-                                user.SaveLastSyncTime(dataStreamId, lastStartTime);
+                                user.SaveLastSyncTime(dataStreamId, lastStartTime++);
                             }
                             else
                             {
