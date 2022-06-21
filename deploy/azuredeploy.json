@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.7.4.23292",
-      "templateHash": "15430164931660122741"
+      "templateHash": "13882847403034593567"
     }
   },
   "parameters": {
@@ -80,6 +80,7 @@
     }
   },
   "variables": {
+    "fhirServiceUrl": "[format('https://{0}-fs-{1}.fhir.azurehealthcareapis.com', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
     "fhirWriterRoleId": "3f88fce4-5892-4214-ae73-ba5294559913",
     "eventHubReceiverRoleId": "a638d3c7-ab3a-418d-83e6-5f17a39d4fde"
   },
@@ -408,7 +409,9 @@
         "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
         "GoogleFitAuthorizationConfiguration__ClientSecret": "[parameters('google_client_secret')]",
         "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
-        "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-users-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
+        "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-users-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]",
+        "FhirService__Url": "[variables('fhirServiceUrl')]",
+        "FhirClient__UseManagedIdentity": "true"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
@@ -631,7 +634,7 @@
       "properties": {
         "authenticationConfiguration": {
           "authority": "[format('{0}{1}', environment().authentication.loginEndpoint, subscription().tenantId)]",
-          "audience": "[format('https://{0}-fs-{1}.fhir.azurehealthcareapis.com', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
+          "audience": "[variables('fhirServiceUrl')]",
           "smartProxyEnabled": false
         }
       },
@@ -826,6 +829,20 @@
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]",
         "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-08-01-preview",
+      "scope": "[format('Microsoft.HealthcareApis/workspaces/{0}/fhirservices/{1}', split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]",
+      "name": "[guid(format('{0}-AuthFhirWriter', resourceGroup().id))]",
+      "properties": {
+        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('fhirWriterRoleId'))]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'Full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]"
       ]
     },
     {

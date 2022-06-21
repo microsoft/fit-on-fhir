@@ -25,13 +25,11 @@ namespace FitOnFhir.GoogleFit.Tests
         private Guid _userGuid = Guid.NewGuid();
         private readonly string _userId;
         private const string _googleUserId = "me";
-        private const string _accessToken = "AccessToken";
-        private const string _refreshToken = "RefreshToken";
         private readonly CancellationToken _cancellationToken = CancellationToken.None;
         private readonly User _user;
         private readonly GoogleFitUser _googleFitUser;
         private readonly DataSourcesListResponse _dataSourcesListResponse = new DataSourcesListResponse() { DataSources = new List<DataSource>() };
-        private readonly AuthTokensResponse _tokensResponse = new AuthTokensResponse() { AccessToken = _accessToken, RefreshToken = _refreshToken };
+        private readonly AuthTokensResponse _tokensResponse = Data.GetAuthTokensResponse();
 
         private readonly IGoogleFitImportService _googleFitImportService;
         private readonly IUsersTableRepository _usersTableRepository;
@@ -124,7 +122,7 @@ namespace FitOnFhir.GoogleFit.Tests
             });
 
             await _googleFitClient.DidNotReceive().DataSourcesListRequest(
-                Arg.Is<string>(access => access == _accessToken),
+                Arg.Is<string>(access => access == Data.AccessToken),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
 
             await _googleFitImportService.DidNotReceive().ProcessDatasetRequests(
@@ -146,7 +144,7 @@ namespace FitOnFhir.GoogleFit.Tests
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             await _googleFitClient.Received(1).DataSourcesListRequest(
-                Arg.Is<string>(access => access == _accessToken),
+                Arg.Is<string>(access => access == Data.AccessToken),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
         }
 
@@ -172,7 +170,7 @@ namespace FitOnFhir.GoogleFit.Tests
             await _googleFitImportService.Received(1).ProcessDatasetRequests(
                 Arg.Is<GoogleFitUser>(usr => usr.Id == _googleUserId),
                 Arg.Is<IEnumerable<DataSource>>(list => list == _dataSourcesListResponse.DataSources),
-                Arg.Is<AuthTokensResponse>(tknrsp => tknrsp.RefreshToken == _refreshToken && tknrsp.AccessToken == _accessToken),
+                Arg.Is<AuthTokensResponse>(tknrsp => tknrsp.RefreshToken == Data.RefreshToken && tknrsp.AccessToken == Data.AccessToken),
                 Arg.Is<CancellationToken>(cancel => cancel == _cancellationToken));
         }
 

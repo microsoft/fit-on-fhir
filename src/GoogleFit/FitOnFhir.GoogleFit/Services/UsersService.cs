@@ -7,57 +7,57 @@ using EnsureThat;
 using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
-using FitOnFhir.GoogleFit.Client;
+using FitOnFhir.Common.Services;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Extensions.Fhir.Service;
 
 namespace FitOnFhir.GoogleFit.Services
 {
     /// <summary>
     /// User Service.
     /// </summary>
-    public class UsersService : IUsersService
+    public class UsersService : UsersServiceBase, IUsersService
     {
-        private readonly IUsersTableRepository _usersTableRepository;
         private readonly IGoogleFitUserTableRepository _googleFitUserRepository;
-        private readonly IGoogleFitClient _googleFitClient;
-        private readonly ILogger<UsersService> _logger;
-        private readonly IUsersKeyVaultRepository _usersKeyvaultRepository;
+        private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
         private readonly IGoogleFitAuthService _authService;
         private readonly IQueueService _queueService;
+        private readonly ILogger<UsersService> _logger;
 
         public UsersService(
+            ResourceManagementService resourceManagementService,
             IUsersTableRepository usersTableRepository,
             IGoogleFitUserTableRepository googleFitUserRepository,
-            IGoogleFitClient googleFitClient,
-            IUsersKeyVaultRepository usersKeyvaultRepository,
+            IUsersKeyVaultRepository usersKeyVaultRepository,
             IGoogleFitAuthService authService,
             IQueueService queueService,
             ILogger<UsersService> logger)
+            : base(resourceManagementService, usersTableRepository)
         {
-            _usersTableRepository = EnsureArg.IsNotNull(usersTableRepository, nameof(usersTableRepository));
             _googleFitUserRepository = EnsureArg.IsNotNull(googleFitUserRepository, nameof(googleFitUserRepository));
-            _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
-            _usersKeyvaultRepository = EnsureArg.IsNotNull(usersKeyvaultRepository, nameof(usersKeyvaultRepository));
+            _usersKeyVaultRepository = EnsureArg.IsNotNull(usersKeyVaultRepository, nameof(usersKeyVaultRepository));
             _authService = EnsureArg.IsNotNull(authService, nameof(authService));
             _queueService = EnsureArg.IsNotNull(queueService, nameof(queueService));
             _logger = logger;
         }
 
-        public async Task<User> Initiate(string authCode, CancellationToken cancellationToken)
+        public async Task ProcessAuthorizationCallback(string authCode, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(authCode))
+            {
+                _logger.LogInformation("ProcessAuthorizationCallback called with no auth code");
+                return;
+            }
+
+            // Exchange the code for Auth, Refresh and Id tokens.
             var tokenResponse = await _authService.AuthTokensRequest(authCode, cancellationToken);
+
             if (tokenResponse == null)
             {
                 throw new Exception("Token response empty");
-            }
-
-            var emailResponse = await _googleFitClient.MyEmailRequest(tokenResponse.AccessToken, cancellationToken);
-            if (emailResponse == null)
-            {
-                throw new Exception("Email response empty");
             }
 
             // https://developers.google.com/identity/protocols/oauth2/openid-connect#an-id-tokens-payload
@@ -67,28 +67,19 @@ namespace FitOnFhir.GoogleFit.Services
             // Use sub within your application as the unique-identifier key for the user.
             // Maximum length of 255 case-sensitive ASCII characters."
             string googleUserId = tokenResponse.IdToken.Subject;
+            string tokenIssuer = tokenResponse.IdToken.Issuer;
 
-            // Create a new user and add GoogleFit info
-            User user = new User(Guid.NewGuid());
-            user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, googleUserId, DataImportState.ReadyToImport));
-
-            // Insert user into Users Table
-            user = await _usersTableRepository.Upsert(user, cancellationToken);
-
-            GoogleFitUser googleFitUser = new GoogleFitUser(googleUserId);
+            // Create a Patient and User if this is the first time the user has authorized.
+            await EnsurePatientAndUser(GoogleFitConstants.GoogleFitPlatformName, googleUserId, tokenIssuer, cancellationToken);
 
             // Insert GoogleFitUser into Users Table
-            await _googleFitUserRepository.Upsert(googleFitUser, cancellationToken);
+            await _googleFitUserRepository.Upsert(new GoogleFitUser(googleUserId), cancellationToken);
 
             // Insert refresh token into users KV by userId
-            await _usersKeyvaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
-
-            QueueFitnessImport(user, cancellationToken);
-
-            return user;
+            await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
         }
 
-        public void QueueFitnessImport(User user, CancellationToken cancellationToken)
+        public override void QueueFitnessImport(User user, CancellationToken cancellationToken)
         {
             var googleUserInfo = user.GetPlatformUserInfo().FirstOrDefault(usr => usr.PlatformName == GoogleFitConstants.GoogleFitPlatformName);
             if (googleUserInfo != null)
