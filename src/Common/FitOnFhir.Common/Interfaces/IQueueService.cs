@@ -21,7 +21,8 @@ namespace FitOnFhir.Common.Interfaces
         /// <param name="userId">The ID of the user, which contains the platform specific info for importing.</param>
         /// <param name="platformUserId">The user ID for the platform that the data to import is stored in.</param>
         /// <param name="platformName">The name of the platform that the data to be imported is stored in.</param>
+        /// <param name="cancellationToken">The token used to cancel the operation.</param>
         /// <returns>A Task which contains the <see cref="Response{T}"/> of the send message call.</returns>
-        Task SendQueueMessage(string userId, string platformUserId, string platformName);
+        Task SendQueueMessage(string userId, string platformUserId, string platformName, CancellationToken cancellationToken);
     }
 }

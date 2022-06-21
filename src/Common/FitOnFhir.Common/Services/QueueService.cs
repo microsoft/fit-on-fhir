@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Azure;
 using Azure.Storage.Queues;
 using EnsureThat;
 using FitOnFhir.Common.Config;
@@ -30,23 +31,39 @@ namespace FitOnFhir.Common.Services
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             QueueClientOptions queueOptions = new () { MessageEncoding = QueueMessageEncoding.Base64 };
             _queueClient = new QueueClient(azureConfiguration.StorageAccountConnectionString, Constants.QueueName, queueOptions);
-            _ = InitQueue();
         }
 
         /// <inheritdoc/>
-        public async Task SendQueueMessage(string userId, string platformUserId, string platformName)
+        public async Task SendQueueMessage(string userId, string platformUserId, string platformName, CancellationToken cancellationToken)
         {
+            await InitQueue();
+
             _logger.LogInformation("Adding user [{0}] to queue [{1}] for platform [{2}]", userId, Constants.QueueName, platformName);
             var queueMessage = new QueueMessage(userId, platformUserId, platformName);
-            var response = await _queueClient.SendMessageAsync(JsonConvert.SerializeObject(queueMessage));
-            _logger.LogDebug("Response from message send {0}", response.Value);
+            try
+            {
+                var response = await _queueClient.SendMessageAsync(JsonConvert.SerializeObject(queueMessage), cancellationToken);
+                var rawResponse = response.GetRawResponse();
+                _logger.LogDebug("Response from message send: status '{0}', reason'{1}'", rawResponse.Status, rawResponse.ReasonPhrase);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
         }
 
         private async Task InitQueue()
         {
-            if (await _queueClient.CreateIfNotExistsAsync() != null)
+            try
             {
-                _logger.LogInformation("Queue {0} created", Constants.QueueName);
+                if (await _queueClient.CreateIfNotExistsAsync() != null)
+                {
+                    _logger.LogInformation("Queue {0} created", Constants.QueueName);
+                }
+            }
+            catch (RequestFailedException ex)
+            {
+                _logger.LogError(ex, ex.Message);
             }
         }
     }
