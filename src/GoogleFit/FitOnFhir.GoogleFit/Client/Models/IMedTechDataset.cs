@@ -20,16 +20,16 @@ namespace FitOnFhir.GoogleFit.Client.Models
         string GetPageToken();
 
         /// <summary>
-        /// Creates an EventData object that includes a serialized JSON represention of the IomtDataset.
+        /// Creates an EventData object that includes a serialized JSON representation of the IomtDataset.
         /// </summary>
         /// <param name="userId">The oid of the user to include in the EventData.</param>
         /// <returns><see cref="EventData"/></returns>
         EventData ToEventData(string userId);
 
         /// <summary>
-        /// Gets the latest (most recent) start time from all points in the Dataset.
+        /// Gets the latest (most recent) start time from all points in the Dataset in nanosecond epoch time format.
         /// </summary>
-        /// <returns><see cref="DateTimeOffset"/></returns>
-        DateTimeOffset GetMaxStartTime();
+        /// <returns><see cref="long"/></returns>
+        long GetMaxEndTimeNanos();
     }
 }

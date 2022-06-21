@@ -15,7 +15,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
     public class GoogleFitUser : EntityBase
     {
         private const string _lastSyncTimesKey = "LastSyncTimes";
-        private readonly ConcurrentDictionary<string, DateTimeOffset> _lastSyncTimes = new ConcurrentDictionary<string, DateTimeOffset>();
+        private readonly ConcurrentDictionary<string, long> _lastSyncTimes = new ConcurrentDictionary<string, long>();
 
         public GoogleFitUser()
             : base(new TableEntity())
@@ -34,7 +34,7 @@ namespace FitOnFhir.GoogleFit.Client.Models
 
             if (serializedLastSyncTimes != null)
             {
-                _lastSyncTimes = JsonConvert.DeserializeObject<ConcurrentDictionary<string, DateTimeOffset>>(serializedLastSyncTimes);
+                _lastSyncTimes = JsonConvert.DeserializeObject<ConcurrentDictionary<string, long>>(serializedLastSyncTimes);
             }
         }
 
@@ -43,19 +43,19 @@ namespace FitOnFhir.GoogleFit.Client.Models
         /// data stream ID provided
         /// </summary>
         /// <param name="dataStreamId">The data stream ID for the DataSource.</param>
-        /// <param name="lastSyncTime">The last time a sync was executed for the data stream.</param>
-        /// <returns>The <see cref="DateTimeOffset"/> for the last sync.</returns>
-        public virtual bool TryGetLastSyncTime(string dataStreamId, out DateTimeOffset lastSyncTime)
+        /// <param name="lastSyncTimeNanos">The last time a sync was executed for the data stream in nanosecond epoch time format.</param>
+        /// <returns><see cref="bool"/> true if the lastSyncTimeNanos exists.</returns>
+        public virtual bool TryGetLastSyncTime(string dataStreamId, out long lastSyncTimeNanos)
         {
             EnsureArg.IsNotNullOrWhiteSpace(dataStreamId, nameof(dataStreamId));
 
-            if (_lastSyncTimes.TryGetValue(dataStreamId, out DateTimeOffset syncTime))
+            if (_lastSyncTimes.TryGetValue(dataStreamId, out long syncTimeNanos))
             {
-                lastSyncTime = syncTime;
+                lastSyncTimeNanos = syncTimeNanos;
                 return true;
             }
 
-            lastSyncTime = default;
+            lastSyncTimeNanos = default;
             return false;
         }
 
@@ -64,8 +64,8 @@ namespace FitOnFhir.GoogleFit.Client.Models
         /// by the data stream ID.
         /// </summary>
         /// <param name="dataStreamId">The data stream ID for the DataSource.</param>
-        /// <param name="time">The <see cref="DateTimeOffset"/> representing when this DataSource was last synced.</param>
-        public virtual void SaveLastSyncTime(string dataStreamId, DateTimeOffset time)
+        /// <param name="time">The <see cref="long"/> representing when this DataSource was last synced in nanosecond epoch time format.</param>
+        public virtual void SaveLastSyncTime(string dataStreamId, long time)
         {
             _lastSyncTimes.AddOrUpdate(dataStreamId, time, (key, oldTime) => time > oldTime ? time : oldTime);
         }

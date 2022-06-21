@@ -42,11 +42,11 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly DateTimeOffset _now =
             new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
 
-        private readonly DateTimeOffset _lastSyncTime =
-            new DateTimeOffset(2004, 1, 11, 11, 59, 59, new TimeSpan(-5, 0, 0));
+        private readonly long _lastSyncTime =
+            new DateTimeOffset(2004, 1, 11, 11, 59, 59, new TimeSpan(-5, 0, 0)).ToUnixTimeMilliseconds() * 1000000;
 
-        private readonly DateTimeOffset _oneDayBack =
-            new DateTimeOffset(2004, 1, 11, 0, 0, 0, new TimeSpan(-5, 0, 0));
+        private readonly long _oneDayBack =
+            new DateTimeOffset(2004, 1, 11, 0, 0, 0, new TimeSpan(-5, 0, 0)).ToUnixTimeMilliseconds() * 1000000;
 
         private readonly GoogleFitUser _googleFitUser;
         private readonly MockEventHubProducerClient _eventHubProducerClient;
@@ -113,7 +113,7 @@ namespace FitOnFhir.GoogleFit.Tests
         {
             string oneDayBackDataSetId = "1073797200000000000-1073883600000000000";
 
-            _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<DateTimeOffset>())
+            _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<long>())
                 .Returns(x =>
                 {
                     x[1] = _oneDayBack;
@@ -151,7 +151,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             Assert.Equal(0, _eventHubProducerClient.CreateBatchAsyncCalls);
             Assert.Equal(0, _eventHubProducerClient.SendAsyncCalls);
-            _googleFitUser.DidNotReceive().SaveLastSyncTime(Arg.Any<string>(), Arg.Any<DateTimeOffset>());
+            _googleFitUser.DidNotReceive().SaveLastSyncTime(Arg.Any<string>(), Arg.Any<long>());
         }
 
         [Fact]
@@ -185,7 +185,7 @@ namespace FitOnFhir.GoogleFit.Tests
             string exceptionMessage = "DatasetRequest exception";
             var datasetRequestException = new Exception(exceptionMessage);
 
-            _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<DateTimeOffset>())
+            _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<long>())
                 .Returns(x =>
                 {
                     x[1] = _oneDayBack;
@@ -203,41 +203,14 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenDatasetRequestThrowsAggregateException_WhenProcessDatasetRequestsIsCalled_AggregateExceptionIsCaughtByGoogleFitExceptionTelemetryProcessor()
-        {
-            string exceptionMessage = "DatasetRequest aggregate exception";
-            var datasetRequestAggregateException = new AggregateException(exceptionMessage);
-
-            _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<DateTimeOffset>())
-                .Returns(x =>
-                {
-                    x[1] = _oneDayBack;
-                    return true;
-                });
-
-            _googleFitClient.DatasetRequest(
-                Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<DataSource>(),
-                Arg.Any<string>(),
-                Arg.Any<int>(),
-                Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(datasetRequestAggregateException);
-
-            await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
-
-            Assert.Equal(0, _eventHubProducerClient.CreateBatchAsyncCalls);
-            Assert.Equal(0, _eventHubProducerClient.SendAsyncCalls);
-            _googleFitUser.DidNotReceive().SaveLastSyncTime(Arg.Any<string>(), Arg.Any<DateTimeOffset>());
-        }
-
-        [Fact]
         public async Task GivenNextPageTokenIsNotNull_WhenProcessDatasetRequestsIsCalled_AllPageResultsAreRetrieved()
         {
             string nextPageToken = "next page";
             string nullPageToken = null;
-            _medTechDataset.GetMaxStartTime().Returns(_lastSyncTime);
+            _medTechDataset.GetMaxEndTimeNanos().Returns(_lastSyncTime);
             _medTechDataset.GetPageToken().Returns(nextPageToken);
 
-            _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<DateTimeOffset>())
+            _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<long>())
                 .Returns(x =>
                 {
                     x[1] = _oneDayBack;
@@ -255,7 +228,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(str => str == null)).Returns(_medTechDataset);
 
             MedTechDataset lastMedTechDataset = Substitute.For<MedTechDataset>(_dataset, _dataSource);
-            lastMedTechDataset.GetMaxStartTime().Returns(_lastSyncTime);
+            lastMedTechDataset.GetMaxEndTimeNanos().Returns(_lastSyncTime);
             lastMedTechDataset.GetPageToken().Returns(nullPageToken);
 
             _googleFitClient.DatasetRequest(
@@ -268,10 +241,10 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
 
-            _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<DateTimeOffset>());
+            _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<long>());
             Assert.Equal(2, _eventHubProducerClient.CreateBatchAsyncCalls);
             Assert.Equal(2, _eventHubProducerClient.SendAsyncCalls);
-            _googleFitUser.Received(2).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<DateTimeOffset>(dto => dto == _lastSyncTime));
+            _googleFitUser.Received(2).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<long>(dto => dto == _lastSyncTime));
         }
 
         [Fact]
@@ -281,10 +254,10 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
 
-            _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<DateTimeOffset>());
+            _googleFitUser.Received(1).TryGetLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), out Arg.Any<long>());
             Assert.Equal(1, _eventHubProducerClient.CreateBatchAsyncCalls);
             Assert.Equal(1, _eventHubProducerClient.SendAsyncCalls);
-            _googleFitUser.Received(1).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<DateTimeOffset>(dto => dto == _lastSyncTime));
+            _googleFitUser.Received(1).SaveLastSyncTime(Arg.Is<string>(str => str == _dataStreamId), Arg.Is<long>(dto => dto == _lastSyncTime));
         }
 
         [Theory]
@@ -317,7 +290,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 _importServiceLogger,
                 _telemetryLogger);
 
-            _googleFitUser.TryGetLastSyncTime(Arg.Any<string>(), out Arg.Any<DateTimeOffset>())
+            _googleFitUser.TryGetLastSyncTime(Arg.Any<string>(), out Arg.Any<long>())
                 .Returns(x =>
                 {
                     x[1] = _oneDayBack;
@@ -329,7 +302,7 @@ namespace FitOnFhir.GoogleFit.Tests
             for (int i = 0; i < dataSourcesCount; i++)
             {
                 MedTechDataset dataset = Substitute.For<MedTechDataset>(_dataset, _dataSource);
-                dataset.GetMaxStartTime().Returns(_lastSyncTime);
+                dataset.GetMaxEndTimeNanos().Returns(_lastSyncTime);
 
                 if (pageCount <= 1)
                 {
@@ -383,9 +356,9 @@ namespace FitOnFhir.GoogleFit.Tests
             string nullPageToken = null;
 
             _medTechDataset.GetPageToken().Returns(nullPageToken);
-            _medTechDataset.GetMaxStartTime().Returns(_lastSyncTime);
+            _medTechDataset.GetMaxEndTimeNanos().Returns(_lastSyncTime);
 
-            _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<DateTimeOffset>())
+            _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<long>())
                 .Returns(x =>
                 {
                     x[1] = _oneDayBack;
