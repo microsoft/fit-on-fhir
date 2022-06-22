@@ -6,12 +6,10 @@
 using Azure;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
-using Azure.Storage.Sas;
 using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Services;
 using FitOnFhir.Common.Tests.Mocks;
 using FitOnFhir.GoogleFit.Common;
-using FitOnFhir.GoogleFit.Tests.Mocks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NSubstitute;

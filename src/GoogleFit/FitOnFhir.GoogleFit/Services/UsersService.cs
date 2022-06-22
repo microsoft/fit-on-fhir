@@ -79,13 +79,15 @@ namespace FitOnFhir.GoogleFit.Services
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
         }
 
-        public override void QueueFitnessImport(User user, CancellationToken cancellationToken)
+        public override Task QueueFitnessImport(User user, CancellationToken cancellationToken)
         {
             var googleUserInfo = user.GetPlatformUserInfo().FirstOrDefault(usr => usr.PlatformName == GoogleFitConstants.GoogleFitPlatformName);
             if (googleUserInfo != null)
             {
-                _queueService.SendQueueMessage(user.Id, googleUserInfo.UserId, googleUserInfo.PlatformName, cancellationToken);
+                return _queueService.SendQueueMessage(user.Id, googleUserInfo.UserId, googleUserInfo.PlatformName, cancellationToken);
             }
+
+            return Task.CompletedTask;
         }
     }
 }

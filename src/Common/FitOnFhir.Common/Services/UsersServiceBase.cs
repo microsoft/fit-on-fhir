@@ -47,9 +47,9 @@ namespace FitOnFhir.Common.Services
                 await _usersTableRepository.Insert(user, cancellationToken);
             }
 
-            QueueFitnessImport(user, cancellationToken);
+            await QueueFitnessImport(user, cancellationToken);
         }
 
-        public abstract void QueueFitnessImport(User user, CancellationToken cancellationToken);
+        public abstract Task QueueFitnessImport(User user, CancellationToken cancellationToken);
     }
 }
