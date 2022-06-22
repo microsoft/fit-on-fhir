@@ -18,7 +18,7 @@ using NSubstitute.ReturnsExtensions;
 using Xunit;
 using QueueMessage = FitOnFhir.Common.Models.QueueMessage;
 
-namespace FitOnFhir.GoogleFit.Tests
+namespace FitOnFhir.Common.Tests
 {
     public class QueueServiceTests
     {
