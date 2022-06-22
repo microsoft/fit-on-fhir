@@ -25,12 +25,22 @@ namespace FitOnFhir.Common.Services
         /// </summary>
         /// <param name="azureConfiguration">The <see cref="AzureConfiguration"/>
         /// which contains the environment variable value for the storage account connection string.</param>
+        /// <param name="queueClient">An optional <see cref="QueueClient"/> that may be passed in, primarily for testing purposes.</param>
         /// <param name="logger">An instance of a logger for this class.</param>
-        public QueueService(AzureConfiguration azureConfiguration, ILogger<QueueService> logger)
+        public QueueService(AzureConfiguration azureConfiguration, QueueClient queueClient, ILogger<QueueService> logger)
         {
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-            QueueClientOptions queueOptions = new () { MessageEncoding = QueueMessageEncoding.Base64 };
-            _queueClient = new QueueClient(azureConfiguration.StorageAccountConnectionString, Constants.QueueName, queueOptions);
+
+            if (queueClient == null)
+            {
+                var connectionString = EnsureArg.IsNotEmptyOrWhiteSpace(azureConfiguration.StorageAccountConnectionString);
+                QueueClientOptions queueOptions = new () { MessageEncoding = QueueMessageEncoding.Base64 };
+                _queueClient = new QueueClient(connectionString, Constants.QueueName, queueOptions);
+            }
+            else
+            {
+                _queueClient = EnsureArg.IsNotNull(queueClient, nameof(queueClient));
+            }
         }
 
         /// <inheritdoc/>

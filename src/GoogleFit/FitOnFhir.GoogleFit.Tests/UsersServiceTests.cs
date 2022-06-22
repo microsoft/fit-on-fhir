@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using FitOnFhir.Common.Interfaces;
+using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Tests;
 using FitOnFhir.Common.Tests.Mocks;
@@ -103,6 +104,29 @@ namespace FitOnFhir.GoogleFit.Tests
             await ExecuteAuthorizationCallback();
 
             await _usersKeyVaultRepository.Received(1).Upsert(Data.GoogleUserId, Data.RefreshToken, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenAllConditionsMet_WhenProcessAuthorizationCallbackCalled_UserImportRequestIsSent()
+        {
+            await ExecuteAuthorizationCallback();
+
+            await _queueService.Received(1).SendQueueMessage(ExpectedPatientId, ExpectedPlatformUserId, ExpectedPlatform, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenNoPlatformInfoForUser_WhenProcessAuthorizationCallbackCalled_UserImportRequestIsNotSent()
+        {
+            UsersTableRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(
+                x =>
+                {
+                    var user = new User(Guid.Parse(ExpectedPatientId));
+                    return user;
+                });
+
+            await ExecuteAuthorizationCallback();
+
+            await _queueService.DidNotReceive().SendQueueMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         }
     }
 }
