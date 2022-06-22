@@ -46,12 +46,12 @@ namespace FitOnFhir.Common.Services
         /// <inheritdoc/>
         public async Task SendQueueMessage(string userId, string platformUserId, string platformName, CancellationToken cancellationToken)
         {
-            await InitQueue();
-
-            _logger.LogInformation("Adding user [{0}] to queue [{1}] for platform [{2}]", userId, Constants.QueueName, platformName);
-            var queueMessage = new QueueMessage(userId, platformUserId, platformName);
             try
             {
+                await InitQueue();
+
+                _logger.LogInformation("Adding user [{0}] to queue [{1}] for platform [{2}]", userId, Constants.QueueName, platformName);
+                var queueMessage = new QueueMessage(userId, platformUserId, platformName);
                 var response = await _queueClient.SendMessageAsync(JsonConvert.SerializeObject(queueMessage), cancellationToken);
                 var rawResponse = response.GetRawResponse();
                 _logger.LogDebug("Response from message send: status '{0}', reason'{1}'", rawResponse.Status, rawResponse.ReasonPhrase);
@@ -64,16 +64,9 @@ namespace FitOnFhir.Common.Services
 
         private async Task InitQueue()
         {
-            try
+            if (await _queueClient.CreateIfNotExistsAsync() != null)
             {
-                if (await _queueClient.CreateIfNotExistsAsync() != null)
-                {
-                    _logger.LogInformation("Queue {0} created", Constants.QueueName);
-                }
-            }
-            catch (RequestFailedException ex)
-            {
-                _logger.LogError(ex, ex.Message);
+                _logger.LogInformation("Queue {0} created", Constants.QueueName);
             }
         }
     }
