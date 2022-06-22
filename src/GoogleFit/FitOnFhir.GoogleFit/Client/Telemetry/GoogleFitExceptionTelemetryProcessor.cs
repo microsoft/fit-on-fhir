@@ -10,11 +10,6 @@ namespace FitOnFhir.GoogleFit.Client.Telemetry
 {
     public class GoogleFitExceptionTelemetryProcessor : ExceptionTelemetryProcessor
     {
-        public GoogleFitExceptionTelemetryProcessor()
-            : base(typeof(AggregateException))
-        {
-        }
-
         public override bool HandleException(Exception ex, ITelemetryLogger logger)
         {
             EnsureArg.IsNotNull(ex, nameof(ex));

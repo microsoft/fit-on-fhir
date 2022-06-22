@@ -35,7 +35,7 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public void GivenUserIdAndDeviceUid_WhenToEventDataCalled_TheEventDataContainsPatientandDeviceIdentifiers()
+        public void GivenUserIdAndDeviceUid_WhenToEventDataCalled_TheEventDataContainsPatientAndDeviceIdentifiers()
         {
             var dataset = Data.GetMedTechDataset(packageName: string.Empty);
             EventData eventData = dataset.ToEventData(Data.UserId);
@@ -46,7 +46,7 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public void GivenUserIdAndPackageName_WhenToEventDataCalled_TheEventDataContainsPatientandDeviceIdentifiers()
+        public void GivenUserIdAndPackageName_WhenToEventDataCalled_TheEventDataContainsPatientAndDeviceIdentifiers()
         {
             var dataset = Data.GetMedTechDataset(deviceUid: string.Empty);
             EventData eventData = dataset.ToEventData(Data.UserId);
@@ -57,7 +57,7 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public void GivenUserIdDeviceUidAndPackageName_WhenToEventDataCalled_TheEventDataContainsPatientandDeviceIdentifiers()
+        public void GivenUserIdDeviceUidAndPackageName_WhenToEventDataCalled_TheEventDataContainsPatientAndDeviceIdentifiers()
         {
             var dataset = Data.GetMedTechDataset();
             EventData eventData = dataset.ToEventData(Data.UserId);
@@ -90,16 +90,16 @@ namespace FitOnFhir.GoogleFit.Tests
         public void GivenOneDataPoint_WhenGetMaxStartTimeCalled_LatestStartDateReturned()
         {
             var dataset = Data.GetMedTechDataset();
-            DateTimeOffset maxStartTime = dataset.GetMaxStartTime();
-            Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(165213768021), maxStartTime);
+            long maxStartTime = dataset.GetMaxEndTimeNanos();
+            Assert.Equal(165213768021173708, maxStartTime);
         }
 
         [Fact]
         public void GivenMultipleDataPoints_WhenGetMaxStartTimeCalled_LatestStartDateReturned()
         {
             var dataset = Data.GetMedTechDataset(pointCount: 2);
-            DateTimeOffset maxStartTime = dataset.GetMaxStartTime();
-            Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(165213778021), maxStartTime);
+            long maxStartTime = dataset.GetMaxEndTimeNanos();
+            Assert.Equal(165213778021173708, maxStartTime);
         }
     }
 }

@@ -249,6 +249,22 @@ namespace FitOnFhir.GoogleFit.Tests
             });
         }
 
+        [Fact]
+        public async Task GivenImportServiceThrows_WhenImportIsCalled_GoogleUserIsNotUpdated()
+        {
+            SetupMockSuccessReturns();
+
+            _googleFitImportService.ProcessDatasetRequests(
+                _googleFitUser,
+                Arg.Any<IEnumerable<DataSource>>(),
+                _tokensResponse,
+                Arg.Any<CancellationToken>()).Returns(x => throw new Exception());
+
+            await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
+
+            await _googleFitUserTableRepository.DidNotReceive().Update(Arg.Any<GoogleFitUser>(), Arg.Any<CancellationToken>());
+        }
+
         private void SetupMockSuccessReturns()
         {
             _googleFitTokensService.RefreshToken(

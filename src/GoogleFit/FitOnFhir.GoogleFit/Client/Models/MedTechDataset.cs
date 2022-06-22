@@ -29,16 +29,15 @@ namespace FitOnFhir.GoogleFit.Client.Models
             return _dataset.NextPageToken;
         }
 
-        public virtual DateTimeOffset GetMaxStartTime()
+        public virtual long GetMaxEndTimeNanos()
         {
             if (_dataset.Point != null && _dataset.Point.Any())
             {
-                DataPoint latestDataPoint = _dataset.Point.MaxBy(p => p.StartTimeNanos);
+                DataPoint latestDataPoint = _dataset.Point.MaxBy(p => p.EndTimeNanos);
 
-                if (latestDataPoint.StartTimeNanos.HasValue)
+                if (latestDataPoint.EndTimeNanos.HasValue)
                 {
-                    long startTime = (long)(latestDataPoint.StartTimeNanos.Value * 0.000001);
-                    return DateTimeOffset.FromUnixTimeMilliseconds(startTime);
+                    return latestDataPoint.EndTimeNanos.Value;
                 }
             }
 

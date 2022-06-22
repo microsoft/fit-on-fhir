@@ -89,7 +89,7 @@ namespace FitOnFhir.GoogleFit.Services
                             // Requests may need to be throttled to avoid 429 responses from Google.
                             if (Limiter.TryThrottle(cancellationToken, out Task delayTask, out double delayMs))
                             {
-                                // When large amounts of data are processd we may need to throttle requests to prevent exceeding the API rate limits.
+                                // When large amounts of data are processed we may need to throttle requests to prevent exceeding the API rate limits.
                                 _logger.LogInformation("Throttling request for Dataset: {0} for user: {1}. Delay ms: {2}", dataStreamId, user.Id, delayMs);
                                 await delayTask;
                             }
@@ -131,13 +131,15 @@ namespace FitOnFhir.GoogleFit.Services
                             // Calculate the latest start time in the data set.
                             // There might be a delay in when data arrives to the Google service,
                             // so always sync from the last known start date of data.
-                            DateTimeOffset lastStartTime = medTechDataset.GetMaxStartTime();
+                            long lastStartTime = medTechDataset.GetMaxEndTimeNanos();
 
                             if (lastStartTime != default)
                             {
                                 // Update the last sync time for this DataSource in the GoogleFitUser
+                                // 1 nanosecond is added here to prevent resubmitting the last data point.
+                                // *NOTE* The value is not persisted until all work items complete.
                                 _logger.LogInformation("Saving last sync time for Dataset: {0} for user: {1}", dataStreamId, user.Id);
-                                user.SaveLastSyncTime(dataStreamId, lastStartTime);
+                                user.SaveLastSyncTime(dataStreamId, lastStartTime + 1);
                             }
                             else
                             {
@@ -159,22 +161,21 @@ namespace FitOnFhir.GoogleFit.Services
             await StartWorker(workItems);
         }
 
-        private string GenerateDataSetId(DateTimeOffset lastSyncTime)
+        private string GenerateDataSetId(long lastSyncTimeNanos)
         {
-            // if this DataSource has never been synced before, then retrieve 30 days prior worth of data
-            DateTimeOffset startDateDto = _utcNowFunc().AddDays(-30);
-            if (lastSyncTime != default)
+            if (lastSyncTimeNanos == default)
             {
-                startDateDto = lastSyncTime;
+                // if this DataSource has never been synced before, then retrieve 30 days prior worth of data
+                // and convert to DateTimeOffset to so .NET unix conversion is usable
+                DateTimeOffset startDateDto = _utcNowFunc().AddDays(-30);
+                lastSyncTimeNanos = startDateDto.ToUnixTimeMilliseconds() * 1000000;
             }
 
             // Convert to DateTimeOffset to so .NET unix conversion is usable
             DateTimeOffset currentTime = _utcNowFunc();
+            long endDate = currentTime.ToUnixTimeMilliseconds() * 1000000;
 
-            // .NET unix conversion only goes as small as milliseconds, multiplying to get nanoseconds
-            var startDate = startDateDto.ToUnixTimeMilliseconds() * 1000000;
-            var endDate = currentTime.ToUnixTimeMilliseconds() * 1000000;
-            return startDate + "-" + endDate;
+            return lastSyncTimeNanos + "-" + endDate;
         }
 
         public async ValueTask DisposeAsync()

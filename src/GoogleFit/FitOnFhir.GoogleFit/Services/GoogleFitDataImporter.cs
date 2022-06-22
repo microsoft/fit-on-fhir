@@ -76,13 +76,15 @@ namespace FitOnFhir.GoogleFit.Services
             try
             {
                 await _googleFitImportService.ProcessDatasetRequests(googleUser, dataSourcesList.DataSources, tokensResponse, cancellationToken);
+
+                // Persist the last sync times if no exceptions occur in the import service.
+                // This ensures if an error happens during processing, the dataset will be tried again the next import.
+                await _googleFitUserTableRepository.Update(googleUser, cancellationToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
             }
-
-            await _googleFitUserTableRepository.Update(googleUser, cancellationToken);
 
             // Update the user as ready to import for GoogleFit
             await UpdateUserAndImportState(user, DataImportState.ReadyToImport, cancellationToken);
