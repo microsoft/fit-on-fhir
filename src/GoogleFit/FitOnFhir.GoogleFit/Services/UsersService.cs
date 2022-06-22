@@ -3,6 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
+using FitOnFhir.Common.Interfaces;
+using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Services;
 using FitOnFhir.GoogleFit.Client.Models;
@@ -21,6 +24,7 @@ namespace FitOnFhir.GoogleFit.Services
         private readonly IGoogleFitUserTableRepository _googleFitUserRepository;
         private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
         private readonly IGoogleFitAuthService _authService;
+        private readonly IQueueService _queueService;
         private readonly ILogger<UsersService> _logger;
 
         public UsersService(
@@ -29,12 +33,14 @@ namespace FitOnFhir.GoogleFit.Services
             IGoogleFitUserTableRepository googleFitUserRepository,
             IUsersKeyVaultRepository usersKeyVaultRepository,
             IGoogleFitAuthService authService,
+            IQueueService queueService,
             ILogger<UsersService> logger)
             : base(resourceManagementService, usersTableRepository)
         {
-            _googleFitUserRepository = googleFitUserRepository;
-            _usersKeyVaultRepository = usersKeyVaultRepository;
-            _authService = authService;
+            _googleFitUserRepository = EnsureArg.IsNotNull(googleFitUserRepository, nameof(googleFitUserRepository));
+            _usersKeyVaultRepository = EnsureArg.IsNotNull(usersKeyVaultRepository, nameof(usersKeyVaultRepository));
+            _authService = EnsureArg.IsNotNull(authService, nameof(authService));
+            _queueService = EnsureArg.IsNotNull(queueService, nameof(queueService));
             _logger = logger;
         }
 
@@ -71,6 +77,15 @@ namespace FitOnFhir.GoogleFit.Services
 
             // Insert refresh token into users KV by userId
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
+        }
+
+        public override async Task QueueFitnessImport(User user, CancellationToken cancellationToken)
+        {
+            var googleUserInfo = user.GetPlatformUserInfo().FirstOrDefault(usr => usr.PlatformName == GoogleFitConstants.GoogleFitPlatformName);
+            if (googleUserInfo != null)
+            {
+                await _queueService.SendQueueMessage(user.Id, googleUserInfo.UserId, googleUserInfo.PlatformName, cancellationToken);
+            }
         }
     }
 }

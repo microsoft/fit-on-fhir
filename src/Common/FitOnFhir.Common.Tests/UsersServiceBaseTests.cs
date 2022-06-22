@@ -5,6 +5,7 @@
 
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
+using FitOnFhir.GoogleFit.Common;
 using Microsoft.Health.Extensions.Fhir.Service;
 using NSubstitute;
 using Xunit;
@@ -17,6 +18,8 @@ namespace FitOnFhir.Common.Tests
     public abstract class UsersServiceBaseTests
     {
         private static IFhirService _fhirService;
+        private Guid _userGuid = Guid.NewGuid();
+        private const string _googleUserId = "me";
 
         public UsersServiceBaseTests()
         {
@@ -27,7 +30,14 @@ namespace FitOnFhir.Common.Tests
             // Default responses.
             _fhirService.SearchForResourceAsync(ResourceType.Patient, Arg.Any<string>()).Returns(Task.FromResult(PatientBundle));
             _fhirService.CreateResourceAsync(Arg.Any<Patient>()).Returns(Task.FromResult(PatientBundle.Entry[0].Resource as Patient));
-            UsersTableRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new User(Guid.NewGuid()));
+
+            UsersTableRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(
+                x =>
+                {
+                    var user = new User(Guid.Parse(ExpectedPatientId));
+                    user.AddPlatformUserInfo(new PlatformUserInfo(GoogleFitConstants.GoogleFitPlatformName, ExpectedPlatformUserId, DataImportState.ReadyToImport));
+                    return user;
+                });
         }
 
         protected ResourceManagementService ResourceService { get; }

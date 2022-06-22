@@ -4,11 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using FitOnFhir.Common;
-using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.ImportTimerTrigger;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -18,7 +16,6 @@ namespace FitOnFhir.ImportTimerTrigger
     {
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
-            builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
         }
     }
 }

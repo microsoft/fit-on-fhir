@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using Microsoft.Health.Extensions.Fhir.Service;
@@ -45,6 +46,10 @@ namespace FitOnFhir.Common.Services
                 user.AddPlatformUserInfo(new PlatformUserInfo(platformName, identifier, DataImportState.ReadyToImport));
                 await _usersTableRepository.Insert(user, cancellationToken);
             }
+
+            await QueueFitnessImport(user, cancellationToken);
         }
+
+        public abstract Task QueueFitnessImport(User user, CancellationToken cancellationToken);
     }
 }

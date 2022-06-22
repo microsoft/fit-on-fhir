@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using FitOnFhir.Common.Interfaces;
+using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Tests;
 using FitOnFhir.Common.Tests.Mocks;
@@ -23,6 +25,7 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly IGoogleFitUserTableRepository _googleFitUserRepository;
         private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
         private readonly IGoogleFitAuthService _authService;
+        private readonly IQueueService _queueService;
         private readonly MockLogger<UsersService> _logger;
         private readonly UsersService _usersService;
 
@@ -31,6 +34,7 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitUserRepository = Substitute.For<IGoogleFitUserTableRepository>();
             _usersKeyVaultRepository = Substitute.For<IUsersKeyVaultRepository>();
             _authService = Substitute.For<IGoogleFitAuthService>();
+            _queueService = Substitute.For<IQueueService>();
             _logger = Substitute.For<MockLogger<UsersService>>();
 
             _usersService = new UsersService(
@@ -39,6 +43,7 @@ namespace FitOnFhir.GoogleFit.Tests
                 _googleFitUserRepository,
                 _usersKeyVaultRepository,
                 _authService,
+                _queueService,
                 _logger);
 
             // Default responses.
@@ -99,6 +104,29 @@ namespace FitOnFhir.GoogleFit.Tests
             await ExecuteAuthorizationCallback();
 
             await _usersKeyVaultRepository.Received(1).Upsert(Data.GoogleUserId, Data.RefreshToken, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenAllConditionsMet_WhenProcessAuthorizationCallbackCalled_UserImportRequestIsSent()
+        {
+            await ExecuteAuthorizationCallback();
+
+            await _queueService.Received(1).SendQueueMessage(ExpectedPatientId, ExpectedPlatformUserId, ExpectedPlatform, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenNoPlatformInfoForUser_WhenProcessAuthorizationCallbackCalled_UserImportRequestIsNotSent()
+        {
+            UsersTableRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(
+                x =>
+                {
+                    var user = new User(Guid.Parse(ExpectedPatientId));
+                    return user;
+                });
+
+            await ExecuteAuthorizationCallback();
+
+            await _queueService.DidNotReceive().SendQueueMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         }
     }
 }
