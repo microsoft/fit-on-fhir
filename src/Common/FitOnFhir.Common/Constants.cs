@@ -23,5 +23,15 @@ namespace FitOnFhir.Common
         /// The name of the Azure storage queue
         /// </summary>
         public const string QueueName = "import-data";
+
+        /// <summary>
+        /// Query parameter name for patient identifier in an external system.
+        /// </summary>
+        public const string PatientIdQueryParameter = "patientId";
+
+        /// <summary>
+        /// Query parameter name for the system in which the patient identifier exists.
+        /// </summary>
+        public const string SystemQueryParameter = "system";
     }
 }

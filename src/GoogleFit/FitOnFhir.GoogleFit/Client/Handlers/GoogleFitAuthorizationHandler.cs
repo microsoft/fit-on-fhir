@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FitOnFhir.Common;
+using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Common;
@@ -11,6 +13,7 @@ using FitOnFhir.GoogleFit.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
+using Newtonsoft.Json;
 
 namespace FitOnFhir.GoogleFit.Client.Handlers
 {
@@ -61,7 +64,18 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
 
         private async Task<IActionResult> Authorize(RoutingRequest request)
         {
-            AuthUriResponse response = await _authService.AuthUriRequest(request.Token);
+            AuthState state = null;
+
+            try
+            {
+                state = new AuthState(request?.HttpRequest?.Query);
+            }
+            catch (ArgumentException)
+            {
+                return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
+            }
+
+            AuthUriResponse response = await _authService.AuthUriRequest(JsonConvert.SerializeObject(state), request.Token);
             return new RedirectResult(response.Uri);
         }
 
@@ -69,9 +83,12 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
         {
             try
             {
-                var accessCode = EnsureArg.IsNotNullOrWhiteSpace(request?.HttpRequest?.Query?["code"], "accessCode");
-                await _usersService.ProcessAuthorizationCallback(accessCode, request.Token);
-                return new OkObjectResult("auth flow success");
+                await _usersService.ProcessAuthorizationCallback(
+                    request?.HttpRequest?.Query?["code"],
+                    request?.HttpRequest?.Query?["state"],
+                    request.Token);
+
+                return new OkObjectResult("Authorization completed successfully.");
             }
             catch (Exception ex)
             {

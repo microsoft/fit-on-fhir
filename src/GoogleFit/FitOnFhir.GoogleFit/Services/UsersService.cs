@@ -44,12 +44,24 @@ namespace FitOnFhir.GoogleFit.Services
             _logger = logger;
         }
 
-        public async Task ProcessAuthorizationCallback(string authCode, CancellationToken cancellationToken)
+        public async Task ProcessAuthorizationCallback(string authCode, string state, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(authCode))
             {
-                _logger.LogInformation("ProcessAuthorizationCallback called with no auth code");
-                return;
+                // This exception message will be visible to the caller.
+                throw new Exception("The Google authorization service failed to return an access code.");
+            }
+
+            AuthState authState;
+
+            try
+            {
+                authState = AuthState.Parse(state);
+            }
+            catch (ArgumentException)
+            {
+                // This exception message will be visible to the caller.
+                throw new Exception("The Google authorization service failed to return the expected authorization state.");
             }
 
             // Exchange the code for Auth, Refresh and Id tokens.
@@ -57,7 +69,8 @@ namespace FitOnFhir.GoogleFit.Services
 
             if (tokenResponse == null)
             {
-                throw new Exception("Token response empty");
+                // This exception message will be visible to the caller.
+                throw new Exception("This Google user has already authorized data sharing.");
             }
 
             // https://developers.google.com/identity/protocols/oauth2/openid-connect#an-id-tokens-payload
@@ -70,7 +83,12 @@ namespace FitOnFhir.GoogleFit.Services
             string tokenIssuer = tokenResponse.IdToken.Issuer;
 
             // Create a Patient and User if this is the first time the user has authorized.
-            await EnsurePatientAndUser(GoogleFitConstants.GoogleFitPlatformName, googleUserId, tokenIssuer, cancellationToken);
+            await EnsurePatientAndUser(
+                GoogleFitConstants.GoogleFitPlatformName,
+                googleUserId,
+                tokenIssuer,
+                authState,
+                cancellationToken);
 
             // Insert GoogleFitUser into Users Table
             await _googleFitUserRepository.Insert(new GoogleFitUser(googleUserId), cancellationToken);

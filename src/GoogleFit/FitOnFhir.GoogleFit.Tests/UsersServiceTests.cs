@@ -13,7 +13,6 @@ using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.GoogleFit.Services;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 using Bundle = Hl7.Fhir.Model.Bundle;
@@ -52,7 +51,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
         protected override Bundle PatientBundle => Data.GetBundle(Data.GetPatient());
 
-        protected override Func<Task> ExecuteAuthorizationCallback => () => _usersService.ProcessAuthorizationCallback("TestAuthCode", CancellationToken.None);
+        protected override Func<Task> ExecuteAuthorizationCallback => () => _usersService.ProcessAuthorizationCallback("TestAuthCode", Data.AuthorizationState, CancellationToken.None);
 
         protected override string ExpectedPatientIdentifierSystem => Data.Issuer;
 
@@ -63,23 +62,27 @@ namespace FitOnFhir.GoogleFit.Tests
         protected override string ExpectedPlatform => GoogleFitConstants.GoogleFitPlatformName;
 
         [Fact]
-        public async Task GivenAuthCodeIsNull_WhenProcessAuthorizationCallbackCalled_ConditionIsLogged()
+        public async Task GivenAuthCodeIsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
         {
-            await _usersService.ProcessAuthorizationCallback(null, CancellationToken.None);
-
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Information),
-                Arg.Is<string>(msg => msg == "ProcessAuthorizationCallback called with no auth code"));
+            await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback(null, Data.AuthorizationState, CancellationToken.None));
         }
 
         [Fact]
-        public async Task GivenAuthCodeIsEmpty_WhenProcessAuthorizationCallbackCalled_ConditionIsLogged()
+        public async Task GivenAuthCodeIsEmpty_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
         {
-            await _usersService.ProcessAuthorizationCallback(string.Empty, CancellationToken.None);
+            await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback(string.Empty, Data.AuthorizationState, CancellationToken.None));
+        }
 
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Information),
-                Arg.Is<string>(msg => msg == "ProcessAuthorizationCallback called with no auth code"));
+        [Fact]
+        public async Task GivenStateIsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
+        {
+            await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", null, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task GivenStateIsEmpty_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
+        {
+            await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", string.Empty, CancellationToken.None));
         }
 
         [Fact]
