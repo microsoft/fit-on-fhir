@@ -43,12 +43,12 @@ namespace FitOnFhir.GoogleFit.Services
         }
 
         /// <inheritdoc/>
-        public async Task<AuthUriResponse> AuthUriRequest(CancellationToken cancellationToken)
+        public async Task<AuthUriResponse> AuthUriRequest(string state, CancellationToken cancellationToken)
         {
             var request = new AuthorizationCodeWebApp(
                 _googleAuthorizationCodeFlow,
                 _authorizationConfiguration.CallbackUri,
-                string.Empty);
+                state);
 
             var result = await request.AuthorizeAsync("user", cancellationToken);
             if (result.Credential == null)

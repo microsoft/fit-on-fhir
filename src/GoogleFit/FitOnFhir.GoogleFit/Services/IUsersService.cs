@@ -9,7 +9,7 @@ namespace FitOnFhir.GoogleFit.Services
 {
     public interface IUsersService
     {
-        Task ProcessAuthorizationCallback(string accessCode, CancellationToken cancellationToken);
+        Task ProcessAuthorizationCallback(string accessCode, string state, CancellationToken cancellationToken);
 
         Task QueueFitnessImport(User user, CancellationToken cancellationToken);
     }

@@ -15,9 +15,10 @@ namespace FitOnFhir.GoogleFit.Services
         /// <summary>
         /// Sends an authorization request to the platform appropriate URI.
         /// </summary>
+        /// <param name="state">A state string that will be provided in the callback.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to cancel the process.</param>
         /// <returns>The <see cref="AuthUriResponse"/> for the operation.</returns>
-        Task<AuthUriResponse> AuthUriRequest(CancellationToken cancellationToken);
+        Task<AuthUriResponse> AuthUriRequest(string state, CancellationToken cancellationToken);
 
         /// <summary>
         /// Sends a request to the platform appropriate URI for the authorization tokens.
