@@ -62,25 +62,25 @@ namespace FitOnFhir.GoogleFit.Tests
         protected override string ExpectedPlatform => GoogleFitConstants.GoogleFitPlatformName;
 
         [Fact]
-        public async Task GivenAuthCodeIsNull_WhenProcessAuthorizationCallbackCalled_ConditionIsLogged()
+        public async Task GivenAuthCodeIsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
         {
             await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback(null, Data.AuthorizationState, CancellationToken.None));
         }
 
         [Fact]
-        public async Task GivenAuthCodeIsEmpty_WhenProcessAuthorizationCallbackCalled_ConditionIsLogged()
+        public async Task GivenAuthCodeIsEmpty_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
         {
             await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback(string.Empty, Data.AuthorizationState, CancellationToken.None));
         }
 
         [Fact]
-        public async Task GivenStateIsNull_WhenProcessAuthorizationCallbackCalled_ConditionIsLogged()
+        public async Task GivenStateIsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
         {
             await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", null, CancellationToken.None));
         }
 
         [Fact]
-        public async Task GivenStateIsEmpty_WhenProcessAuthorizationCallbackCalled_ConditionIsLogged()
+        public async Task GivenStateIsEmpty_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
         {
             await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", string.Empty, CancellationToken.None));
         }
