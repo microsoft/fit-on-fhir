@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using FitOnFhir.Common;
 using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Client.Handlers;
 using FitOnFhir.GoogleFit.Client.Responses;
@@ -56,7 +57,7 @@ namespace FitOnFhir.GoogleFit.Tests
         [Fact]
         public async Task GivenRequestHandled_WhenRequestIsForAuthorization_RedirectsUser()
         {
-            _authService.AuthUriRequest(Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
+            _authService.AuthUriRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
 
             var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
@@ -71,21 +72,21 @@ namespace FitOnFhir.GoogleFit.Tests
         [Fact]
         public async Task GivenRequestHandledAndUserExists_WhenRequestIsCallback_ReturnsOkResult()
         {
-            _usersService.ProcessAuthorizationCallback(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+            _usersService.ProcessAuthorizationCallback(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
             Assert.IsType<OkObjectResult>(result);
 
             var actualResult = result as OkObjectResult;
-            var expectedResult = new OkObjectResult("auth flow success");
+            var expectedResult = new OkObjectResult("Authorization completed successfully.");
             Assert.Equal(expectedResult.Value, actualResult?.Value);
         }
 
         [Fact]
         public async Task GivenRequestHandledAndExceptionIsThrown_WhenRequestIsCallback_ReturnsNotFoundResult()
         {
-            _usersService.ProcessAuthorizationCallback(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception("exception"));
+            _usersService.ProcessAuthorizationCallback(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception("exception"));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
@@ -100,7 +101,18 @@ namespace FitOnFhir.GoogleFit.Tests
         {
             var httpRequest = Substitute.For<HttpRequest>();
             httpRequest.Path = pathString;
-            httpRequest.Query["code"].Returns(new StringValues("access code"));
+
+            if (pathString == googleFitAuthorizeRequest)
+            {
+                httpRequest.Query[Constants.PatientIdQueryParameter].Returns(new StringValues(Data.ExternalPatientId));
+                httpRequest.Query[Constants.SystemQueryParameter].Returns(new StringValues(Data.ExternalSystem));
+            }
+            else if (pathString == googleFitCallbackRequest)
+            {
+                httpRequest.Query["code"].Returns(new StringValues("access code"));
+                httpRequest.Query["state"].Returns(new StringValues(Data.AuthorizationState));
+            }
+
             var context = new ExecutionContext();
 
             return new RoutingRequest(httpRequest, context, CancellationToken.None);

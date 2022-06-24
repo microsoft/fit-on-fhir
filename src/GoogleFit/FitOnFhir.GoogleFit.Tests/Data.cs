@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
+using FitOnFhir.Common;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Responses;
 using Google.Apis.Fitness.v1.Data;
@@ -24,6 +25,9 @@ namespace FitOnFhir.GoogleFit.Tests
         public const string Issuer = "TestIssuer";
         public const string GoogleUserId = "TestGoogleUserId";
         public const string PatientId = "12345678-9101-1121-3141-516171819202";
+        public const string ExternalPatientId = "ExternalPatientId";
+        public const string ExternalSystem = "ExternalSystem";
+        public const string AuthorizationState = $"{{\"{Constants.PatientIdQueryParameter}\":\"{ExternalPatientId}\", \"{Constants.SystemQueryParameter}\":\"{ExternalSystem}\"}}";
 
         public static MedTechDataset GetMedTechDataset(string deviceUid = DeviceUid, string packageName = PackageName, int pointCount = 1)
         {

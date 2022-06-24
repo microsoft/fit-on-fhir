@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Exceptions;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Tests.Mocks;
 using FitOnFhir.GoogleFit.Client.Responses;
