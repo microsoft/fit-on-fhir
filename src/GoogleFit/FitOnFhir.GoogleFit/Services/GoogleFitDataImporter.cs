@@ -85,7 +85,8 @@ namespace FitOnFhir.GoogleFit.Services
                 await _googleFitUserTableRepository.Update(
                     googleUser,
                     cancellationToken,
-                    (currentGoogleFitUser, storedGoogleFitUser) => (GoogleFitUser)GoogleFitUserConflictResolvers.ResolveConflictLastSyncTimes(currentGoogleFitUser, storedGoogleFitUser));
+                    (currentGoogleFitUser, storedGoogleFitUser) =>
+                        (GoogleFitUser)GoogleFitUserConflictResolvers.ResolveConflictLastSyncTimes(currentGoogleFitUser, storedGoogleFitUser));
             }
             catch (Exception ex)
             {
@@ -102,7 +103,10 @@ namespace FitOnFhir.GoogleFit.Services
         {
             user.LastTouched = _utcNowFunc();
             user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, dataImportState);
-            return await _usersTableRepository.Update(user, cancellationToken, (currentUser, storedUser) => (User)UserConflictResolvers.ResolveConflictDefault(currentUser, storedUser));
+            return await _usersTableRepository.Update(
+                user,
+                cancellationToken,
+                (currentUser, storedUser) => (User)UserConflictResolvers.ResolveConflictDefault(currentUser, storedUser));
         }
     }
 }
