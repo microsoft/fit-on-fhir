@@ -85,8 +85,7 @@ namespace FitOnFhir.GoogleFit.Services
                 await _googleFitUserTableRepository.Update(
                     googleUser,
                     cancellationToken,
-                    (currentGoogleFitUser, storedGoogleFitUser) =>
-                        (GoogleFitUser)GoogleFitUserConflictResolvers.ResolveConflictLastSyncTimes(currentGoogleFitUser, storedGoogleFitUser));
+                    GoogleFitUserConflictResolvers.ResolveConflictLastSyncTimes);
             }
             catch (Exception ex)
             {
@@ -106,7 +105,7 @@ namespace FitOnFhir.GoogleFit.Services
             return await _usersTableRepository.Update(
                 user,
                 cancellationToken,
-                (currentUser, storedUser) => (User)UserConflictResolvers.ResolveConflictDefault(currentUser, storedUser));
+                UserConflictResolvers.ResolveConflictDefault);
         }
     }
 }

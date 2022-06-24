@@ -10,7 +10,7 @@ namespace FitOnFhir.GoogleFit.Resolvers
 {
     public static class GoogleFitUserConflictResolvers
     {
-        public static EntityBase ResolveConflictLastSyncTimes(EntityBase newEntityBase, EntityBase storedEntityBase)
+        public static GoogleFitUser ResolveConflictLastSyncTimes(EntityBase newEntityBase, EntityBase storedEntityBase)
         {
             var mergedUser = new GoogleFitUser(storedEntityBase.ToTableEntity());
             var newUser = new GoogleFitUser(newEntityBase.ToTableEntity());

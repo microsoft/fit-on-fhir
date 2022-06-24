@@ -17,8 +17,8 @@ namespace FitOnFhir.Common.Resolvers
         /// </summary>
         /// <param name="newEntityBase">The <see cref="EntityBase"/> from the original Update or Upsert operation.</param>
         /// <param name="storedEntityBase">The <see cref="EntityBase"/> that currently exists in the storage account.</param>
-        /// <returns>A merged <see cref="EntityBase"/> with the correct <see cref="DataImportState"/> for each <see cref="PlatformUserInfo"/> stored.</returns>
-        public static EntityBase ResolveConflictDefault(EntityBase newEntityBase, EntityBase storedEntityBase)
+        /// <returns>A merged <see cref="User"/> with the correct <see cref="DataImportState"/> for each <see cref="PlatformUserInfo"/> stored.</returns>
+        public static User ResolveConflictDefault(EntityBase newEntityBase, EntityBase storedEntityBase)
         {
             DataImportState mergeDataImportState;
 
@@ -74,8 +74,8 @@ namespace FitOnFhir.Common.Resolvers
         /// </summary>
         /// <param name="newEntityBase">The <see cref="EntityBase"/> from the original Update or Upsert operation.</param>
         /// <param name="storedEntityBase">The <see cref="EntityBase"/> that currently exists in the storage account.</param>
-        /// <returns>A merged <see cref="EntityBase"/> with the correct <see cref="DataImportState"/> for each <see cref="PlatformUserInfo"/> stored.</returns>
-        public static EntityBase ResolveConflictAuthorization(EntityBase newEntityBase, EntityBase storedEntityBase)
+        /// <returns>A merged <see cref="User"/> with the correct <see cref="DataImportState"/> for each <see cref="PlatformUserInfo"/> stored.</returns>
+        public static User ResolveConflictAuthorization(EntityBase newEntityBase, EntityBase storedEntityBase)
         {
             DataImportState mergeDataImportState;
 
