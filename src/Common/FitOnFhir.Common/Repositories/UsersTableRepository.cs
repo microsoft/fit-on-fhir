@@ -5,7 +5,6 @@
 
 using FitOnFhir.Common.Config;
 using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Persistence;
 using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.Common.Repositories

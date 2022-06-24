@@ -17,9 +17,9 @@ namespace FitOnFhir.Common.Repositories
 
         Task<T> Insert(T entity, CancellationToken cancellationToken);
 
-        Task<T> Update(T entity, CancellationToken cancellationToken);
+        Task<T> Update(T entity, CancellationToken cancellationToken, Func<T, T, T> conflictResolver);
 
-        Task<T> Upsert(T entity, CancellationToken cancellationToken);
+        Task<T> Upsert(T entity, CancellationToken cancellationToken, Func<T, T, T> conflictResolver);
 
         Task Delete(T entity, CancellationToken cancellationToken);
     }

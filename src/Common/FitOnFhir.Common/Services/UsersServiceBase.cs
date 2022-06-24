@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using Microsoft.Health.Extensions.Fhir.Service;

@@ -73,7 +73,7 @@ namespace FitOnFhir.GoogleFit.Services
             await EnsurePatientAndUser(GoogleFitConstants.GoogleFitPlatformName, googleUserId, tokenIssuer, cancellationToken);
 
             // Insert GoogleFitUser into Users Table
-            await _googleFitUserRepository.Upsert(new GoogleFitUser(googleUserId), cancellationToken);
+            await _googleFitUserRepository.Insert(new GoogleFitUser(googleUserId), cancellationToken);
 
             // Insert refresh token into users KV by userId
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);

@@ -95,7 +95,7 @@ namespace FitOnFhir.GoogleFit.Tests
         {
             await ExecuteAuthorizationCallback();
 
-            await _googleFitUserRepository.Received(1).Upsert(Arg.Is<GoogleFitUser>(x => x.Id.Equals(Data.GoogleUserId)), Arg.Any<CancellationToken>());
+            await _googleFitUserRepository.Received(1).Insert(Arg.Is<GoogleFitUser>(x => x.Id.Equals(Data.GoogleUserId)), Arg.Any<CancellationToken>());
         }
 
         [Fact]

@@ -69,7 +69,7 @@ namespace FitOnFhir.Common.Repositories
             return await GetById(entity.Id, cancellationToken);
         }
 
-        public async Task<TEntity> Update(TEntity entity, CancellationToken cancellationToken)
+        public async Task<TEntity> Update(TEntity entity, CancellationToken cancellationToken, Func<TEntity, TEntity, TEntity> conflictResolver)
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
 
@@ -77,15 +77,19 @@ namespace FitOnFhir.Common.Repositories
             {
                 await _tableClient.UpdateEntityAsync(entity.ToTableEntity(), entity.ETag, cancellationToken: cancellationToken);
             }
-            catch (Exception ex)
+            catch (RequestFailedException ex) when (ex.Status == 412)
             {
                 _logger.LogError(ex, ex.Message);
+
+                TEntity storedEntity = await GetById(entity.Id, cancellationToken);
+                TEntity mergedEntity = conflictResolver(entity, storedEntity);
+                return await Update(mergedEntity, cancellationToken, conflictResolver);
             }
 
             return await GetById(entity.Id, cancellationToken);
         }
 
-        public async Task<TEntity> Upsert(TEntity entity, CancellationToken cancellationToken)
+        public async Task<TEntity> Upsert(TEntity entity, CancellationToken cancellationToken, Func<TEntity, TEntity, TEntity> conflictResolver)
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
 
@@ -93,9 +97,13 @@ namespace FitOnFhir.Common.Repositories
             {
                 await _tableClient.UpsertEntityAsync(entity.ToTableEntity(), cancellationToken: cancellationToken);
             }
-            catch (Exception ex)
+            catch (RequestFailedException ex) when (ex.Status == 412)
             {
                 _logger.LogError(ex, ex.Message);
+
+                TEntity storedEntity = await GetById(entity.Id, cancellationToken);
+                TEntity mergedEntity = conflictResolver(entity, storedEntity);
+                return await Upsert(mergedEntity, cancellationToken, conflictResolver);
             }
 
             return await GetById(entity.Id, cancellationToken);
