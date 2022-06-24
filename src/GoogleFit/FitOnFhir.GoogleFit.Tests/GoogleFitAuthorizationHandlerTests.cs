@@ -76,7 +76,11 @@ namespace FitOnFhir.GoogleFit.Tests
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
-            Assert.IsType<OkResult>(result);
+            Assert.IsType<OkObjectResult>(result);
+
+            var actualResult = result as OkObjectResult;
+            var expectedResult = new OkObjectResult("Authorization completed successfully.");
+            Assert.Equal(expectedResult.Value, actualResult?.Value);
         }
 
         [Fact]

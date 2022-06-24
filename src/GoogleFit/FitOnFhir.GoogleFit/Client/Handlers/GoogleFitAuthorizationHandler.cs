@@ -88,7 +88,7 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
                     request?.HttpRequest?.Query?["state"],
                     request.Token);
 
-                return new OkResult();
+                return new OkObjectResult("Authorization completed successfully.");
             }
             catch (Exception ex)
             {
