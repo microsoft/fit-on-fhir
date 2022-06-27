@@ -39,6 +39,24 @@ namespace FitOnFhir.Common.Models
         public DateTimeOffset? LastTouched { get; set; }
 
         /// <summary>
+        /// Retrieves the <see cref="DataImportState"/> for the specified platform.
+        /// </summary>
+        /// <param name="platformName">The name of the platform to retrieve the <see cref="DataImportState"/> for.</param>
+        /// <param name="dataImportState">The param that will contain the <see cref="DataImportState"/></param>
+        /// <returns>true if a value was found, false otherwise</returns>
+        public bool GetPlatformImportState(string platformName, out DataImportState dataImportState)
+        {
+            if (_platformUserInfo.TryGetValue(platformName, out var currentInfo))
+            {
+                dataImportState = currentInfo.ImportState;
+                return true;
+            }
+
+            dataImportState = default;
+            return false;
+        }
+
+        /// <summary>
         /// Retrieves a collection of all <see cref="PlatformUserInfo"/> objects associated with the user.
         /// </summary>
         /// <returns>A collection of <see cref="PlatformUserInfo"/></returns>

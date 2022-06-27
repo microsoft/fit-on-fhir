@@ -69,7 +69,7 @@ namespace FitOnFhir.Common.Resolvers
 
         /// <summary>
         /// A storage account entity update conflict resolver, which is meant to cover authorization scenarios, where a user
-        /// previously revoked access and now wish to grant access again.  The <see cref="DataImportState"/> for that platform will be
+        /// previously revoked access and now wishes to grant access again.  The <see cref="DataImportState"/> for that platform will be
         /// set to <see cref="DataImportState"/>.ReadyToImport.  In addition, the most recent LastTouched property will be propagated.
         /// </summary>
         /// <param name="newEntityBase">The <see cref="EntityBase"/> from the original Update or Upsert operation.</param>

@@ -17,12 +17,20 @@ namespace FitOnFhir.Common.Repositories
         private readonly TableClient _tableClient;
         private readonly ILogger _logger;
 
-        public TableRepository(string connectionString, ILogger logger)
+        public TableRepository(string connectionString, TableClient tableClient, ILogger logger)
         {
             EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _tableClient = new TableClient(connectionString, Constants.UsersTableName);
+            if (tableClient == null)
+            {
+                _tableClient = new TableClient(connectionString, Constants.UsersTableName);
+            }
+            else
+            {
+                _tableClient = tableClient;
+            }
+
             _logger = logger;
         }
 

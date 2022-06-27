@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using FitOnFhir.Common.Config;
-using FitOnFhir.Common.Persistence;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Common;
@@ -15,7 +14,7 @@ namespace FitOnFhir.GoogleFit.Repositories
     public class GoogleFitUserTableRepository : TableRepository<GoogleFitUser>, IGoogleFitUserTableRepository
     {
         public GoogleFitUserTableRepository(AzureConfiguration azureConfiguration, ILogger<GoogleFitUserTableRepository> logger)
-            : base(azureConfiguration.StorageAccountConnectionString, logger)
+            : base(azureConfiguration.StorageAccountConnectionString, null, logger)
         {
             PartitionKey = GoogleFitConstants.GoogleFitPartitionKey;
         }
