@@ -13,6 +13,8 @@ namespace FitOnFhir.Common.Models
     public class User : EntityBase
     {
         private const string _platformsKey = "Platforms";
+        private const string _lastTouchedKey = nameof(LastTouched);
+
         private ConcurrentDictionary<string, PlatformUserInfo> _platformUserInfo = new ConcurrentDictionary<string, PlatformUserInfo>();
 
         public User()
@@ -29,10 +31,15 @@ namespace FitOnFhir.Common.Models
             : base(tableEntity)
         {
             string serializedPlatformInfo = InternalTableEntity.GetString(_platformsKey);
-
             if (serializedPlatformInfo != null)
             {
                 _platformUserInfo = JsonConvert.DeserializeObject<ConcurrentDictionary<string, PlatformUserInfo>>(serializedPlatformInfo);
+            }
+
+            string serializedLastTouched = InternalTableEntity.GetString(_lastTouchedKey);
+            if (serializedLastTouched != null)
+            {
+                LastTouched = JsonConvert.DeserializeObject<DateTimeOffset>(serializedLastTouched);
             }
         }
 
@@ -96,7 +103,8 @@ namespace FitOnFhir.Common.Models
         {
             if (LastTouched != null)
             {
-                InternalTableEntity.Add(nameof(LastTouched), LastTouched);
+                string serializedLastTouched = JsonConvert.SerializeObject(LastTouched);
+                InternalTableEntity.Add(_lastTouchedKey, serializedLastTouched);
             }
 
             if (_platformUserInfo != null && _platformUserInfo.Count > 0)

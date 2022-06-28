@@ -23,6 +23,7 @@ namespace FitOnFhir.Common.Tests
         private Func<EntityBase, EntityBase, User> _conflictResolverFunc;
         private User _newUser;
         private User _storedUser;
+        private readonly string _userId = "12345678-9101-1121-3141-516171819202";
 
         private readonly DateTimeOffset _now =
             new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
@@ -38,8 +39,6 @@ namespace FitOnFhir.Common.Tests
             _usersTableRepositoryLogger = Substitute.For<MockLogger<UsersTableRepository>>();
             _usersTableRepository = new UsersTableRepository(AzureConfig, TableClient, _usersTableRepositoryLogger);
         }
-
-        protected DataImportState NewImportState { get; set; }
 
         protected DataImportState StoredImportState { get; set; }
 
@@ -60,8 +59,8 @@ namespace FitOnFhir.Common.Tests
             DataImportState storedImportState,
             DataImportState mergedImportState)
         {
-            NewImportState = newImportState;
             StoredImportState = storedImportState;
+            CreateNewUser(newImportState);
             SetupTableClient();
 
             // Arrange for UpdateEntityAsync to throw a RequestFailedException, in order for the _conflictResolverFunc to be called
@@ -85,6 +84,7 @@ namespace FitOnFhir.Common.Tests
                 Arg.Is<string>(msg => msg == exceptionMsg));
 
             // Assert the LastTouched time is the latest
+            Assert.Equal(_now, mergedUser.LastTouched);
         }
 
         [Theory]
@@ -97,8 +97,8 @@ namespace FitOnFhir.Common.Tests
             DataImportState storedImportState,
             DataImportState mergedImportState)
         {
-            NewImportState = newImportState;
             StoredImportState = storedImportState;
+            CreateNewUser(newImportState);
             SetupTableClient();
 
             // Arrange for UpdateEntityAsync to throw a RequestFailedException, in order for the _conflictResolverFunc to be called
@@ -122,18 +122,20 @@ namespace FitOnFhir.Common.Tests
                 Arg.Is<string>(msg => msg == exceptionMsg));
 
             // Assert the LastTouched time is the latest
+            Assert.Equal(_now, mergedUser.LastTouched);
         }
 
-        protected override void SetupGetEntityAsyncReturns()
+        private void CreateNewUser(DataImportState dataImportState)
         {
-            string userId = "12345678-9101-1121-3141-516171819202";
-            _newUser = new User(Guid.Parse(userId));
-            _newUser.AddPlatformUserInfo(new PlatformUserInfo(PlatformName, PlatformUserId, NewImportState));
+            _newUser = new User(Guid.Parse(_userId));
+            _newUser.AddPlatformUserInfo(new PlatformUserInfo(PlatformName, PlatformUserId, dataImportState));
             _newUser.LastTouched = _now;
-            NewEntity = _newUser.ToTableEntity();
-            NewEntity.ETag = ETag.All;
+            _newUser.ETag = ETag.All;
+        }
 
-            _storedUser = new User(Guid.Parse(userId));
+        protected override void SetupGetEntityAsyncReturn()
+        {
+            _storedUser = new User(Guid.Parse(_userId));
             _storedUser.AddPlatformUserInfo(new PlatformUserInfo(PlatformName, PlatformUserId, StoredImportState));
             _storedUser.LastTouched = _oneDayBack;
             StoredEntity = _storedUser.ToTableEntity();

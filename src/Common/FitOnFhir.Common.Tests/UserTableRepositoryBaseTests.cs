@@ -13,7 +13,6 @@ namespace FitOnFhir.Common.Tests
     public abstract class UserTableRepositoryBaseTests
     {
         private TableClient _tableClient;
-        private TableEntity _newEntity;
         private TableEntity _storedEntity;
         private AzureConfiguration _azureConfig;
 
@@ -31,12 +30,6 @@ namespace FitOnFhir.Common.Tests
         protected string PlatformUserId => "platformUserId";
 
         protected TableClient TableClient => _tableClient;
-
-        protected TableEntity NewEntity
-        {
-            get { return _newEntity; }
-            set => _newEntity = value;
-        }
 
         protected TableEntity StoredEntity
         {
@@ -60,9 +53,9 @@ namespace FitOnFhir.Common.Tests
             _tableClient.DeleteEntityAsync(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(fakeResponse);
 
-            SetupGetEntityAsyncReturns();
+            SetupGetEntityAsyncReturn();
         }
 
-        protected abstract void SetupGetEntityAsyncReturns();
+        protected abstract void SetupGetEntityAsyncReturn();
     }
 }

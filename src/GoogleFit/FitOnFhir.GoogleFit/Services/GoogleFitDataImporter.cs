@@ -9,7 +9,6 @@ using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Resolvers;
 using FitOnFhir.GoogleFit.Client;
-using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;

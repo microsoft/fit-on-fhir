@@ -35,15 +35,16 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitUsersTableRepository = new GoogleFitUserTableRepository(AzureConfig, TableClient, _googleFitUserTableRepositoryLogger);
         }
 
-        public string DataStreamId => "dataStreamId";
+        protected string DataStreamId => "dataStreamId";
 
-        public long LaterSyncTimeNanos => long.MaxValue;
+        protected long LaterSyncTimeNanos => long.MaxValue;
 
-        public long EarlierSyncTimeNanos => long.MinValue;
+        protected long EarlierSyncTimeNanos => long.MinValue;
 
         [Fact]
         public async Task GivenRequestFailedExceptionOccurs_WhenUpdateIsCalledWithResolveConflictDefault_MergedUserImportStateSetAppropriately()
         {
+            CreateNewUser();
             SetupTableClient();
 
             // Arrange for UpdateEntityAsync to throw a RequestFailedException, in order for the _conflictResolverFunc to be called
@@ -67,13 +68,15 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(msg => msg == exceptionMsg));
         }
 
-        protected override void SetupGetEntityAsyncReturns()
+        private void CreateNewUser()
         {
             _newGoogleFitUser = new GoogleFitUser(PlatformUserId);
             _newGoogleFitUser.SaveLastSyncTime(DataStreamId, LaterSyncTimeNanos);
-            NewEntity = _newGoogleFitUser.ToTableEntity();
-            NewEntity.ETag = ETag.All;
+            _newGoogleFitUser.ETag = ETag.All;
+        }
 
+        protected override void SetupGetEntityAsyncReturn()
+        {
             _storedGoogleFitUser = new GoogleFitUser(PlatformUserId);
             _storedGoogleFitUser.SaveLastSyncTime(DataStreamId, EarlierSyncTimeNanos);
             StoredEntity = _storedGoogleFitUser.ToTableEntity();
