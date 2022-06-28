@@ -66,12 +66,16 @@ namespace FitOnFhir.Common.Models
         /// </summary>
         /// <param name="platformName">The platform to update.</param>
         /// <param name="dataImportState">The new <see cref="DataImportState"/> value.</param>
-        public void UpdateImportState(string platformName, DataImportState dataImportState)
+        /// <returns><see cref="bool"/>true if the platform exists in the collection and the <see cref="DataImportState"/> is updated.</returns>
+        public bool UpdateImportState(string platformName, DataImportState dataImportState)
         {
             if (_platformUserInfo.TryGetValue(platformName, out var currentInfo))
             {
                 currentInfo.ImportState = dataImportState;
+                return true;
             }
+
+            return false;
         }
 
         public override TableEntity ToTableEntity()

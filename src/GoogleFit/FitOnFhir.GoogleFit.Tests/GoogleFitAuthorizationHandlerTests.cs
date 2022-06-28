@@ -54,8 +54,21 @@ namespace FitOnFhir.GoogleFit.Tests
             Assert.Null(result);
         }
 
+        [Theory]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        public async Task GivenMissingRequiredQueryParameter_WhenEvaluateCalled_Returns400Response(bool includePatientId, bool includeSystem)
+        {
+            var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest, includePatientId, includeSystem);
+            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+            Assert.IsType<string>(((BadRequestObjectResult)result).Value);
+            Assert.Equal($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.", ((BadRequestObjectResult)result).Value);
+        }
+
         [Fact]
-        public async Task GivenRequestHandled_WhenRequestIsForAuthorization_RedirectsUser()
+        public async Task GivenRequestCanBeHandled_WhenRequestIsForAuthorization_RedirectsUser()
         {
             _authService.AuthUriRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
 
@@ -97,15 +110,22 @@ namespace FitOnFhir.GoogleFit.Tests
             Assert.Equal(expectedResult.Value, actualResult?.Value);
         }
 
-        private RoutingRequest CreateRoutingRequest(PathString pathString)
+        private RoutingRequest CreateRoutingRequest(PathString pathString, bool includePatientId = true, bool includeSystem = true)
         {
             var httpRequest = Substitute.For<HttpRequest>();
             httpRequest.Path = pathString;
 
             if (pathString == googleFitAuthorizeRequest)
             {
-                httpRequest.Query[Constants.PatientIdQueryParameter].Returns(new StringValues(Data.ExternalPatientId));
-                httpRequest.Query[Constants.SystemQueryParameter].Returns(new StringValues(Data.ExternalSystem));
+                if (includePatientId)
+                {
+                    httpRequest.Query[Constants.PatientIdQueryParameter].Returns(new StringValues(Data.ExternalPatientId));
+                }
+
+                if (includeSystem)
+                {
+                    httpRequest.Query[Constants.SystemQueryParameter].Returns(new StringValues(Data.ExternalSystem));
+                }
             }
             else if (pathString == googleFitCallbackRequest)
             {

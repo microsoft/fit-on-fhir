@@ -13,6 +13,7 @@ using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Extensions.Fhir.Service;
+using Newtonsoft.Json;
 
 namespace FitOnFhir.GoogleFit.Services
 {
@@ -58,7 +59,7 @@ namespace FitOnFhir.GoogleFit.Services
             {
                 authState = AuthState.Parse(state);
             }
-            catch (ArgumentException)
+            catch (Exception e) when (e is ArgumentException || e is JsonSerializationException)
             {
                 // This exception message will be visible to the caller.
                 throw new Exception("The Google authorization service failed to return the expected authorization state.");

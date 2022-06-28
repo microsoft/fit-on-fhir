@@ -67,28 +67,5 @@ namespace FitOnFhir.GoogleFit.Tests
                 IdToken = new JwtSecurityToken(issuer: Issuer, claims: new List<Claim>() { new Claim("sub", GoogleUserId) }),
             };
         }
-
-        public static Patient GetPatient()
-        {
-            return new Patient
-            {
-                Id = PatientId,
-            };
-        }
-
-        public static Bundle GetBundle(params Resource[] resources)
-        {
-            var entries = new List<Bundle.EntryComponent>();
-
-            foreach (Resource resource in resources)
-            {
-                entries.Add(new Bundle.EntryComponent() { Resource = resource });
-            }
-
-            return new Bundle
-            {
-                Entry = entries,
-            };
-        }
     }
 }
