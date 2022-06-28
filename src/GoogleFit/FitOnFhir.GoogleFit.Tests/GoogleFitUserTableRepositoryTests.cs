@@ -5,52 +5,35 @@
 
 using Azure;
 using Azure.Data.Tables;
-using FitOnFhir.Common.Config;
 using FitOnFhir.Common.Models;
+using FitOnFhir.Common.Tests;
 using FitOnFhir.Common.Tests.Mocks;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.GoogleFit.Resolvers;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace FitOnFhir.GoogleFit.Tests
 {
-    public class GoogleFitUserTableRepositoryTests
+    public class GoogleFitUserTableRepositoryTests : UserTableRepositoryBaseTests
     {
-        private readonly AzureConfiguration _azureConfiguration;
-        private TableClient _tableClient;
         private readonly MockLogger<GoogleFitUserTableRepository> _googleFitUserTableRepositoryLogger;
         private IGoogleFitUserTableRepository _googleFitUsersTableRepository;
-
-        private readonly DateTimeOffset _now =
-            new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
-
-        private readonly DateTimeOffset _oneDayBack =
-            new DateTimeOffset(2004, 1, 11, 0, 0, 0, new TimeSpan(-5, 0, 0));
-
         private Func<EntityBase, EntityBase, GoogleFitUser> _conflictResolverFunc;
         private GoogleFitUser _newGoogleFitUser;
         private GoogleFitUser _storedGoogleFitUser;
-        private TableEntity _newEntity;
-        private TableEntity _storedEntity;
 
         public GoogleFitUserTableRepositoryTests()
         {
             _conflictResolverFunc = Substitute.For<Func<EntityBase, EntityBase, GoogleFitUser>>();
 
-            // fill in the dependencies, and create a new UsersTableRepository
-            _azureConfiguration = Substitute.For<AzureConfiguration>();
-            _azureConfiguration.StorageAccountConnectionString = "connection string";
-            _tableClient = Substitute.For<TableClient>();
+            // create a new UsersTableRepository
             _googleFitUserTableRepositoryLogger = Substitute.For<MockLogger<GoogleFitUserTableRepository>>();
-            _googleFitUsersTableRepository = new GoogleFitUserTableRepository(_azureConfiguration, _tableClient, _googleFitUserTableRepositoryLogger);
+            _googleFitUsersTableRepository = new GoogleFitUserTableRepository(AzureConfig, TableClient, _googleFitUserTableRepositoryLogger);
         }
-
-        public string PlatformName => "platformName";
-
-        public string PlatformUserId => "platformUserId";
 
         public string DataStreamId => "dataStreamId";
 
@@ -66,7 +49,7 @@ namespace FitOnFhir.GoogleFit.Tests
             // Arrange for UpdateEntityAsync to throw a RequestFailedException, in order for the _conflictResolverFunc to be called
             var exceptionMsg = "request failed exception";
             var exception = new RequestFailedException(412, exceptionMsg);
-            _tableClient.UpdateEntityAsync(Arg.Any<TableEntity>(), Arg.Is<ETag>(tag => tag == ETag.All), cancellationToken: Arg.Any<CancellationToken>())
+            TableClient.UpdateEntityAsync(Arg.Any<TableEntity>(), Arg.Is<ETag>(tag => tag == ETag.All), cancellationToken: Arg.Any<CancellationToken>())
                 .Throws(exception);
 
             // Act on the Update method
@@ -75,38 +58,29 @@ namespace FitOnFhir.GoogleFit.Tests
 
             // Assert the the merged user's last sync time is correct
             mergedUser.TryGetLastSyncTime(DataStreamId, out var lastSyncTimeNanos);
-
             Assert.Equal(LaterSyncTimeNanos, lastSyncTimeNanos);
+
+            // Assert the exception was logged
+            _googleFitUserTableRepositoryLogger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Any<RequestFailedException>(),
+                Arg.Is<string>(msg => msg == exceptionMsg));
         }
 
-        private void SetupTableClient()
+        protected override void SetupGetEntityAsyncReturns()
         {
-            AsyncPageable<TableEntity> fakeAsyncPageable = Substitute.For<AsyncPageable<TableEntity>>();
-            _tableClient.QueryAsync<TableEntity>(cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeAsyncPageable);
-
-            var fakeResponse = Substitute.For<Response>();
-            _tableClient.AddEntityAsync(Arg.Any<TableEntity>(), cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeResponse);
-            _tableClient.UpdateEntityAsync(Arg.Any<TableEntity>(), Arg.Any<ETag>(), cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeResponse);
-            _tableClient.UpsertEntityAsync(Arg.Any<TableEntity>(), cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeResponse);
-            _tableClient.DeleteEntityAsync(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeResponse);
-
             _newGoogleFitUser = new GoogleFitUser(PlatformUserId);
             _newGoogleFitUser.SaveLastSyncTime(DataStreamId, LaterSyncTimeNanos);
-            _newEntity = _newGoogleFitUser.ToTableEntity();
-            _newEntity.ETag = ETag.All;
+            NewEntity = _newGoogleFitUser.ToTableEntity();
+            NewEntity.ETag = ETag.All;
 
             _storedGoogleFitUser = new GoogleFitUser(PlatformUserId);
             _storedGoogleFitUser.SaveLastSyncTime(DataStreamId, EarlierSyncTimeNanos);
-            _storedEntity = _storedGoogleFitUser.ToTableEntity();
+            StoredEntity = _storedGoogleFitUser.ToTableEntity();
 
             Response<TableEntity> getEntityAsyncResponse = Substitute.For<Response<TableEntity>>();
-            getEntityAsyncResponse.Value.ReturnsForAnyArgs(_storedEntity);
-            _tableClient.GetEntityAsync<TableEntity>(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
+            getEntityAsyncResponse.Value.ReturnsForAnyArgs(StoredEntity);
+            TableClient.GetEntityAsync<TableEntity>(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(getEntityAsyncResponse);
         }
     }

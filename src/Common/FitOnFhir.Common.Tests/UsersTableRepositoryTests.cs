@@ -5,23 +5,24 @@
 
 using Azure;
 using Azure.Data.Tables;
-using FitOnFhir.Common.Config;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Resolvers;
 using FitOnFhir.Common.Tests.Mocks;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace FitOnFhir.Common.Tests
 {
-    public class UsersTableRepositoryTests
+    public class UsersTableRepositoryTests : UserTableRepositoryBaseTests
     {
-        private readonly AzureConfiguration _azureConfiguration;
-        private TableClient _tableClient;
         private readonly MockLogger<UsersTableRepository> _usersTableRepositoryLogger;
         private IUsersTableRepository _usersTableRepository;
+        private Func<EntityBase, EntityBase, User> _conflictResolverFunc;
+        private User _newUser;
+        private User _storedUser;
 
         private readonly DateTimeOffset _now =
             new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
@@ -29,29 +30,18 @@ namespace FitOnFhir.Common.Tests
         private readonly DateTimeOffset _oneDayBack =
             new DateTimeOffset(2004, 1, 11, 0, 0, 0, new TimeSpan(-5, 0, 0));
 
-        private readonly string _userId = "12345678-9101-1121-3141-516171819202";
-
-        private Func<EntityBase, EntityBase, User> _conflictResolverFunc;
-        private User _newUser;
-        private User _storedUser;
-        private TableEntity _newEntity;
-        private TableEntity _storedEntity;
-
         public UsersTableRepositoryTests()
         {
             _conflictResolverFunc = Substitute.For<Func<EntityBase, EntityBase, User>>();
 
-            // fill in the dependencies, and create a new UsersTableRepository
-            _azureConfiguration = Substitute.For<AzureConfiguration>();
-            _azureConfiguration.StorageAccountConnectionString = "connection string";
-            _tableClient = Substitute.For<TableClient>();
+            // create a new UsersTableRepository
             _usersTableRepositoryLogger = Substitute.For<MockLogger<UsersTableRepository>>();
-            _usersTableRepository = new UsersTableRepository(_azureConfiguration, _tableClient, _usersTableRepositoryLogger);
+            _usersTableRepository = new UsersTableRepository(AzureConfig, TableClient, _usersTableRepositoryLogger);
         }
 
-        public string PlatformName => "platformName";
+        protected DataImportState NewImportState { get; set; }
 
-        public string PlatformUserId => "platformUserId";
+        protected DataImportState StoredImportState { get; set; }
 
         [Theory]
         [InlineData(DataImportState.ReadyToImport, DataImportState.Unauthorized, DataImportState.Unauthorized)]
@@ -68,14 +58,16 @@ namespace FitOnFhir.Common.Tests
         public async Task GivenRequestFailedExceptionOccurs_WhenUpdateIsCalledWithResolveConflictDefault_MergedUserImportStateSetAppropriately(
             DataImportState newImportState,
             DataImportState storedImportState,
-            DataImportState mergedImoprtState)
+            DataImportState mergedImportState)
         {
-            SetupTableClient(newImportState, storedImportState);
+            NewImportState = newImportState;
+            StoredImportState = storedImportState;
+            SetupTableClient();
 
             // Arrange for UpdateEntityAsync to throw a RequestFailedException, in order for the _conflictResolverFunc to be called
             var exceptionMsg = "request failed exception";
             var exception = new RequestFailedException(412, exceptionMsg);
-            _tableClient.UpdateEntityAsync(Arg.Any<TableEntity>(), Arg.Is<ETag>(tag => tag == ETag.All), cancellationToken: Arg.Any<CancellationToken>())
+            TableClient.UpdateEntityAsync(Arg.Any<TableEntity>(), Arg.Is<ETag>(tag => tag == ETag.All), cancellationToken: Arg.Any<CancellationToken>())
                 .Throws(exception);
 
             // Act on the Update method
@@ -84,7 +76,13 @@ namespace FitOnFhir.Common.Tests
 
             // Assert the the merged user's Platform DataImportState is set to Unauthorized
             mergedUser.GetPlatformImportState(PlatformName, out var mergedDataImportState);
-            Assert.Equal(mergedImoprtState, mergedDataImportState);
+            Assert.Equal(mergedImportState, mergedDataImportState);
+
+            // Assert the exception was logged
+            _usersTableRepositoryLogger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Any<RequestFailedException>(),
+                Arg.Is<string>(msg => msg == exceptionMsg));
 
             // Assert the LastTouched time is the latest
         }
@@ -97,14 +95,16 @@ namespace FitOnFhir.Common.Tests
         public async Task GivenRequestFailedExceptionOccurs_WhenUpdateIsCalledWithResolveConflictAuthorization_MergedUserImportStateSetAppropriately(
             DataImportState newImportState,
             DataImportState storedImportState,
-            DataImportState mergedImoprtState)
+            DataImportState mergedImportState)
         {
-            SetupTableClient(newImportState, storedImportState);
+            NewImportState = newImportState;
+            StoredImportState = storedImportState;
+            SetupTableClient();
 
             // Arrange for UpdateEntityAsync to throw a RequestFailedException, in order for the _conflictResolverFunc to be called
             var exceptionMsg = "request failed exception";
             var exception = new RequestFailedException(412, exceptionMsg);
-            _tableClient.UpdateEntityAsync(Arg.Any<TableEntity>(), Arg.Is<ETag>(tag => tag == ETag.All), cancellationToken: Arg.Any<CancellationToken>())
+            TableClient.UpdateEntityAsync(Arg.Any<TableEntity>(), Arg.Is<ETag>(tag => tag == ETag.All), cancellationToken: Arg.Any<CancellationToken>())
                 .Throws(exception);
 
             // Act on the Update method
@@ -113,41 +113,34 @@ namespace FitOnFhir.Common.Tests
 
             // Assert the the merged user's Platform DataImportState is set to Unauthorized
             mergedUser.GetPlatformImportState(PlatformName, out var mergedDataImportState);
-            Assert.Equal(mergedImoprtState, mergedDataImportState);
+            Assert.Equal(mergedImportState, mergedDataImportState);
+
+            // Assert the exception was logged
+            _usersTableRepositoryLogger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Any<RequestFailedException>(),
+                Arg.Is<string>(msg => msg == exceptionMsg));
 
             // Assert the LastTouched time is the latest
         }
 
-        private void SetupTableClient(DataImportState newImportState, DataImportState storedImportState)
+        protected override void SetupGetEntityAsyncReturns()
         {
-            AsyncPageable<TableEntity> fakeAsyncPageable = Substitute.For<AsyncPageable<TableEntity>>();
-            _tableClient.QueryAsync<TableEntity>(cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeAsyncPageable);
-
-            var fakeResponse = Substitute.For<Response>();
-            _tableClient.AddEntityAsync(Arg.Any<TableEntity>(), cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeResponse);
-            _tableClient.UpdateEntityAsync(Arg.Any<TableEntity>(), Arg.Any<ETag>(), cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeResponse);
-            _tableClient.UpsertEntityAsync(Arg.Any<TableEntity>(), cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeResponse);
-            _tableClient.DeleteEntityAsync(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeResponse);
-
-            _newUser = new User(Guid.Parse(_userId));
-            _newUser.AddPlatformUserInfo(new PlatformUserInfo(PlatformName, PlatformUserId, newImportState));
+            string userId = "12345678-9101-1121-3141-516171819202";
+            _newUser = new User(Guid.Parse(userId));
+            _newUser.AddPlatformUserInfo(new PlatformUserInfo(PlatformName, PlatformUserId, NewImportState));
             _newUser.LastTouched = _now;
-            _newEntity = _newUser.ToTableEntity();
-            _newEntity.ETag = ETag.All;
+            NewEntity = _newUser.ToTableEntity();
+            NewEntity.ETag = ETag.All;
 
-            _storedUser = new User(Guid.Parse(_userId));
-            _storedUser.AddPlatformUserInfo(new PlatformUserInfo(PlatformName, PlatformUserId, storedImportState));
+            _storedUser = new User(Guid.Parse(userId));
+            _storedUser.AddPlatformUserInfo(new PlatformUserInfo(PlatformName, PlatformUserId, StoredImportState));
             _storedUser.LastTouched = _oneDayBack;
-            _storedEntity = _storedUser.ToTableEntity();
+            StoredEntity = _storedUser.ToTableEntity();
 
             Response<TableEntity> getEntityAsyncResponse = Substitute.For<Response<TableEntity>>();
-            getEntityAsyncResponse.Value.ReturnsForAnyArgs(_storedEntity);
-            _tableClient.GetEntityAsync<TableEntity>(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
+            getEntityAsyncResponse.Value.ReturnsForAnyArgs(StoredEntity);
+            TableClient.GetEntityAsync<TableEntity>(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(getEntityAsyncResponse);
         }
     }
