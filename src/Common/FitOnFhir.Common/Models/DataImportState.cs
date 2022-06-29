@@ -8,6 +8,11 @@ namespace FitOnFhir.Common.Models
     public enum DataImportState
     {
         /// <summary>
+        /// Indicates that the data for this platform is ready to be synced
+        /// </summary>
+        ReadyToImport,
+
+        /// <summary>
         /// Indicates that the data for this platform is queued for importing
         /// </summary>
         Queued,
@@ -16,11 +21,6 @@ namespace FitOnFhir.Common.Models
         /// Indicates that the data for this platform is currently being imported
         /// </summary>
         Importing,
-
-        /// <summary>
-        /// Indicates that the data for this platform is ready to be synced
-        /// </summary>
-        ReadyToImport,
 
         /// <summary>
         /// Indicates that this platform is no longer authorized to import data for this user

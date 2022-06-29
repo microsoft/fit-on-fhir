@@ -94,8 +94,30 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenAllConditionsMet_WhenProcessAuthorizationCallbackCalled_GoogleFitUserPersisted()
+        public async Task GivenGoogleFitUserExists_WhenProcessAuthorizationCallbackCalled_GoogleFitUserNotPersisted()
         {
+            _googleFitUserRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(
+                x =>
+                {
+                    var user = new GoogleFitUser("me");
+                    return user;
+                });
+
+            await ExecuteAuthorizationCallback();
+
+            await _googleFitUserRepository.DidNotReceive().Insert(Arg.Is<GoogleFitUser>(x => x.Id.Equals(Data.GoogleUserId)), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenGoogleFitUserDoesNotExist_WhenProcessAuthorizationCallbackCalled_GoogleFitUserPersisted()
+        {
+            _googleFitUserRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(
+                x =>
+                {
+                    GoogleFitUser user = null;
+                    return user;
+                });
+
             await ExecuteAuthorizationCallback();
 
             await _googleFitUserRepository.Received(1).Insert(Arg.Is<GoogleFitUser>(x => x.Id.Equals(Data.GoogleUserId)), Arg.Any<CancellationToken>());

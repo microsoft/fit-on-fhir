@@ -84,8 +84,8 @@ namespace FitOnFhir.Common.Services
                 user.UpdateImportState(platformName, DataImportState.ReadyToImport);
                 await _usersTableRepository.Update(
                     user,
-                    cancellationToken,
-                    UserConflictResolvers.ResolveConflictAuthorization);
+                    UserConflictResolvers.ResolveConflictAuthorization,
+                    cancellationToken);
             }
 
             await QueueFitnessImport(user, cancellationToken);

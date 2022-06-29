@@ -15,12 +15,12 @@ namespace FitOnFhir.GoogleFit.Resolvers
             var mergedUser = new GoogleFitUser(storedEntityBase.ToTableEntity());
             var newUser = new GoogleFitUser(newEntityBase.ToTableEntity());
 
-            var newSynctimes = newUser.GetLastSyncTimes();
+            var newSyncTimes = newUser.GetLastSyncTimes();
 
             // compare the sync times between the users, and choose the latest for each to save into mergedUser
-            foreach (var newSynctime in newSynctimes)
+            foreach (var newSyncTime in newSyncTimes)
             {
-                mergedUser.SaveLastSyncTime(newSynctime.Key, newSynctime.Value);
+                mergedUser.SaveLastSyncTime(newSyncTime.Key, newSyncTime.Value);
             }
 
             return mergedUser;

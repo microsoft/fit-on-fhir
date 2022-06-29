@@ -19,11 +19,11 @@ namespace FitOnFhir.Common.Repositories
 
         public TableRepository(string connectionString, TableClient tableClient, ILogger logger)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
             if (tableClient == null)
             {
+                EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
                 _tableClient = new TableClient(connectionString, Constants.UsersTableName);
             }
             else
@@ -77,9 +77,10 @@ namespace FitOnFhir.Common.Repositories
             return await GetById(entity.Id, cancellationToken);
         }
 
-        public async Task<TEntity> Update(TEntity entity, CancellationToken cancellationToken, Func<TEntity, TEntity, TEntity> conflictResolver)
+        public async Task<TEntity> Update(TEntity entity, Func<TEntity, TEntity, TEntity> conflictResolver, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
+            EnsureArg.IsNotNull(conflictResolver, nameof(conflictResolver));
 
             try
             {
@@ -91,15 +92,16 @@ namespace FitOnFhir.Common.Repositories
 
                 TEntity storedEntity = await GetById(entity.Id, cancellationToken);
                 TEntity mergedEntity = conflictResolver(entity, storedEntity);
-                return await Update(mergedEntity, cancellationToken, conflictResolver);
+                return await Update(mergedEntity, conflictResolver, cancellationToken);
             }
 
             return await GetById(entity.Id, cancellationToken);
         }
 
-        public async Task<TEntity> Upsert(TEntity entity, CancellationToken cancellationToken, Func<TEntity, TEntity, TEntity> conflictResolver)
+        public async Task<TEntity> Upsert(TEntity entity, Func<TEntity, TEntity, TEntity> conflictResolver, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
+            EnsureArg.IsNotNull(conflictResolver, nameof(conflictResolver));
 
             try
             {
@@ -111,7 +113,7 @@ namespace FitOnFhir.Common.Repositories
 
                 TEntity storedEntity = await GetById(entity.Id, cancellationToken);
                 TEntity mergedEntity = conflictResolver(entity, storedEntity);
-                return await Upsert(mergedEntity, cancellationToken, conflictResolver);
+                return await Upsert(mergedEntity, conflictResolver, cancellationToken);
             }
 
             return await GetById(entity.Id, cancellationToken);

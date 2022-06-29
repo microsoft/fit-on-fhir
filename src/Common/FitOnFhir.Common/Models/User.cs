@@ -51,7 +51,7 @@ namespace FitOnFhir.Common.Models
         /// <param name="platformName">The name of the platform to retrieve the <see cref="DataImportState"/> for.</param>
         /// <param name="dataImportState">The param that will contain the <see cref="DataImportState"/></param>
         /// <returns>true if a value was found, false otherwise</returns>
-        public bool GetPlatformImportState(string platformName, out DataImportState dataImportState)
+        public bool TryGetPlatformImportState(string platformName, out DataImportState dataImportState)
         {
             if (_platformUserInfo.TryGetValue(platformName, out var currentInfo))
             {

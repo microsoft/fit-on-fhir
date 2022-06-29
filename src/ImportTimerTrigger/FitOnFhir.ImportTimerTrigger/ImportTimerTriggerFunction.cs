@@ -51,8 +51,8 @@ namespace FitOnFhir.ImportTimerTrigger
                     user.UpdateImportState(userPlatformInfo.PlatformName, DataImportState.Queued);
                     user = await _usersTableRepository.Update(
                         user,
-                        cancellationToken,
-                        UserConflictResolvers.ResolveConflictDefault);
+                        UserConflictResolvers.ResolveConflictDefault,
+                        cancellationToken);
                     queueService.Add(JsonConvert.SerializeObject(new QueueMessage(user.Id, userPlatformInfo.UserId, userPlatformInfo.PlatformName)));
                 }
             }

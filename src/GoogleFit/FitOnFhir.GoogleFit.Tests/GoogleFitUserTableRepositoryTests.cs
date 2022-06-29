@@ -55,7 +55,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             // Act on the Update method
             _conflictResolverFunc = GoogleFitUserConflictResolvers.ResolveConflictLastSyncTimes;
-            var mergedUser = await _googleFitUsersTableRepository.Update(_newGoogleFitUser, CancellationToken.None, _conflictResolverFunc);
+            var mergedUser = await _googleFitUsersTableRepository.Update(_newGoogleFitUser, _conflictResolverFunc, CancellationToken.None);
 
             // Assert the the merged user's last sync time is correct
             mergedUser.TryGetLastSyncTime(DataStreamId, out var lastSyncTimeNanos);

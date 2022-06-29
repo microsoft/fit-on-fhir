@@ -83,8 +83,8 @@ namespace FitOnFhir.GoogleFit.Services
                 // This ensures if an error happens during processing, the dataset will be tried again the next import.
                 await _googleFitUserTableRepository.Update(
                     googleUser,
-                    cancellationToken,
-                    GoogleFitUserConflictResolvers.ResolveConflictLastSyncTimes);
+                    GoogleFitUserConflictResolvers.ResolveConflictLastSyncTimes,
+                    cancellationToken);
             }
             catch (Exception ex)
             {
@@ -103,8 +103,8 @@ namespace FitOnFhir.GoogleFit.Services
             user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, dataImportState);
             return await _usersTableRepository.Update(
                 user,
-                cancellationToken,
-                UserConflictResolvers.ResolveConflictDefault);
+                UserConflictResolvers.ResolveConflictDefault,
+                cancellationToken);
         }
     }
 }

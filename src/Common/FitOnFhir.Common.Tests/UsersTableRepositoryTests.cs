@@ -71,10 +71,10 @@ namespace FitOnFhir.Common.Tests
 
             // Act on the Update method
             _conflictResolverFunc = UserConflictResolvers.ResolveConflictDefault;
-            var mergedUser = await _usersTableRepository.Update(_newUser, CancellationToken.None, _conflictResolverFunc);
+            var mergedUser = await _usersTableRepository.Update(_newUser, _conflictResolverFunc, CancellationToken.None);
 
             // Assert the the merged user's Platform DataImportState is set to Unauthorized
-            mergedUser.GetPlatformImportState(PlatformName, out var mergedDataImportState);
+            mergedUser.TryGetPlatformImportState(PlatformName, out var mergedDataImportState);
             Assert.Equal(mergedImportState, mergedDataImportState);
 
             // Assert the exception was logged
@@ -109,10 +109,10 @@ namespace FitOnFhir.Common.Tests
 
             // Act on the Update method
             _conflictResolverFunc = UserConflictResolvers.ResolveConflictAuthorization;
-            var mergedUser = await _usersTableRepository.Update(_newUser, CancellationToken.None, _conflictResolverFunc);
+            var mergedUser = await _usersTableRepository.Update(_newUser, _conflictResolverFunc, CancellationToken.None);
 
             // Assert the the merged user's Platform DataImportState is set to Unauthorized
-            mergedUser.GetPlatformImportState(PlatformName, out var mergedDataImportState);
+            mergedUser.TryGetPlatformImportState(PlatformName, out var mergedDataImportState);
             Assert.Equal(mergedImportState, mergedDataImportState);
 
             // Assert the exception was logged
