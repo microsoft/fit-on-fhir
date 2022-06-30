@@ -17,12 +17,20 @@ namespace FitOnFhir.Common.Repositories
         private readonly TableClient _tableClient;
         private readonly ILogger _logger;
 
-        public TableRepository(string connectionString, ILogger logger)
+        public TableRepository(string connectionString, TableClient tableClient, ILogger logger)
         {
-            EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
             EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _tableClient = new TableClient(connectionString, Constants.UsersTableName);
+            if (tableClient == null)
+            {
+                EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
+                _tableClient = new TableClient(connectionString, Constants.UsersTableName);
+            }
+            else
+            {
+                _tableClient = tableClient;
+            }
+
             _logger = logger;
         }
 
@@ -69,33 +77,43 @@ namespace FitOnFhir.Common.Repositories
             return await GetById(entity.Id, cancellationToken);
         }
 
-        public async Task<TEntity> Update(TEntity entity, CancellationToken cancellationToken)
+        public async Task<TEntity> Update(TEntity entity, Func<TEntity, TEntity, TEntity> conflictResolver, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
+            EnsureArg.IsNotNull(conflictResolver, nameof(conflictResolver));
 
             try
             {
                 await _tableClient.UpdateEntityAsync(entity.ToTableEntity(), entity.ETag, cancellationToken: cancellationToken);
             }
-            catch (Exception ex)
+            catch (RequestFailedException ex) when (ex.Status == 412)
             {
                 _logger.LogError(ex, ex.Message);
+
+                TEntity storedEntity = await GetById(entity.Id, cancellationToken);
+                TEntity mergedEntity = conflictResolver(entity, storedEntity);
+                return await Update(mergedEntity, conflictResolver, cancellationToken);
             }
 
             return await GetById(entity.Id, cancellationToken);
         }
 
-        public async Task<TEntity> Upsert(TEntity entity, CancellationToken cancellationToken)
+        public async Task<TEntity> Upsert(TEntity entity, Func<TEntity, TEntity, TEntity> conflictResolver, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
+            EnsureArg.IsNotNull(conflictResolver, nameof(conflictResolver));
 
             try
             {
                 await _tableClient.UpsertEntityAsync(entity.ToTableEntity(), cancellationToken: cancellationToken);
             }
-            catch (Exception ex)
+            catch (RequestFailedException ex) when (ex.Status == 412)
             {
                 _logger.LogError(ex, ex.Message);
+
+                TEntity storedEntity = await GetById(entity.Id, cancellationToken);
+                TEntity mergedEntity = conflictResolver(entity, storedEntity);
+                return await Upsert(mergedEntity, conflictResolver, cancellationToken);
             }
 
             return await GetById(entity.Id, cancellationToken);

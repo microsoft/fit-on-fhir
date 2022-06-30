@@ -90,8 +90,13 @@ namespace FitOnFhir.GoogleFit.Services
                 authState,
                 cancellationToken);
 
-            // Insert GoogleFitUser into Users Table
-            await _googleFitUserRepository.Upsert(new GoogleFitUser(googleUserId), cancellationToken);
+            GoogleFitUser googleFitUser = await _googleFitUserRepository.GetById(googleUserId, cancellationToken);
+
+            if (googleFitUser == null)
+            {
+                // Insert GoogleFitUser into Users Table
+                await _googleFitUserRepository.Insert(new GoogleFitUser(googleUserId), cancellationToken);
+            }
 
             // Insert refresh token into users KV by userId
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
