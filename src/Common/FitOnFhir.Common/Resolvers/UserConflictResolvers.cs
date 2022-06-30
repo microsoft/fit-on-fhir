@@ -15,19 +15,15 @@ namespace FitOnFhir.Common.Resolvers
         /// entity must also have its <see cref="DataImportState"/> set to <see cref="DataImportState"/>.Unauthorized.  In addition, the most
         /// recent LastTouched property will be propagated.
         /// </summary>
-        /// <param name="newEntityBase">The <see cref="EntityBase"/> from the original Update or Upsert operation.</param>
-        /// <param name="storedEntityBase">The <see cref="EntityBase"/> that currently exists in the storage account.</param>
+        /// <param name="newUser">The <see cref="User"/> from the original Update or Upsert operation.</param>
+        /// <param name="mergedUser">The <see cref="User"/> that currently exists in the storage account.</param>
         /// <returns>A merged <see cref="User"/> with the correct <see cref="DataImportState"/> for each <see cref="PlatformUserInfo"/> stored.</returns>
-        public static User ResolveConflictDefault(EntityBase newEntityBase, EntityBase storedEntityBase)
+        public static User ResolveConflictDefault(User newUser, User mergedUser)
         {
             DataImportState mergeDataImportState;
 
-            var newUser = new User(newEntityBase.ToTableEntity());
-
             // Retrieve all of the PlatformUserInfo from the new user
             var newPlatformUserInfoCollection = newUser.GetPlatformUserInfo();
-
-            var mergedUser = new User(storedEntityBase.ToTableEntity());
 
             // Retrieve all of the PlatformUserInfo from the stored user
             var storedPlatformUserInfoCollection = mergedUser.GetPlatformUserInfo();
@@ -72,19 +68,13 @@ namespace FitOnFhir.Common.Resolvers
         /// previously revoked access and now wishes to grant access again.  The <see cref="DataImportState"/> for that platform will be
         /// set to <see cref="DataImportState"/>.ReadyToImport.  In addition, the most recent LastTouched property will be propagated.
         /// </summary>
-        /// <param name="newEntityBase">The <see cref="EntityBase"/> from the original Update or Upsert operation.</param>
-        /// <param name="storedEntityBase">The <see cref="EntityBase"/> that currently exists in the storage account.</param>
+        /// <param name="newUser">The <see cref="User"/> from the original Update or Upsert operation.</param>
+        /// <param name="mergedUser">The <see cref="User"/> that currently exists in the storage account.</param>
         /// <returns>A merged <see cref="User"/> with the correct <see cref="DataImportState"/> for each <see cref="PlatformUserInfo"/> stored.</returns>
-        public static User ResolveConflictAuthorization(EntityBase newEntityBase, EntityBase storedEntityBase)
+        public static User ResolveConflictAuthorization(User newUser, User mergedUser)
         {
-            DataImportState mergeDataImportState;
-
-            var newUser = new User(newEntityBase.ToTableEntity());
-
             // Retrieve all of the PlatformUserInfo from the new user
             var newPlatformUserInfoCollection = newUser.GetPlatformUserInfo();
-
-            var mergedUser = new User(storedEntityBase.ToTableEntity());
 
             // Retrieve all of the PlatformUserInfo from the new user
             var storedPlatformUserInfoCollection = mergedUser.GetPlatformUserInfo();
@@ -98,15 +88,9 @@ namespace FitOnFhir.Common.Resolvers
                     if (newPlatformUserInfo.ImportState == DataImportState.ReadyToImport &&
                         storedPlatformUserInfo.ImportState == DataImportState.Unauthorized)
                     {
-                        mergeDataImportState = DataImportState.ReadyToImport;
+                        // set the ImportState to ReadyToImport to allow for reauthorization
+                        mergedUser.UpdateImportState(newPlatformUserInfo.PlatformName, DataImportState.ReadyToImport);
                     }
-                    else
-                    {
-                        mergeDataImportState = storedPlatformUserInfo.ImportState;
-                    }
-
-                    // update the ImportState
-                    mergedUser.UpdateImportState(newPlatformUserInfo.PlatformName, mergeDataImportState);
                 } // this platform is new to the stored user, so add it in
                 else
                 {
