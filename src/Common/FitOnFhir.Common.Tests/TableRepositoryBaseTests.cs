@@ -8,10 +8,8 @@ using Azure.Data.Tables;
 using FitOnFhir.Common.Config;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
-using FitOnFhir.Common.Resolvers;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using NSubstitute.Routing.Handlers;
 using Xunit;
 
 namespace FitOnFhir.Common.Tests
@@ -67,24 +65,17 @@ namespace FitOnFhir.Common.Tests
 
         protected string PartitionKey { get; set; }
 
+        protected int MatchingExceptionStatusCode => 412;
+
+        protected int MismatchedExceptionStatusCode => 410;
+
         [Fact]
         public async Task GivenRequestFailedExceptionOccurs_WhenUpdateIsCalled_ConflictResolverIsCalledWithCorrectParams()
         {
-            SetupTableClient();
+            SetupTableClient(MatchingExceptionStatusCode);
 
-            // Arrange for UpdateEntityAsync to throw a RequestFailedException, in order for the _conflictResolverFunc to be called
-            var exceptionMsg = "request failed exception";
-            var exception = new RequestFailedException(412, exceptionMsg);
-            TableClient.UpdateEntityAsync(
-                    Arg.Any<TableEntity>(),
-                    Arg.Is<ETag>(tag => tag == ETag.All),
-                    cancellationToken: Arg.Any<CancellationToken>())
-                .Throws(exception);
-
-            // Act on the Update method
             var mergedEntity = await TableRepository.Update(NewEntity, _conflictResolverFunc, CancellationToken.None);
 
-            // Assert the entities were assigned in the conflict resolver
             Assert.NotNull(_arg1Entity);
             Assert.Equal(NewEntityId, _arg1Entity.Id);
             Assert.NotNull(_arg2Entity);
@@ -94,21 +85,10 @@ namespace FitOnFhir.Common.Tests
         [Fact]
         public async Task GivenRequestFailedExceptionOccurs_WhenUpdateIsCalled_GetEntityAsyncIsCalledWithCorrectParams()
         {
-            SetupTableClient();
+            SetupTableClient(MatchingExceptionStatusCode);
 
-            // Arrange for UpdateEntityAsync to throw a RequestFailedException, in order for the _conflictResolverFunc to be called
-            var exceptionMsg = "request failed exception";
-            var exception = new RequestFailedException(412, exceptionMsg);
-            TableClient.UpdateEntityAsync(
-                    Arg.Any<TableEntity>(),
-                    Arg.Is<ETag>(tag => tag == ETag.All),
-                    cancellationToken: Arg.Any<CancellationToken>())
-                .Throws(exception);
-
-            // Act on the Update method
             _ = await TableRepository.Update(NewEntity, _conflictResolverFunc, CancellationToken.None);
 
-            // Assert one call was for the NewEntity, and one was for the MergedEntity
             await TableClient.Received(1).GetEntityAsync<TableEntity>(
                 Arg.Is<string>(str => str == PartitionKey),
                 Arg.Is<string>(str => str == NewEntityId),
@@ -120,7 +100,15 @@ namespace FitOnFhir.Common.Tests
                 cancellationToken: Arg.Any<CancellationToken>());
         }
 
-        public void SetupTableClient()
+        [Fact]
+        public async Task GivenRequestFailedExceptionOccursWithNonMatchingStatus_WhenUpdateIsCalled_ThrowsNonMatchingException()
+        {
+            SetupTableClient(MismatchedExceptionStatusCode);
+
+            await Assert.ThrowsAsync<RequestFailedException>(async () => await TableRepository.Update(NewEntity, _conflictResolverFunc, CancellationToken.None));
+        }
+
+        public void SetupTableClient(int exceptionStatusCode)
         {
             AsyncPageable<TableEntity> fakeAsyncPageable = Substitute.For<AsyncPageable<TableEntity>>();
             _tableClient.QueryAsync<TableEntity>(cancellationToken: Arg.Any<CancellationToken>())
@@ -129,8 +117,15 @@ namespace FitOnFhir.Common.Tests
             var fakeResponse = Substitute.For<Response>();
             _tableClient.AddEntityAsync(Arg.Any<TableEntity>(), cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(fakeResponse);
-            _tableClient.UpdateEntityAsync(Arg.Any<TableEntity>(), Arg.Any<ETag>(), cancellationToken: Arg.Any<CancellationToken>())
-                .Returns(fakeResponse);
+
+            var exceptionMsg = "request failed exception";
+            var exception = new RequestFailedException(exceptionStatusCode, exceptionMsg);
+            TableClient.UpdateEntityAsync(
+                    Arg.Any<TableEntity>(),
+                    Arg.Any<ETag>(),
+                    cancellationToken: Arg.Any<CancellationToken>())
+                .Returns(x => throw exception, x => fakeResponse);
+
             _tableClient.UpsertEntityAsync(Arg.Any<TableEntity>(), cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(fakeResponse);
             _tableClient.DeleteEntityAsync(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
