@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.7.4.23292",
-      "templateHash": "17767971378592015027"
+      "templateHash": "9694221921143096817"
     }
   },
   "parameters": {
@@ -88,7 +88,7 @@
     {
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2019-09-01",
-      "name": "[format('kv-users-{0}', parameters('basename'))]",
+      "name": "[format('kv-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "properties": {
         "sku": {
@@ -101,7 +101,10 @@
             "objectId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
-                "all"
+                "get",
+                "set",
+                "delete",
+                "list"
               ]
             }
           },
@@ -110,7 +113,7 @@
             "objectId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
-                "all"
+                "get"
               ]
             }
           },
@@ -119,14 +122,16 @@
             "objectId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
             "permissions": {
               "secrets": [
-                "all"
+                "get",
+                "set",
+                "delete",
+                "list"
               ]
             }
           }
         ],
         "tenantId": "[subscription().tenantId]",
         "enableSoftDelete": true,
-        "enablePurgeProtection": true,
         "softDeleteRetentionInDays": 30
       },
       "dependsOn": [
@@ -136,50 +141,38 @@
       ]
     },
     {
-      "type": "Microsoft.KeyVault/vaults",
+      "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2019-09-01",
-      "name": "[format('kv-infra-{0}', parameters('basename'))]",
-      "location": "[parameters('location')]",
+      "name": "[format('{0}/{1}', format('kv-{0}', parameters('basename')), 'eventhub-connection-string')]",
       "properties": {
-        "accessPolicies": [],
-        "sku": {
-          "family": "A",
-          "name": "standard"
-        },
-        "tenantId": "[subscription().tenantId]",
-        "enableSoftDelete": true,
-        "softDeleteRetentionInDays": 30
-      }
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/accessPolicies",
-      "apiVersion": "2019-09-01",
-      "name": "[format('{0}/{1}', format('kv-infra-{0}', parameters('basename')), 'add')]",
-      "properties": {
-        "accessPolicies": [
-          {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2020-06-01', 'full').identity.principalId]",
-            "permissions": {
-              "secrets": [
-                "get"
-              ]
-            }
-          },
-          {
-            "tenantId": "[subscription().tenantId]",
-            "objectId": "[subscription().tenantId]",
-            "permissions": {
-              "secrets": [
-                "all"
-              ]
-            }
-          }
-        ]
+        "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender'), '2021-01-01-preview').primaryConnectionString]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]"
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]",
+        "[resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2019-09-01",
+      "name": "[format('{0}/{1}', format('kv-{0}', parameters('basename')), 'google-client-secret')]",
+      "properties": {
+        "value": "[parameters('google_client_secret')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2019-09-01",
+      "name": "[format('{0}/{1}', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')]",
+      "properties": {
+        "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
@@ -293,30 +286,6 @@
       ]
     },
     {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2019-09-01",
-      "name": "[format('{0}/{1}', format('kv-infra-{0}', parameters('basename')), 'queue-connection-string')]",
-      "properties": {
-        "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
-      ]
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2019-09-01",
-      "name": "[format('{0}/{1}', format('kv-infra-{0}', parameters('basename')), 'eventhub-connection-string')]",
-      "properties": {
-        "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender'), '2021-01-01-preview').primaryConnectionString]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]",
-        "[resourceId('Microsoft.KeyVault/vaults', format('kv-infra-{0}', parameters('basename')))]"
-      ]
-    },
-    {
       "type": "Microsoft.OperationalInsights/workspaces",
       "apiVersion": "2021-06-01",
       "name": "[format('la-{0}', parameters('basename'))]",
@@ -399,23 +368,24 @@
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/Authorization/FitOnFhir.Authorization/FitOnFhir.Authorization.csproj",
-        "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
-        "AzureConfiguration__StorageAccountConnectionString": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "AzureWebJobsStorage": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
+        "AzureConfiguration__StorageAccountConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
-        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
         "WEBSITE_CONTENTSHARE": "[format('authorize-{0}-{1}', parameters('basename'), take(uniqueString('authorize-', parameters('basename')), 4))]",
         "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
-        "GoogleFitAuthorizationConfiguration__ClientSecret": "[parameters('google_client_secret')]",
+        "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')).secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
-        "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-users-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]",
+        "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]",
         "FhirService__Url": "[variables('fhirServiceUrl')]",
         "FhirClient__UseManagedIdentity": "true"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')]"
       ]
     },
     {
@@ -466,18 +436,18 @@
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/FitOnFhir.ImportTimerTrigger.csproj",
-        "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
-        "AzureConfiguration__StorageAccountConnectionString": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "AzureWebJobsStorage": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
+        "AzureConfiguration__StorageAccountConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
-        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
         "WEBSITE_CONTENTSHARE": "[format('import-timer-{0}-{1}', parameters('basename'), take(uniqueString('import-timer-', parameters('basename')), 4))]",
         "SCHEDULE": "0 0 * * * *"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')]"
       ]
     },
     {
@@ -528,26 +498,27 @@
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/Import/FitOnFhir.Import/FitOnFhir.Import.csproj",
-        "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
-        "AzureConfiguration__StorageAccountConnectionString": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "AzureWebJobsStorage": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
+        "AzureConfiguration__StorageAccountConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
-        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]",
+        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
         "WEBSITE_CONTENTSHARE": "[format('import-data-{0}-{1}', parameters('basename'), take(uniqueString('import-data-', parameters('basename')), 4))]",
-        "AzureConfiguration__EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', split(format('kv-infra-{0}/eventhub-connection-string', parameters('basename')), '/')[0], split(format('kv-infra-{0}/eventhub-connection-string', parameters('basename')), '/')[1])).secretUriWithVersion)]",
+        "AzureConfiguration__EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'eventhub-connection-string')).secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
-        "GoogleFitAuthorizationConfiguration__ClientSecret": "[parameters('google_client_secret')]",
+        "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')).secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
         "GoogleFitDataImporterConfiguration__DatasetRequestLimit": "[parameters('google_dataset_request_limit')]",
         "GoogleFitDataImporterConfiguration__MaxConcurrency": "[parameters('google_max_concurrency')]",
         "GoogleFitDataImporterConfiguration__MaxRequestsPerMinute": "[parameters('google_max_requests_per_minute')]",
-        "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-users-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
+        "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-infra-{0}', parameters('basename')), 'eventhub-connection-string')]",
-        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'eventhub-connection-string')]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')]"
       ]
     },
     {

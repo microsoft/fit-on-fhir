@@ -35,8 +35,8 @@ var fhirServiceUrl = 'https://${replace('hw-${basename}', '-', '')}-fs-${basenam
 var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
 var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
 
-resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: 'kv-users-${basename}'
+resource kv_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
+  name: 'kv-${basename}'
   location: location
   properties: {
     sku: {
@@ -49,7 +49,10 @@ resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
         objectId: reference(import_data_basename.id, '2020-06-01', 'Full').identity.principalId
         permissions: {
           secrets: [
-            'all'
+            'get'
+            'set'
+            'delete'
+            'list'      
           ]
         }
       }
@@ -58,7 +61,7 @@ resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
         objectId: reference(import_timer_basename.id, '2020-06-01', 'Full').identity.principalId
         permissions: {
           secrets: [
-            'all'
+            'get'
           ]
         }
       }
@@ -67,57 +70,41 @@ resource usersKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
         objectId: reference(authorize_basename.id, '2020-06-01', 'Full').identity.principalId
         permissions: {
           secrets: [
-            'all'
-          ]
-        }
-      }
-    ]
-    tenantId: subscription().tenantId
-    enableSoftDelete: true
-    enablePurgeProtection: true
-    softDeleteRetentionInDays: 30
-  }
-}
-
-resource infraKvName_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
-  name: 'kv-infra-${basename}'
-  location: location
-  properties: {
-    accessPolicies: []
-    sku: {
-      family: 'A'
-      name: 'standard'
-    }
-    tenantId: subscription().tenantId
-    enableSoftDelete: true
-    softDeleteRetentionInDays: 30
-  }
-}
-
-resource infraKvName_add 'Microsoft.KeyVault/vaults/accessPolicies@2019-09-01' = {
-  parent: infraKvName_resource
-  name: 'add'
-  properties: {
-    accessPolicies: [
-      {
-        tenantId: reference(import_data_basename.id, '2020-06-01', 'full').identity.tenantId
-        objectId: reference(import_data_basename.id, '2020-06-01', 'full').identity.principalId
-        permissions: {
-          secrets: [
             'get'
-          ]
-        }
-      }
-      {
-        tenantId: subscription().tenantId
-        objectId: subscription().tenantId
-        permissions: {
-          secrets: [
-            'all'
+            'set'
+            'delete'
+            'list' 
           ]
         }
       }
     ]
+    tenantId: subscription().tenantId
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 30
+  }
+}
+
+resource kv_eventhub_connection_string 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+  parent: kv_resource
+  name: 'eventhub-connection-string'
+  properties: {
+    value: listkeys(en_basename_ingest_FunctionSender.id, '2021-01-01-preview').primaryConnectionString
+  }
+}
+
+resource kv_google_client_secret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+  parent: kv_resource
+  name: 'google-client-secret'
+  properties: {
+    value: google_client_secret
+  }
+}
+
+resource kv_storage_account_connection_string 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+  parent: kv_resource
+  name: 'storage-account-connection-string'
+  properties: {
+    value: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
   }
 }
 
@@ -224,22 +211,6 @@ resource sa_basename_default_users 'Microsoft.Storage/storageAccounts/tableServi
   ]
 }
 
-resource infraKvName_queue_connection_string 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-  parent: infraKvName_resource
-  name: 'queue-connection-string'
-  properties: {
-    value: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
-  }
-}
-
-resource infraKvName_eventhub_connection_string 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-  parent: infraKvName_resource
-  name: 'eventhub-connection-string'
-  properties: {
-    value: listkeys(en_basename_ingest_FunctionSender.id, '2021-01-01-preview').primaryConnectionString
-  }
-}
-
 resource la_basename 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
   name: 'la-${basename}'
   location: location
@@ -312,19 +283,23 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/Authorization/FitOnFhir.Authorization/FitOnFhir.Authorization.csproj'
-	  AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
-    'AzureConfiguration__StorageAccountConnectionString': 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+	  AzureWebJobsStorage: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
+    'AzureConfiguration__StorageAccountConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     WEBSITE_CONTENTSHARE: 'authorize-${basename}-${take(uniqueString('authorize-', basename), 4)}'
     'GoogleFitAuthorizationConfiguration__ClientId': google_client_id
-    'GoogleFitAuthorizationConfiguration__ClientSecret': google_client_secret
+    'GoogleFitAuthorizationConfiguration__ClientSecret': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'google-client-secret')).secretUriWithVersion})'
 	  'GoogleFitAuthorizationConfiguration__Scopes': google_fit_scopes
-    'AzureConfiguration__UsersKeyVaultUri': 'https://kv-users-${basename}${environment().suffixes.keyvaultDns}'
+    'AzureConfiguration__UsersKeyVaultUri': 'https://kv-${basename}${environment().suffixes.keyvaultDns}'
     'FhirService__Url': fhirServiceUrl
     'FhirClient__UseManagedIdentity': 'true'
   }
+  dependsOn: [
+    kv_google_client_secret
+    kv_storage_account_connection_string
+  ]
 }
 
 resource authorize_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
@@ -369,14 +344,17 @@ resource import_timer_basename_appsettings 'Microsoft.Web/sites/config@2015-08-0
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/FitOnFhir.ImportTimerTrigger.csproj'
-    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
-    'AzureConfiguration__StorageAccountConnectionString': 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    AzureWebJobsStorage: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
+    'AzureConfiguration__StorageAccountConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     WEBSITE_CONTENTSHARE: 'import-timer-${basename}-${take(uniqueString('import-timer-', basename), 4)}'
     SCHEDULE: '0 0 * * * *'
   }
+  dependsOn: [
+    kv_storage_account_connection_string
+  ]
 }
 
 resource import_timer_basename_web 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
@@ -421,23 +399,25 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/Import/FitOnFhir.Import/FitOnFhir.Import.csproj'
-    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
-    'AzureConfiguration__StorageAccountConnectionString': 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    AzureWebJobsStorage: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
+    'AzureConfiguration__StorageAccountConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: 'DefaultEndpointsProtocol=https;AccountName=${replace('sa-${basename}', '-', '')};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(sa_basename.id, '2021-02-01').keys[0].value}'
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     WEBSITE_CONTENTSHARE: 'import-data-${basename}-${take(uniqueString('import-data-', basename), 4)}'
-    'AzureConfiguration__EventHubConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', split('kv-infra-${basename}/eventhub-connection-string', '/')[0], split('kv-infra-${basename}/eventhub-connection-string', '/')[1])).secretUriWithVersion})'
+    'AzureConfiguration__EventHubConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'eventhub-connection-string')).secretUriWithVersion})'
     'GoogleFitAuthorizationConfiguration__ClientId': google_client_id
-    'GoogleFitAuthorizationConfiguration__ClientSecret': google_client_secret
+    'GoogleFitAuthorizationConfiguration__ClientSecret': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'google-client-secret')).secretUriWithVersion})'
 	  'GoogleFitAuthorizationConfiguration__Scopes': google_fit_scopes
 	  'GoogleFitDataImporterConfiguration__DatasetRequestLimit': google_dataset_request_limit
 	  'GoogleFitDataImporterConfiguration__MaxConcurrency': google_max_concurrency
     'GoogleFitDataImporterConfiguration__MaxRequestsPerMinute': google_max_requests_per_minute
-    'AzureConfiguration__UsersKeyVaultUri': 'https://kv-users-${basename}${environment().suffixes.keyvaultDns}'
+    'AzureConfiguration__UsersKeyVaultUri': 'https://kv-${basename}${environment().suffixes.keyvaultDns}'
   }
   dependsOn: [
-    infraKvName_eventhub_connection_string
+    kv_eventhub_connection_string
+    kv_google_client_secret
+    kv_storage_account_connection_string
   ]
 }
 
