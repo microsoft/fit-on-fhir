@@ -73,7 +73,6 @@ namespace FitOnFhir.GoogleFit.Tests
             _options.ParallelTaskOptions.Returns(parallelTaskOptions);
             var telemetryLogger = new GoogleFitExceptionTelemetryProcessor();
             _options.ExceptionService.Returns(telemetryLogger);
-            _options.HistoricalImportTimeSpan.Returns(TimeSpan.FromDays(30));
 
             // GoogleFitImportService dependencies
             _googleFitClient = Substitute.For<IGoogleFitClient>();
@@ -94,17 +93,29 @@ namespace FitOnFhir.GoogleFit.Tests
                 _telemetryLogger);
         }
 
-        [Fact]
-        public async Task GivenNoLastSyncStored_WhenTryGetLastSyncTime_GeneratesDataSetIdForLast30Days()
+        [Theory]
+        [InlineData(30, 0, 0, 0, "1071291600000000000-1073883600000000000")]
+        [InlineData(0, 30, 0, 0, "1073775600000000000-1073883600000000000")]
+        [InlineData(0, 0, 30, 0, "1073881800000000000-1073883600000000000")]
+        [InlineData(0, 0, 0, 30, "1073883570000000000-1073883600000000000")]
+        [InlineData(30, 30, 30, 30, "1071181770000000000-1073883600000000000")]
+        [InlineData(0, 0, 0, 0, "1073883600000000000-1073883600000000000")]
+        [InlineData(-1, 0, 0, 0, "1073883600000000000-1073883600000000000")]
+        [InlineData(0, -1, 0, 0, "1073883600000000000-1073883600000000000")]
+        [InlineData(0, 0, -1, 0, "1073883600000000000-1073883600000000000")]
+        [InlineData(0, 0, 0, -1, "1073883600000000000-1073883600000000000")]
+        [InlineData(-1, -1, -1, -1, "1073883600000000000-1073883600000000000")]
+        public async Task GivenNoLastSyncStored_WhenTryGetLastSyncTime_GeneratesCorrectDataSetIdFromHistoricalImportTimeSpan(int days, int hours, int minutes, int seconds, string expectedDataSetId)
         {
-            string thirtyDaysBackDataSetId = "1071291600000000000-1073883600000000000";
+            TimeSpan timeSpan = new TimeSpan(days, hours, minutes, seconds);
+            _options.HistoricalImportTimeSpan.Returns(timeSpan);
 
             await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
 
             _ = _googleFitClient.Received(1).DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Is<DataSource>(ds => ds == _dataSource),
-                Arg.Is<string>(str => str == thirtyDaysBackDataSetId),
+                Arg.Is<string>(str => str == expectedDataSetId),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }

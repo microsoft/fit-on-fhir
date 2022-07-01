@@ -178,6 +178,12 @@ namespace FitOnFhir.GoogleFit.Services
             DateTimeOffset currentTime = _utcNowFunc();
             long endDate = currentTime.ToUnixTimeMilliseconds() * 1000000;
 
+            // Sanity check to ensure that the starting time is not after the end, or current, time
+            if (lastSyncTimeNanos > endDate)
+            {
+                lastSyncTimeNanos = endDate;
+            }
+
             return lastSyncTimeNanos + "-" + endDate;
         }
 
