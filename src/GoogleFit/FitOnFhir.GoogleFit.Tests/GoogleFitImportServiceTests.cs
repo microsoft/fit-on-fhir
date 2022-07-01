@@ -198,14 +198,19 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(datasetRequestException);
 
+            AggregateException exception = new AggregateException();
             try
             {
                 await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
             }
             catch (AggregateException ex)
             {
-                Assert.NotNull(ex.InnerException);
-                Assert.Equal(datasetRequestException.Message, ex.InnerException.Message);
+                exception = ex;
+            }
+            finally
+            {
+                Assert.NotNull(exception.InnerException);
+                Assert.Equal(datasetRequestException.Message, exception.InnerException.Message);
             }
         }
 
