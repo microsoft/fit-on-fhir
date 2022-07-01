@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Azure;
 using Azure.Storage.Queues;
 using EnsureThat;
 using FitOnFhir.Common.Config;
@@ -39,7 +38,7 @@ namespace FitOnFhir.Common.Services
             }
             else
             {
-                _queueClient = EnsureArg.IsNotNull(queueClient, nameof(queueClient));
+                _queueClient = queueClient;
             }
         }
 

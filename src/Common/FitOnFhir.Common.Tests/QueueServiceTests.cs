@@ -75,18 +75,35 @@ namespace FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public void GivenRequestFailedExceptionIsThrown_WhenInitQueueCalled_ExceptionIsCaughtAndLogged()
+        public async Task GivenCreateIfNotExistsAsyncThrowsRequestFailedException_WhenInitQueueCalled_ExceptionIsCaughtAndLogged()
         {
             string exceptionMessage = "CreateIfNotExistsAsync exception";
             var exception = new RequestFailedException(exceptionMessage);
 
             _queueClient.CreateIfNotExistsAsync().Throws(exception);
 
-            Assert.ThrowsAsync<RequestFailedException>(async () => await _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None));
+            await _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None);
 
             _queueServiceLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
                 Arg.Any<RequestFailedException>(),
+                Arg.Is<string>(msg => msg == exceptionMessage));
+        }
+
+        [Fact]
+        public async Task GivenSendMessageAsyncThrowsException_WhenSendQueueMessageCalled_ExceptionIsCaughtAndLogged()
+        {
+            string exceptionMessage = "SendMessageAsync exception";
+            var exception = new Exception(exceptionMessage);
+
+            _queueClient.SendMessageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(exception);
+            _queueClient.CreateIfNotExistsAsync().Returns(Substitute.For<Response>());
+
+            await _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None);
+
+            _queueServiceLogger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Any<Exception>(),
                 Arg.Is<string>(msg => msg == exceptionMessage));
         }
 
@@ -100,23 +117,6 @@ namespace FitOnFhir.Common.Tests
             await _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None);
 
             await _queueClient.Received(1).SendMessageAsync(Arg.Is<string>(str => str == ExpectedMessageText), Arg.Any<CancellationToken>());
-        }
-
-        [Fact]
-        public void GivenExceptionIsThrown_WhenSendQueueMessageCalled_ExceptionIsCaughtAndLogged()
-        {
-            string exceptionMessage = "SendMessageAsync exception";
-            var exception = new Exception(exceptionMessage);
-
-            _queueClient.SendMessageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(exception);
-            _queueClient.CreateIfNotExistsAsync().Returns(Substitute.For<Response>());
-
-            Assert.ThrowsAsync<Exception>(async () => await _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None));
-
-            _queueServiceLogger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<Exception>(),
-                Arg.Is<string>(msg => msg == exceptionMessage));
         }
     }
 }

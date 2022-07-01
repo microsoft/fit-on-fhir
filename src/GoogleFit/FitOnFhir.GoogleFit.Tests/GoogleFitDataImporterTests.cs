@@ -83,7 +83,10 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(userid => userid == _userId),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_user);
 
-            _usersTableRepository.Update(Arg.Any<User>(), Arg.Is<CancellationToken>(token => token == _cancellationToken)).
+            _usersTableRepository.Update(
+                    Arg.Any<User>(),
+                    Arg.Any<Func<User, User, User>>(),
+                    Arg.Is<CancellationToken>(token => token == _cancellationToken)).
                 Returns(
                     x =>
                     {
@@ -114,10 +117,12 @@ namespace FitOnFhir.GoogleFit.Tests
             {
                 await _usersTableRepository.Update(
                     Arg.Is<User>(usr => IsExpected(usr, DataImportState.Importing)),
+                    Arg.Any<Func<User, User, User>>(),
                     Arg.Is<CancellationToken>(token => token == _cancellationToken));
 
                 await _usersTableRepository.Update(
                     Arg.Is<User>(usr => IsExpected(usr, DataImportState.Unauthorized)),
+                    Arg.Any<Func<User, User, User>>(),
                     Arg.Is<CancellationToken>(token => token == _cancellationToken));
             });
 
@@ -133,6 +138,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitUserTableRepository.DidNotReceive().Update(
                 Arg.Is<GoogleFitUser>(usr => usr == _googleFitUser),
+                Arg.Any<Func<GoogleFitUser, GoogleFitUser, GoogleFitUser>>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }
 
@@ -205,6 +211,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitUserTableRepository.Received(1).Update(
                 Arg.Is<GoogleFitUser>(usr => usr == _googleFitUser),
+                Arg.Any<Func<GoogleFitUser, GoogleFitUser, GoogleFitUser>>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
         }
 
@@ -241,10 +248,12 @@ namespace FitOnFhir.GoogleFit.Tests
             {
                 await _usersTableRepository.Update(
                     Arg.Is<User>(usr => IsExpected(usr, DataImportState.Importing)),
+                    Arg.Any<Func<User, User, User>>(),
                     Arg.Is<CancellationToken>(token => token == _cancellationToken));
 
                 await _usersTableRepository.Update(
                     Arg.Is<User>(usr => IsExpected(usr, DataImportState.ReadyToImport)),
+                    Arg.Any<Func<User, User, User>>(),
                     Arg.Is<CancellationToken>(token => token == _cancellationToken));
             });
         }
@@ -262,7 +271,10 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
-            await _googleFitUserTableRepository.DidNotReceive().Update(Arg.Any<GoogleFitUser>(), Arg.Any<CancellationToken>());
+            await _googleFitUserTableRepository.DidNotReceive().Update(
+                Arg.Any<GoogleFitUser>(),
+                Arg.Any<Func<GoogleFitUser, GoogleFitUser, GoogleFitUser>>(),
+                Arg.Any<CancellationToken>());
         }
 
         private void SetupMockSuccessReturns()
@@ -283,7 +295,10 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Is<string>(userid => userid == _userId),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(_user);
 
-            _usersTableRepository.Update(Arg.Any<User>(), Arg.Is<CancellationToken>(token => token == _cancellationToken)).
+            _usersTableRepository.Update(
+                    Arg.Any<User>(),
+                    Arg.Any<Func<User, User, User>>(),
+                    Arg.Is<CancellationToken>(token => token == _cancellationToken)).
                 Returns(
                     x =>
                 {

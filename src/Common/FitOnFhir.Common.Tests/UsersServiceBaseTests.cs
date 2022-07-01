@@ -61,7 +61,7 @@ namespace FitOnFhir.Common.Tests
 
             await ExecuteAuthorizationCallback();
 
-            await UsersTableRepository.DidNotReceive().Update(Arg.Any<User>(), Arg.Any<CancellationToken>());
+            await UsersTableRepository.DidNotReceive().Update(Arg.Any<User>(), Arg.Any<Func<User, User, User>>(), Arg.Any<CancellationToken>());
 
             Received.InOrder(async () =>
             {
@@ -90,7 +90,7 @@ namespace FitOnFhir.Common.Tests
                 await _fhirService.Received(1).SearchForResourceAsync(ResourceType.Patient, $"identifier={ExpectedExternalSystem}|{ExpectedExternalPatientId}");
                 await _fhirService.Received(1).UpdateResourceAsync(Arg.Is<Patient>(x => IsExpected(x, true, true)), null, null, Arg.Any<CancellationToken>());
                 await UsersTableRepository.Received(1).GetById(Arg.Any<string>(), Arg.Any<CancellationToken>());
-                await UsersTableRepository.Received(1).Update(Arg.Is<User>(x => IsExpected(x, DataImportState.ReadyToImport)), Arg.Any<CancellationToken>());
+                await UsersTableRepository.Received(1).Update(Arg.Is<User>(x => IsExpected(x, DataImportState.ReadyToImport)), Arg.Any<Func<User, User, User>>(), Arg.Any<CancellationToken>());
                 await QueueService.Received(1).SendQueueMessage(Arg.Is<string>(x => x == ExpectedPatientId), Arg.Is<string>(x => x == ExpectedPlatformUserId), Arg.Is<string>(x => x == ExpectedPlatform), Arg.Any<CancellationToken>());
             });
         }
@@ -111,7 +111,7 @@ namespace FitOnFhir.Common.Tests
             {
                 await _fhirService.Received(1).SearchForResourceAsync(ResourceType.Patient, $"identifier={ExpectedExternalSystem}|{ExpectedExternalPatientId}");
                 await UsersTableRepository.Received(1).GetById(Arg.Any<string>(), Arg.Any<CancellationToken>());
-                await UsersTableRepository.Received(1).Update(Arg.Is<User>(x => IsExpected(x, DataImportState.ReadyToImport)), Arg.Any<CancellationToken>());
+                await UsersTableRepository.Received(1).Update(Arg.Is<User>(x => IsExpected(x, DataImportState.ReadyToImport)), Arg.Any<Func<User, User, User>>(), Arg.Any<CancellationToken>());
                 await QueueService.Received(1).SendQueueMessage(Arg.Is<string>(x => x == ExpectedPatientId), Arg.Is<string>(x => x == ExpectedPlatformUserId), Arg.Is<string>(x => x == ExpectedPlatform), Arg.Any<CancellationToken>());
             });
         }
@@ -132,7 +132,7 @@ namespace FitOnFhir.Common.Tests
             {
                 await _fhirService.Received(1).SearchForResourceAsync(ResourceType.Patient, $"identifier={ExpectedExternalSystem}|{ExpectedExternalPatientId}");
                 await UsersTableRepository.Received(1).GetById(Arg.Any<string>(), Arg.Any<CancellationToken>());
-                await UsersTableRepository.Received(1).Update(Arg.Is<User>(x => IsExpected(x, DataImportState.ReadyToImport)), Arg.Any<CancellationToken>());
+                await UsersTableRepository.Received(1).Update(Arg.Is<User>(x => IsExpected(x, DataImportState.ReadyToImport)), Arg.Any<Func<User, User, User>>(), Arg.Any<CancellationToken>());
                 await QueueService.Received(1).SendQueueMessage(Arg.Is<string>(x => x == ExpectedPatientId), Arg.Is<string>(x => x == ExpectedPlatformUserId), Arg.Is<string>(x => x == ExpectedPlatform), Arg.Any<CancellationToken>());
             });
         }

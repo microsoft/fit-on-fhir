@@ -39,6 +39,15 @@ namespace FitOnFhir.GoogleFit.Client.Models
         }
 
         /// <summary>
+        /// Retrieves all of the stored key value pairs of DataSource sync times for this user
+        /// </summary>
+        /// <returns>The stored sync times in array format.</returns>
+        public KeyValuePair<string, long>[] GetLastSyncTimes()
+        {
+            return _lastSyncTimes.ToArray();
+        }
+
+        /// <summary>
         /// Retrieves the last time the DataSource was synced for this user, based on the
         /// data stream ID provided
         /// </summary>

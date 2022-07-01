@@ -6,6 +6,7 @@
 using EnsureThat;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
+using FitOnFhir.Common.Resolvers;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Identifier = Hl7.Fhir.Model.Identifier;
 using Patient = Hl7.Fhir.Model.Patient;
@@ -85,7 +86,10 @@ namespace FitOnFhir.Common.Services
                     user.AddPlatformUserInfo(new PlatformUserInfo(platformName, platformIdentifier, DataImportState.ReadyToImport));
                 }
 
-                await _usersTableRepository.Update(user, cancellationToken);
+                await _usersTableRepository.Update(
+                    user,
+                    UserConflictResolvers.ResolveConflictAuthorization,
+                    cancellationToken);
             }
 
             await QueueFitnessImport(user, cancellationToken);
