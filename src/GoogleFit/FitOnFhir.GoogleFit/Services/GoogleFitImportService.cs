@@ -24,6 +24,7 @@ namespace FitOnFhir.GoogleFit.Services
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly ILogger<GoogleFitImportService> _logger;
         private readonly ITelemetryLogger _telemetryLogger;
+        private readonly GoogleFitImportOptions _options;
 
         public GoogleFitImportService(
             IGoogleFitClient googleFitClient,
@@ -46,6 +47,7 @@ namespace FitOnFhir.GoogleFit.Services
                 _eventHubProducerClient = eventHubProducerClient;
             }
 
+            _options = EnsureArg.IsNotNull(options, nameof(options));
             _utcNowFunc = utcNowFunc;
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
@@ -165,9 +167,10 @@ namespace FitOnFhir.GoogleFit.Services
         {
             if (lastSyncTimeNanos == default)
             {
-                // if this DataSource has never been synced before, then retrieve 30 days prior worth of data
-                // and convert to DateTimeOffset to so .NET unix conversion is usable
-                DateTimeOffset startDateDto = _utcNowFunc().AddDays(-30);
+                // if this DataSource has never been synced before, then retrieve an amount of prior data
+                // as determined by the value in 'HistoricalImportTimeSpan' and convert to DateTimeOffset
+                // so .NET unix conversion is usable
+                DateTimeOffset startDateDto = _utcNowFunc().Subtract(_options.HistoricalImportTimeSpan);
                 lastSyncTimeNanos = startDateDto.ToUnixTimeMilliseconds() * 1000000;
             }
 

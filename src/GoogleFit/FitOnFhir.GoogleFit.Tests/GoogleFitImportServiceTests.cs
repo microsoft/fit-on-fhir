@@ -73,6 +73,7 @@ namespace FitOnFhir.GoogleFit.Tests
             _options.ParallelTaskOptions.Returns(parallelTaskOptions);
             var telemetryLogger = new GoogleFitExceptionTelemetryProcessor();
             _options.ExceptionService.Returns(telemetryLogger);
+            _options.HistoricalImportTimeSpan.Returns(TimeSpan.FromDays(30));
 
             // GoogleFitImportService dependencies
             _googleFitClient = Substitute.For<IGoogleFitClient>();

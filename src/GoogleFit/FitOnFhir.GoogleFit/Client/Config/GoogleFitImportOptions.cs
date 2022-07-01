@@ -32,5 +32,7 @@ namespace FitOnFhir.GoogleFit.Client.Config
         public virtual int MaxConcurrency { get; }
 
         public virtual int MaxRequestsPerMinute { get; }
+
+        public virtual TimeSpan HistoricalImportTimeSpan { get; }
     }
 }
