@@ -24,5 +24,10 @@ namespace FitOnFhir.GoogleFit.Client.Config
         /// The maximum number of requests that can he handled per minute by the Google APIs.
         /// </summary>
         public int MaxRequestsPerMinute { get; set; }
+
+        /// <summary>
+        /// The period of time from now into the past, that the first Google Fit data import should cover.
+        /// </summary>
+        public TimeSpan HistoricalImportTimeSpan { get; set; }
     }
 }

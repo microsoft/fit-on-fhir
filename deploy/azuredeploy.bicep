@@ -28,6 +28,9 @@ param google_max_concurrency string = '10'
 @description('The maximum number of requests that can be made to the Google APIs in a one minute period.')
 param google_max_requests_per_minute string = '300'
 
+@description('The period of time from now into the past, that the first Google Fit data import should cover.  30 days prior is the default.  Format is days.hours:minutes:seconds')
+param google_historical_import_time_span string = '30.00:00:00'
+
 @description('The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)')
 param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read'
 
@@ -434,6 +437,7 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01
 	  'GoogleFitDataImporterConfiguration__DatasetRequestLimit': google_dataset_request_limit
 	  'GoogleFitDataImporterConfiguration__MaxConcurrency': google_max_concurrency
     'GoogleFitDataImporterConfiguration__MaxRequestsPerMinute': google_max_requests_per_minute
+	'GoogleFitDataImporterConfiguration__HistoricalImportTimeSpan': google_historical_import_time_span
     'AzureConfiguration__UsersKeyVaultUri': 'https://kv-users-${basename}${environment().suffixes.keyvaultDns}'
   }
   dependsOn: [
