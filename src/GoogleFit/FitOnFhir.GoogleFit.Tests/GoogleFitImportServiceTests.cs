@@ -180,11 +180,8 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public void GivenDatasetRequestThrowsException_WhenProcessDatasetRequestsIsCalled_ExceptionIsThrown()
+        public async Task GivenDatasetRequestThrowsException_WhenProcessDatasetRequestsIsCalled_AggregateExceptionIsThrown()
         {
-            string exceptionMessage = "DatasetRequest exception";
-            var datasetRequestException = new Exception(exceptionMessage);
-
             _googleFitUser.TryGetLastSyncTime(_dataStreamId, out Arg.Any<long>())
                 .Returns(x =>
                 {
@@ -192,6 +189,8 @@ namespace FitOnFhir.GoogleFit.Tests
                     return true;
                 });
 
+            string exceptionMessage = "DatasetRequest exception";
+            var datasetRequestException = new Exception(exceptionMessage);
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
                 Arg.Any<DataSource>(),
@@ -199,7 +198,20 @@ namespace FitOnFhir.GoogleFit.Tests
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(datasetRequestException);
 
-            Assert.ThrowsAsync<Exception>(async () => await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken));
+            AggregateException exception = new AggregateException();
+            try
+            {
+                await _googleFitImportService.ProcessDatasetRequests(_googleFitUser, _dataSources, _tokensResponse, _cancellationToken);
+            }
+            catch (AggregateException ex)
+            {
+                exception = ex;
+            }
+            finally
+            {
+                Assert.NotNull(exception.InnerException);
+                Assert.Equal(datasetRequestException.Message, exception.InnerException.Message);
+            }
         }
 
         [Fact]
