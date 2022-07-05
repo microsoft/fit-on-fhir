@@ -81,7 +81,11 @@ namespace FitOnFhir.Common.Services
             }
             else
             {
-                user.UpdateImportState(platformName, DataImportState.ReadyToImport);
+                if (!user.UpdateImportState(platformName, DataImportState.ReadyToImport))
+                {
+                    user.AddPlatformUserInfo(new PlatformUserInfo(platformName, platformIdentifier, DataImportState.ReadyToImport));
+                }
+
                 await _usersTableRepository.Update(
                     user,
                     UserConflictResolvers.ResolveConflictAuthorization,
