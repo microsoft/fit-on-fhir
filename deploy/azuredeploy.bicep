@@ -28,6 +28,9 @@ param google_max_concurrency string = '10'
 @description('The maximum number of requests that can be made to the Google APIs in a one minute period.')
 param google_max_requests_per_minute string = '300'
 
+@description('The period of time from now into the past, that the first Google Fit data import should cover.  30 days prior is the default.  Format is days.hours:minutes:seconds')
+param google_historical_import_time_span string = '30.00:00:00'
+
 @description('The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)')
 param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read'
 
@@ -284,17 +287,17 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/Authorization/FitOnFhir.Authorization/FitOnFhir.Authorization.csproj'
 	  AzureWebJobsStorage: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
-    'AzureConfiguration__StorageAccountConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
+    AzureConfiguration__StorageAccountConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     WEBSITE_CONTENTSHARE: 'authorize-${basename}-${take(uniqueString('authorize-', basename), 4)}'
-    'GoogleFitAuthorizationConfiguration__ClientId': google_client_id
-    'GoogleFitAuthorizationConfiguration__ClientSecret': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'google-client-secret')).secretUriWithVersion})'
-	  'GoogleFitAuthorizationConfiguration__Scopes': google_fit_scopes
-    'AzureConfiguration__UsersKeyVaultUri': 'https://kv-${basename}${environment().suffixes.keyvaultDns}'
-    'FhirService__Url': fhirServiceUrl
-    'FhirClient__UseManagedIdentity': 'true'
+    GoogleFitAuthorizationConfiguration__ClientId: google_client_id
+    GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'google-client-secret')).secretUriWithVersion})'
+	  GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
+    AzureConfiguration__UsersKeyVaultUri: 'https://kv-${basename}${environment().suffixes.keyvaultDns}'
+    FhirService__Url: fhirServiceUrl
+    FhirClient__UseManagedIdentity: 'true'
   }
   dependsOn: [
     kv_google_client_secret
@@ -345,7 +348,7 @@ resource import_timer_basename_appsettings 'Microsoft.Web/sites/config@2015-08-0
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/FitOnFhir.ImportTimerTrigger.csproj'
     AzureWebJobsStorage: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
-    'AzureConfiguration__StorageAccountConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
+    AzureConfiguration__StorageAccountConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
@@ -400,19 +403,20 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/Import/FitOnFhir.Import/FitOnFhir.Import.csproj'
     AzureWebJobsStorage: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
-    'AzureConfiguration__StorageAccountConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
+    AzureConfiguration__StorageAccountConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
     WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     WEBSITE_CONTENTSHARE: 'import-data-${basename}-${take(uniqueString('import-data-', basename), 4)}'
-    'AzureConfiguration__EventHubConnectionString': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'eventhub-connection-string')).secretUriWithVersion})'
-    'GoogleFitAuthorizationConfiguration__ClientId': google_client_id
-    'GoogleFitAuthorizationConfiguration__ClientSecret': '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'google-client-secret')).secretUriWithVersion})'
-	  'GoogleFitAuthorizationConfiguration__Scopes': google_fit_scopes
-	  'GoogleFitDataImporterConfiguration__DatasetRequestLimit': google_dataset_request_limit
-	  'GoogleFitDataImporterConfiguration__MaxConcurrency': google_max_concurrency
-    'GoogleFitDataImporterConfiguration__MaxRequestsPerMinute': google_max_requests_per_minute
-    'AzureConfiguration__UsersKeyVaultUri': 'https://kv-${basename}${environment().suffixes.keyvaultDns}'
+    AzureConfiguration__EventHubConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'eventhub-connection-string')).secretUriWithVersion})'
+    GoogleFitAuthorizationConfiguration__ClientId: google_client_id
+    GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'google-client-secret')).secretUriWithVersion})'
+	  GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
+	  GoogleFitDataImporterConfiguration__DatasetRequestLimit: google_dataset_request_limit
+	  GoogleFitDataImporterConfiguration__MaxConcurrency: google_max_concurrency
+    GoogleFitDataImporterConfiguration__MaxRequestsPerMinute: google_max_requests_per_minute
+    GoogleFitDataImporterConfiguration__HistoricalImportTimeSpan: google_historical_import_time_span
+    AzureConfiguration__UsersKeyVaultUri: 'https://kv-${basename}${environment().suffixes.keyvaultDns}'
   }
   dependsOn: [
     kv_eventhub_connection_string

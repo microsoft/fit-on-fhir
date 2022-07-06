@@ -3,8 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Interfaces;
-using FitOnFhir.Common.Models;
+using FitOnFhir.Common;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Tests;
 using FitOnFhir.Common.Tests.Mocks;
@@ -15,7 +14,6 @@ using FitOnFhir.GoogleFit.Repositories;
 using FitOnFhir.GoogleFit.Services;
 using NSubstitute;
 using Xunit;
-using Bundle = Hl7.Fhir.Model.Bundle;
 
 namespace FitOnFhir.GoogleFit.Tests
 {
@@ -24,7 +22,6 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly IGoogleFitUserTableRepository _googleFitUserRepository;
         private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
         private readonly IGoogleFitAuthService _authService;
-        private readonly IQueueService _queueService;
         private readonly MockLogger<UsersService> _logger;
         private readonly UsersService _usersService;
 
@@ -33,7 +30,6 @@ namespace FitOnFhir.GoogleFit.Tests
             _googleFitUserRepository = Substitute.For<IGoogleFitUserTableRepository>();
             _usersKeyVaultRepository = Substitute.For<IUsersKeyVaultRepository>();
             _authService = Substitute.For<IGoogleFitAuthService>();
-            _queueService = Substitute.For<IQueueService>();
             _logger = Substitute.For<MockLogger<UsersService>>();
 
             _usersService = new UsersService(
@@ -42,14 +38,12 @@ namespace FitOnFhir.GoogleFit.Tests
                 _googleFitUserRepository,
                 _usersKeyVaultRepository,
                 _authService,
-                _queueService,
+                QueueService,
                 _logger);
 
             // Default responses.
             _authService.AuthTokensRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(Data.GetAuthTokensResponse()));
         }
-
-        protected override Bundle PatientBundle => Data.GetBundle(Data.GetPatient());
 
         protected override Func<Task> ExecuteAuthorizationCallback => () => _usersService.ProcessAuthorizationCallback("TestAuthCode", Data.AuthorizationState, CancellationToken.None);
 
@@ -60,6 +54,10 @@ namespace FitOnFhir.GoogleFit.Tests
         protected override string ExpectedPlatformUserId => Data.GoogleUserId;
 
         protected override string ExpectedPlatform => GoogleFitConstants.GoogleFitPlatformName;
+
+        protected override string ExpectedExternalPatientId => Data.ExternalPatientId;
+
+        protected override string ExpectedExternalSystem => Data.ExternalSystem;
 
         [Fact]
         public async Task GivenAuthCodeIsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
@@ -85,6 +83,22 @@ namespace FitOnFhir.GoogleFit.Tests
             await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", string.Empty, CancellationToken.None));
         }
 
+        [Theory]
+        [InlineData(Constants.PatientIdQueryParameter, null, Constants.SystemQueryParameter, Data.ExternalSystem)]
+        [InlineData(Constants.PatientIdQueryParameter, "", Constants.SystemQueryParameter, Data.ExternalSystem)]
+        [InlineData(Constants.PatientIdQueryParameter, Data.ExternalPatientId, Constants.SystemQueryParameter, null)]
+        [InlineData(Constants.PatientIdQueryParameter, Data.ExternalPatientId, Constants.SystemQueryParameter, "")]
+        [InlineData("IncorrectPatientIdKey", Data.ExternalPatientId, Constants.SystemQueryParameter, Data.ExternalSystem)]
+        [InlineData(Constants.PatientIdQueryParameter, Data.ExternalPatientId, "IncorrectSystemKey", Data.ExternalSystem)]
+        public async Task GivenStateIsFormattedIncorrectly_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown(string patientKey, string patientValue, string systemKey, string systemValue)
+        {
+            string patientId = patientValue == null ? "null" : $"\"{patientValue}\"";
+            string system = systemValue == null ? "null" : $"\"{systemValue}\"";
+            string state = $"{{\"{patientKey}\":{patientId}, \"{systemKey}\":{system}}}";
+
+            await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", state, CancellationToken.None));
+        }
+
         [Fact]
         public async Task GivenAuthServiceAuthTokensRequestReturnsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
         {
@@ -94,11 +108,33 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenAllConditionsMet_WhenProcessAuthorizationCallbackCalled_GoogleFitUserPersisted()
+        public async Task GivenGoogleFitUserExists_WhenProcessAuthorizationCallbackCalled_GoogleFitUserNotPersisted()
         {
+            _googleFitUserRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(
+                x =>
+                {
+                    var user = new GoogleFitUser("me");
+                    return user;
+                });
+
             await ExecuteAuthorizationCallback();
 
-            await _googleFitUserRepository.Received(1).Upsert(Arg.Is<GoogleFitUser>(x => x.Id.Equals(Data.GoogleUserId)), Arg.Any<CancellationToken>());
+            await _googleFitUserRepository.DidNotReceive().Insert(Arg.Is<GoogleFitUser>(x => x.Id.Equals(Data.GoogleUserId)), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenGoogleFitUserDoesNotExist_WhenProcessAuthorizationCallbackCalled_GoogleFitUserPersisted()
+        {
+            _googleFitUserRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(
+                x =>
+                {
+                    GoogleFitUser user = null;
+                    return user;
+                });
+
+            await ExecuteAuthorizationCallback();
+
+            await _googleFitUserRepository.Received(1).Insert(Arg.Is<GoogleFitUser>(x => x.Id.Equals(Data.GoogleUserId)), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -107,29 +143,6 @@ namespace FitOnFhir.GoogleFit.Tests
             await ExecuteAuthorizationCallback();
 
             await _usersKeyVaultRepository.Received(1).Upsert(Data.GoogleUserId, Data.RefreshToken, Arg.Any<CancellationToken>());
-        }
-
-        [Fact]
-        public async Task GivenAllConditionsMet_WhenProcessAuthorizationCallbackCalled_UserImportRequestIsSent()
-        {
-            await ExecuteAuthorizationCallback();
-
-            await _queueService.Received(1).SendQueueMessage(ExpectedPatientId, ExpectedPlatformUserId, ExpectedPlatform, Arg.Any<CancellationToken>());
-        }
-
-        [Fact]
-        public async Task GivenNoPlatformInfoForUser_WhenProcessAuthorizationCallbackCalled_UserImportRequestIsNotSent()
-        {
-            UsersTableRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(
-                x =>
-                {
-                    var user = new User(Guid.Parse(ExpectedPatientId));
-                    return user;
-                });
-
-            await ExecuteAuthorizationCallback();
-
-            await _queueService.DidNotReceive().SendQueueMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         }
     }
 }

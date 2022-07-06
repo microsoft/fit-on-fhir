@@ -21,6 +21,7 @@ namespace FitOnFhir.GoogleFit.Client.Config
             DataPointPageLimit = config.DatasetRequestLimit;
             MaxConcurrency = config.MaxConcurrency;
             MaxRequestsPerMinute = config.MaxRequestsPerMinute;
+            HistoricalImportTimeSpan = config.HistoricalImportTimeSpan;
         }
 
         public virtual ParallelTaskOptions ParallelTaskOptions { get; }
@@ -32,5 +33,7 @@ namespace FitOnFhir.GoogleFit.Client.Config
         public virtual int MaxConcurrency { get; }
 
         public virtual int MaxRequestsPerMinute { get; }
+
+        public virtual TimeSpan HistoricalImportTimeSpan { get; }
     }
 }

@@ -7,10 +7,12 @@ using EnsureThat;
 using FitOnFhir.Common.Exceptions;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
+using FitOnFhir.Common.Resolvers;
 using FitOnFhir.GoogleFit.Client;
 using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
+using FitOnFhir.GoogleFit.Resolvers;
 using Microsoft.Extensions.Logging;
 
 namespace FitOnFhir.GoogleFit.Services
@@ -79,7 +81,10 @@ namespace FitOnFhir.GoogleFit.Services
 
                 // Persist the last sync times if no exceptions occur in the import service.
                 // This ensures if an error happens during processing, the dataset will be tried again the next import.
-                await _googleFitUserTableRepository.Update(googleUser, cancellationToken);
+                await _googleFitUserTableRepository.Update(
+                    googleUser,
+                    GoogleFitUserConflictResolvers.ResolveConflictLastSyncTimes,
+                    cancellationToken);
             }
             catch (Exception ex)
             {
@@ -96,7 +101,10 @@ namespace FitOnFhir.GoogleFit.Services
         {
             user.LastTouched = _utcNowFunc();
             user.UpdateImportState(GoogleFitConstants.GoogleFitPlatformName, dataImportState);
-            return await _usersTableRepository.Update(user, cancellationToken);
+            return await _usersTableRepository.Update(
+                user,
+                UserConflictResolvers.ResolveConflictDefault,
+                cancellationToken);
         }
     }
 }

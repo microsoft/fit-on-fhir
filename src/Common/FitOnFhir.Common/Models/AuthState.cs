@@ -26,16 +26,25 @@ namespace FitOnFhir.Common.Models
 
         [JsonProperty(Constants.PatientIdQueryParameter)]
         [JsonConverter(typeof(UrlSafeJsonConverter))]
+        [JsonRequired]
         public string PatientId { get; set; }
 
         [JsonProperty(Constants.SystemQueryParameter)]
         [JsonConverter(typeof(UrlSafeJsonConverter))]
+        [JsonRequired]
         public string System { get; set; }
 
         public static AuthState Parse(string jsonString)
         {
             EnsureArg.IsNotNullOrWhiteSpace(jsonString, nameof(jsonString));
-            return JsonConvert.DeserializeObject<AuthState>(jsonString);
+            AuthState authState = JsonConvert.DeserializeObject<AuthState>(jsonString);
+
+            if (string.IsNullOrEmpty(authState.PatientId) || string.IsNullOrEmpty(authState.System))
+            {
+                throw new ArgumentException();
+            }
+
+            return authState;
         }
     }
 }

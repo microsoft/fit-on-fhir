@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.7.4.23292",
-      "templateHash": "9694221921143096817"
+      "version": "0.8.9.13224",
+      "templateHash": "10282329978344015261"
     }
   },
   "parameters": {
@@ -69,6 +69,13 @@
       "defaultValue": "300",
       "metadata": {
         "description": "The maximum number of requests that can be made to the Google APIs in a one minute period."
+      }
+    },
+    "google_historical_import_time_span": {
+      "type": "string",
+      "defaultValue": "30.00:00:00",
+      "metadata": {
+        "description": "The period of time from now into the past, that the first Google Fit data import should cover.  30 days prior is the default.  Format is days.hours:minutes:seconds"
       }
     },
     "google_fit_scopes": {
@@ -511,6 +518,7 @@
         "GoogleFitDataImporterConfiguration__DatasetRequestLimit": "[parameters('google_dataset_request_limit')]",
         "GoogleFitDataImporterConfiguration__MaxConcurrency": "[parameters('google_max_concurrency')]",
         "GoogleFitDataImporterConfiguration__MaxRequestsPerMinute": "[parameters('google_max_requests_per_minute')]",
+        "GoogleFitDataImporterConfiguration__HistoricalImportTimeSpan": "[parameters('google_historical_import_time_span')]",
         "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
       },
       "dependsOn": [

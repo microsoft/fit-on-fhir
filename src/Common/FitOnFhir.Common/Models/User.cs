@@ -13,6 +13,8 @@ namespace FitOnFhir.Common.Models
     public class User : EntityBase
     {
         private const string _platformsKey = "Platforms";
+        private const string _lastTouchedKey = nameof(LastTouched);
+
         private ConcurrentDictionary<string, PlatformUserInfo> _platformUserInfo = new ConcurrentDictionary<string, PlatformUserInfo>();
 
         public User()
@@ -29,14 +31,37 @@ namespace FitOnFhir.Common.Models
             : base(tableEntity)
         {
             string serializedPlatformInfo = InternalTableEntity.GetString(_platformsKey);
-
             if (serializedPlatformInfo != null)
             {
                 _platformUserInfo = JsonConvert.DeserializeObject<ConcurrentDictionary<string, PlatformUserInfo>>(serializedPlatformInfo);
             }
+
+            string serializedLastTouched = InternalTableEntity.GetString(_lastTouchedKey);
+            if (serializedLastTouched != null)
+            {
+                LastTouched = JsonConvert.DeserializeObject<DateTimeOffset>(serializedLastTouched);
+            }
         }
 
         public DateTimeOffset? LastTouched { get; set; }
+
+        /// <summary>
+        /// Retrieves the <see cref="DataImportState"/> for the specified platform.
+        /// </summary>
+        /// <param name="platformName">The name of the platform to retrieve the <see cref="DataImportState"/> for.</param>
+        /// <param name="dataImportState">The param that will contain the <see cref="DataImportState"/></param>
+        /// <returns>true if a value was found, false otherwise</returns>
+        public bool TryGetPlatformImportState(string platformName, out DataImportState dataImportState)
+        {
+            if (_platformUserInfo.TryGetValue(platformName, out var currentInfo))
+            {
+                dataImportState = currentInfo.ImportState;
+                return true;
+            }
+
+            dataImportState = default;
+            return false;
+        }
 
         /// <summary>
         /// Retrieves a collection of all <see cref="PlatformUserInfo"/> objects associated with the user.
@@ -66,19 +91,24 @@ namespace FitOnFhir.Common.Models
         /// </summary>
         /// <param name="platformName">The platform to update.</param>
         /// <param name="dataImportState">The new <see cref="DataImportState"/> value.</param>
-        public void UpdateImportState(string platformName, DataImportState dataImportState)
+        /// <returns><see cref="bool"/>true if the platform exists in the collection and the <see cref="DataImportState"/> is updated.</returns>
+        public bool UpdateImportState(string platformName, DataImportState dataImportState)
         {
             if (_platformUserInfo.TryGetValue(platformName, out var currentInfo))
             {
                 currentInfo.ImportState = dataImportState;
+                return true;
             }
+
+            return false;
         }
 
         public override TableEntity ToTableEntity()
         {
             if (LastTouched != null)
             {
-                InternalTableEntity.Add(nameof(LastTouched), LastTouched);
+                string serializedLastTouched = JsonConvert.SerializeObject(LastTouched);
+                InternalTableEntity.Add(_lastTouchedKey, serializedLastTouched);
             }
 
             if (_platformUserInfo != null && _platformUserInfo.Count > 0)
