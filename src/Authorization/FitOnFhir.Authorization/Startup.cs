@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FitOnFhir.Authorization;
 using FitOnFhir.Authorization.Services;
 using FitOnFhir.Common;
+using FitOnFhir.Common.Config;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
 using FitOnFhir.Common.Interfaces;
@@ -37,6 +38,7 @@ namespace FitOnFhir.Authorization
         {
             builder.Services.AddLogging();
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
+            builder.Services.AddConfiguration<AuthorizationConfiguration>(configuration);
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();

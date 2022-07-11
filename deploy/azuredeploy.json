@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.8.9.13224",
-      "templateHash": "10282329978344015261"
+      "templateHash": "4476006113447444700"
     }
   },
   "parameters": {
@@ -76,6 +76,20 @@
       "defaultValue": "30.00:00:00",
       "metadata": {
         "description": "The period of time from now into the past, that the first Google Fit data import should cover.  30 days prior is the default.  Format is days.hours:minutes:seconds"
+      }
+    },
+    "authorization_anonymous_login_enabled": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enables anonymous logins (true) or requires authentication (false)."
+      }
+    },
+    "authorization_identity_providers": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "A list of identity provider URLs used when authentication is required."
       }
     },
     "google_fit_scopes": {
@@ -385,6 +399,8 @@
         "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')).secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
         "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]",
+        "AuthorizationConfiguration__IsAnonymousLoginEnabled": "[if(equals(parameters('authorization_anonymous_login_enabled'), true()), 'true', 'false')]",
+        "AuthorizationConfiguration__IdentityProviders": "[if(equals(parameters('authorization_anonymous_login_enabled'), true()), parameters('authorization_identity_providers'), '')]",
         "FhirService__Url": "[variables('fhirServiceUrl')]",
         "FhirClient__UseManagedIdentity": "true"
       },
