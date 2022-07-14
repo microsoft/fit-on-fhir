@@ -5,6 +5,7 @@
 
 using System.Threading.Tasks;
 using FitOnFhir.Authorization;
+using FitOnFhir.Authorization.Handlers;
 using FitOnFhir.Authorization.Services;
 using FitOnFhir.Common;
 using FitOnFhir.Common.Config;
@@ -27,6 +28,7 @@ using Microsoft.Health.Common.DependencyInjection;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.Logging.Telemetry;
+using Microsoft.IdentityModel.Logging;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -36,9 +38,12 @@ namespace FitOnFhir.Authorization
     {
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
+            // TODO remove this line
+            IdentityModelEventSource.ShowPII = true;
             builder.Services.AddLogging();
+            builder.Services.AddAuthentication();
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
-            builder.Services.AddConfiguration<AuthorizationConfiguration>(configuration);
+            builder.Services.AddConfiguration<AuthenticationConfiguration>(configuration);
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
@@ -46,6 +51,8 @@ namespace FitOnFhir.Authorization
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IRoutingService, RoutingService>();
+            builder.Services.AddHttpClient<IOpenIdConfigurationProvider, OpenIdConfigurationProvider>();
+            builder.Services.AddSingleton<IFitOnFhirAuthenticationHandler, FitOnFhirAuthenticationHandler>();
             builder.Services.AddSingleton<ITelemetryLogger, TelemetryLogger>();
             builder.Services.AddFhirClient(configuration);
             builder.Services.AddSingleton<IFhirService, FhirService>();
