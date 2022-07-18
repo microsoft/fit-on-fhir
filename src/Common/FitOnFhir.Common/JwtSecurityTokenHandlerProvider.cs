@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
-using EnsureThat;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FitOnFhir.Common
@@ -13,8 +12,7 @@ namespace FitOnFhir.Common
     {
         private JwtSecurityTokenHandler _jwtSecurityTokenHandler;
 
-        /// <inheritdoc/>
-        public void CreateJwtSecurityTokenHandler()
+        public JwtSecurityTokenHandlerProvider()
         {
             _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
         }
@@ -22,22 +20,19 @@ namespace FitOnFhir.Common
         /// <inheritdoc/>
         public JwtSecurityToken ReadJwtToken(string token)
         {
-            var jwtSecurityTokenHandler = EnsureArg.IsNotNull(_jwtSecurityTokenHandler, nameof(_jwtSecurityTokenHandler));
-            return jwtSecurityTokenHandler.ReadJwtToken(token);
+            return _jwtSecurityTokenHandler.ReadJwtToken(token);
         }
 
         /// <inheritdoc/>
         public Task<TokenValidationResult> ValidateTokenAsync(string token, TokenValidationParameters validationParameters)
         {
-            var jwtSecurityTokenHandler = EnsureArg.IsNotNull(_jwtSecurityTokenHandler, nameof(_jwtSecurityTokenHandler));
-            return jwtSecurityTokenHandler.ValidateTokenAsync(token, validationParameters);
+            return _jwtSecurityTokenHandler.ValidateTokenAsync(token, validationParameters);
         }
 
         /// <inheritdoc/>
         public void SetMapInboundClaims(bool mappingEnabled)
         {
-            var jwtSecurityTokenHandler = EnsureArg.IsNotNull(_jwtSecurityTokenHandler, nameof(_jwtSecurityTokenHandler));
-            jwtSecurityTokenHandler.MapInboundClaims = mappingEnabled;
+            _jwtSecurityTokenHandler.MapInboundClaims = mappingEnabled;
         }
     }
 }

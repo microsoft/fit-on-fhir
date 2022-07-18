@@ -15,11 +15,6 @@ namespace FitOnFhir.Common
     public interface IJwtSecurityTokenHandlerProvider
     {
         /// <summary>
-        /// Creates a new instance of a <see cref="JwtSecurityTokenHandler"/>.
-        /// </summary>
-        void CreateJwtSecurityTokenHandler();
-
-        /// <summary>
         /// Converts a string into an instance of <see cref="JwtSecurityToken"/>.
         /// </summary>
         /// <param name="token">A 'JSON Web Token' (JWT) in JWS or JWE Compact Serialization Format.</param>

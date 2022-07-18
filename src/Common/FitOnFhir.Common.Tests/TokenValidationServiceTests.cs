@@ -26,7 +26,6 @@ namespace FitOnFhir.Common.Tests
         private List<string> _metadataEndpoints = new List<string>();
         private readonly OpenIdConnectConfiguration _openIdConfiguration;
         private readonly HttpRequest _httpRequest;
-        private const string _tokenAuthScheme = @"\sBearer\s\token";
         private JwtSecurityToken _jwtSecurityToken;
 
         private readonly IOpenIdConfigurationProvider _openIdConfigurationProvider;
@@ -66,8 +65,10 @@ namespace FitOnFhir.Common.Tests
         protected string TokenAuthScheme => $"{JwtBearerDefaults.AuthenticationScheme} ";
 
         [Fact]
-        public async Task GivenIsAnonymousLoginEnabledIsTrue_WhenAuthenticateTokenIsCalled_ReturnsTrue()
+        public async Task GivenIsAnonymousLoginEnabledIsTrue_WhenValidateTokenIsCalled_ReturnsTrue()
         {
+            SetupHttpRequest(string.Empty);
+
             _authenticationConfiguration.IsAnonymousLoginEnabled = true;
             Assert.True(await _tokenValidationService.ValidateToken(_httpRequest, CancellationToken.None));
         }
@@ -171,7 +172,7 @@ namespace FitOnFhir.Common.Tests
             _authenticationConfiguration.IsAnonymousLoginEnabled = false;
             _authenticationConfiguration.Audience = ExpectedAudience;
             _metadataEndpoints.Add(ExpectedMetadataEndpoint);
-            _authenticationConfiguration.IdentityProviderMetadataEndpoints.Returns(_metadataEndpoints);
+            _authenticationConfiguration.TokenAuthorities.Returns(_metadataEndpoints);
 
             // OpenIdConfiguration retrieval setup
             _openIdConfiguration.Issuer = ExpectedIssuer;

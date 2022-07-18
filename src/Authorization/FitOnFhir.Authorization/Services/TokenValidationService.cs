@@ -40,7 +40,6 @@ namespace FitOnFhir.Authorization.Services
             _jwtSecurityTokenHandlerProvider = EnsureArg.IsNotNull(jwtSecurityTokenHandlerProvider, nameof(jwtSecurityTokenHandlerProvider));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _jwtSecurityTokenHandlerProvider.CreateJwtSecurityTokenHandler();
             _issuers = new Dictionary<string, string>();
 
             CreateIssuerMapping();
@@ -136,22 +135,23 @@ namespace FitOnFhir.Authorization.Services
         /// </summary>
         private void CreateIssuerMapping()
         {
-            try
+            foreach (var tokenAuthority in _authenticationConfiguration.TokenAuthorities)
             {
-                foreach (var providerEndpoint in _authenticationConfiguration.IdentityProviderMetadataEndpoints)
+                try
                 {
                     _configurationTasks.Add(Task.Run(async () =>
                     {
                         CancellationTokenSource cts = new CancellationTokenSource();
                         cts.CancelAfter(60000);
-                        var config = await _openIdConfigurationProvider.GetConfigurationAsync(providerEndpoint, cts.Token);
-                        _issuers.Add(config.Issuer, providerEndpoint);
+                        var config =
+                            await _openIdConfigurationProvider.GetConfigurationAsync(tokenAuthority, cts.Token);
+                        _issuers.Add(config.Issuer, tokenAuthority);
                     }));
                 }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Failed to retrieve the config for an issuer");
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Failed to retrieve the config for authority: {tokenAuthority}");
+                }
             }
         }
     }

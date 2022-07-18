@@ -25,7 +25,7 @@ namespace FitOnFhir.Common.Config
         /// <summary>
         /// The list of user allowed identity providers.
         /// </summary>
-        public virtual IEnumerable<string> IdentityProviderMetadataEndpoints => _providerMetadataEndpoints;
+        public virtual IEnumerable<string> TokenAuthorities => _providerMetadataEndpoints;
 
         /// <summary>
         /// A comma delimited list of the identity providers for auth token verification.
