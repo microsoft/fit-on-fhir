@@ -6,9 +6,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FitOnFhir.Authorization.Handlers;
 using FitOnFhir.Authorization.Services;
-using FitOnFhir.Common.Config;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -21,19 +19,16 @@ namespace FitOnFhir.Authorization
     public class AuthorizationFunction
     {
         private readonly IRoutingService _routingService;
-        private readonly IFitOnFhirAuthenticationHandler _authenticationHandler;
-        private readonly AuthenticationConfiguration _authenticationConfiguration;
+        private readonly ITokenValidationService _authenticationHandler;
         private readonly ILogger _logger;
 
         public AuthorizationFunction(
             IRoutingService routingService,
-            IFitOnFhirAuthenticationHandler authenticationHandler,
-            AuthenticationConfiguration authenticationConfiguration,
+            ITokenValidationService authenticationHandler,
             ILogger<AuthorizationFunction> logger)
         {
             _routingService = EnsureArg.IsNotNull(routingService, nameof(routingService));
             _authenticationHandler = EnsureArg.IsNotNull(authenticationHandler, nameof(authenticationHandler));
-            _authenticationConfiguration = EnsureArg.IsNotNull(authenticationConfiguration, nameof(authenticationConfiguration));
             _logger = EnsureArg.IsNotNull(logger);
         }
 
@@ -43,19 +38,11 @@ namespace FitOnFhir.Authorization
             ExecutionContext context,
             CancellationToken cancellationToken)
         {
-            bool isAuthenticated = true;
-
             _logger.LogInformation("incoming request from: {0}", req.Host + req.Path);
             using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, req.HttpContext.RequestAborted);
 
-            if (!_authenticationConfiguration.IsAnonymousLoginEnabled)
-            {
-                // populate the issuer dictionary
-                await _authenticationHandler.CreateIssuerMapping(cancellationSource.Token);
-
-                // authenticate the token
-                isAuthenticated = await _authenticationHandler.AuthenticateToken(req, cancellationSource.Token);
-            }
+            // is the token valid?
+            var isAuthenticated = await _authenticationHandler.ValidateToken(req, cancellationSource.Token);
 
             if (isAuthenticated)
             {

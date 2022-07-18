@@ -24,7 +24,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>	
+    </PackageReference>
+    <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.21.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Logging" Version="6.21.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols" Version="6.21.0" />	
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

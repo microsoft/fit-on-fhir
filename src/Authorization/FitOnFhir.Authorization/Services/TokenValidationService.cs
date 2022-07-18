@@ -9,37 +9,63 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FitOnFhir.Authorization.Services;
+using FitOnFhir.Common;
 using FitOnFhir.Common.Config;
 using FitOnFhir.Common.ExtensionMethods;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FitOnFhir.Authorization.Handlers
+namespace FitOnFhir.Authorization.Services
 {
-    public class FitOnFhirAuthenticationHandler : IFitOnFhirAuthenticationHandler
+    public class TokenValidationService : ITokenValidationService
     {
         private IOpenIdConfigurationProvider _openIdConfigurationProvider;
         private AuthenticationConfiguration _authenticationConfiguration;
+        private readonly IJwtSecurityTokenHandlerProvider _jwtSecurityTokenHandlerProvider;
         private readonly ILogger _logger;
-        private readonly Dictionary<string, string> _issuers;
+        private Dictionary<string, string> _issuers;
+        private readonly List<Task> _configurationTasks = new List<Task>();
 
-        public FitOnFhirAuthenticationHandler(
+        public TokenValidationService(
             IOpenIdConfigurationProvider openIdConfigurationProvider,
             AuthenticationConfiguration authenticationConfiguration,
-            ILogger<FitOnFhirAuthenticationHandler> logger)
+            IJwtSecurityTokenHandlerProvider jwtSecurityTokenHandlerProvider,
+            ILogger<TokenValidationService> logger)
         {
             _openIdConfigurationProvider = EnsureArg.IsNotNull(openIdConfigurationProvider, nameof(openIdConfigurationProvider));
             _authenticationConfiguration = EnsureArg.IsNotNull(authenticationConfiguration, nameof(authenticationConfiguration));
+            _jwtSecurityTokenHandlerProvider = EnsureArg.IsNotNull(jwtSecurityTokenHandlerProvider, nameof(jwtSecurityTokenHandlerProvider));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+
+            _jwtSecurityTokenHandlerProvider.CreateJwtSecurityTokenHandler();
             _issuers = new Dictionary<string, string>();
+
+            CreateIssuerMapping();
+        }
+
+        /// <summary>
+        /// Indicates whether anonymous logins are allowed.
+        /// </summary>
+        protected bool IsAnonymousLoginEnabled => _authenticationConfiguration.IsAnonymousLoginEnabled;
+
+        public Dictionary<string, string> Issuers
+        {
+            get => _issuers;
+
+            set => _issuers = value;
         }
 
         /// <inheritdoc/>
-        public async Task<bool> AuthenticateToken(HttpRequest request, CancellationToken cancellationToken)
+        public async Task<bool> ValidateToken(HttpRequest request, CancellationToken cancellationToken)
         {
+            if (IsAnonymousLoginEnabled)
+            {
+                return true;
+            }
+
             EnsureArg.IsNotNull(request, nameof(request));
 
             // Ensure the request has a valid bearer token and extract the token from the header.
@@ -50,18 +76,21 @@ namespace FitOnFhir.Authorization.Handlers
             }
 
             // Read the token into the handler.
-            var handler = new JwtSecurityTokenHandler();
-            handler.MapInboundClaims = false;
+            _jwtSecurityTokenHandlerProvider.SetMapInboundClaims(false);
             JwtSecurityToken jwtSecurityToken;
             try
             {
-                jwtSecurityToken = handler.ReadJwtToken(token);
+                jwtSecurityToken = _jwtSecurityTokenHandlerProvider.ReadJwtToken(token);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "The request JWT is malformed.");
                 return false;
             }
+
+            // Wait, if necessary, for all metadata configuration to be returned
+            Task t = Task.WhenAll(_configurationTasks);
+            await t.WaitAsync(cancellationToken);
 
             // Find the correct authority from the list
             if (!_issuers.TryGetValue(jwtSecurityToken.Issuer, out var authority))
@@ -88,7 +117,7 @@ namespace FitOnFhir.Authorization.Handlers
                 };
 
                 // Validate the token.
-                var tokenValidationResult = await handler.ValidateTokenAsync(jwtSecurityToken.RawData, tokenValidationParameters);
+                var tokenValidationResult = await _jwtSecurityTokenHandlerProvider.ValidateTokenAsync(jwtSecurityToken.RawData, tokenValidationParameters);
 
                 return tokenValidationResult.IsValid;
             }
@@ -99,15 +128,25 @@ namespace FitOnFhir.Authorization.Handlers
             }
         }
 
-        /// <inheritdoc/>
-        public async Task CreateIssuerMapping(CancellationToken cancellationToken)
+        /// <summary>
+        /// Creates a mapping between the metadata endpoints provided in <see cref="AuthenticationConfiguration"/>.AuthorizedIdentityProviders
+        /// and the name of the issuer, as declared in the <see cref="OpenIdConnectConfiguration"/> Issuer property for that endpoint's config.
+        /// This mapping can be used to determine which endpoint to authenticate tokens against, when a user wishes to authorize access to a fitness data provider.
+        /// Configuration data requests are made asynchronously.
+        /// </summary>
+        private void CreateIssuerMapping()
         {
             try
             {
                 foreach (var providerEndpoint in _authenticationConfiguration.IdentityProviderMetadataEndpoints)
                 {
-                    var config = await _openIdConfigurationProvider.GetConfigurationAsync(providerEndpoint, cancellationToken);
-                    _issuers.Add(config.Issuer, providerEndpoint);
+                    _configurationTasks.Add(Task.Run(async () =>
+                    {
+                        CancellationTokenSource cts = new CancellationTokenSource();
+                        cts.CancelAfter(60000);
+                        var config = await _openIdConfigurationProvider.GetConfigurationAsync(providerEndpoint, cts.Token);
+                        _issuers.Add(config.Issuer, providerEndpoint);
+                    }));
                 }
             }
             catch (Exception e)
