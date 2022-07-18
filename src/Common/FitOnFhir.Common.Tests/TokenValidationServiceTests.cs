@@ -6,6 +6,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using FitOnFhir.Authorization.Services;
 using FitOnFhir.Common.Config;
+using FitOnFhir.Common.Interfaces;
+using FitOnFhir.Common.Services;
 using FitOnFhir.Common.Tests.Mocks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;

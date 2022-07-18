@@ -3,22 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Threading;
-using System.Threading.Tasks;
 using EnsureThat;
-using FitOnFhir.Common;
 using FitOnFhir.Common.Config;
 using FitOnFhir.Common.ExtensionMethods;
+using FitOnFhir.Common.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FitOnFhir.Authorization.Services
+namespace FitOnFhir.Common.Services
 {
     public class TokenValidationService : ITokenValidationService
     {
@@ -128,7 +124,7 @@ namespace FitOnFhir.Authorization.Services
         }
 
         /// <summary>
-        /// Creates a mapping between the metadata endpoints provided in <see cref="AuthenticationConfiguration"/>.AuthorizedIdentityProviders
+        /// Creates a mapping between the metadata endpoints provided in <see cref="FitOnFhir.Common.Config.AuthenticationConfiguration"/>.AuthorizedIdentityProviders
         /// and the name of the issuer, as declared in the <see cref="OpenIdConnectConfiguration"/> Issuer property for that endpoint's config.
         /// This mapping can be used to determine which endpoint to authenticate tokens against, when a user wishes to authorize access to a fitness data provider.
         /// Configuration data requests are made asynchronously.

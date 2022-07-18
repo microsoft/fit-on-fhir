@@ -3,11 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
-namespace FitOnFhir.Authorization.Services
+namespace FitOnFhir.Common.Interfaces
 {
     public interface IOpenIdConfigurationProvider
     {

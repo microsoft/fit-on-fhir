@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FitOnFhir.Authorization.Services;
+using FitOnFhir.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -19,7 +20,6 @@ namespace FitOnFhir.Authorization
     public class AuthorizationFunction
     {
         private readonly IRoutingService _routingService;
-        private readonly ITokenValidationService _authenticationHandler;
         private readonly ILogger _logger;
 
         public AuthorizationFunction(
@@ -28,7 +28,6 @@ namespace FitOnFhir.Authorization
             ILogger<AuthorizationFunction> logger)
         {
             _routingService = EnsureArg.IsNotNull(routingService, nameof(routingService));
-            _authenticationHandler = EnsureArg.IsNotNull(authenticationHandler, nameof(authenticationHandler));
             _logger = EnsureArg.IsNotNull(logger);
         }
 
@@ -41,15 +40,7 @@ namespace FitOnFhir.Authorization
             _logger.LogInformation("incoming request from: {0}", req.Host + req.Path);
             using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, req.HttpContext.RequestAborted);
 
-            // is the token valid?
-            var isAuthenticated = await _authenticationHandler.ValidateToken(req, cancellationSource.Token);
-
-            if (isAuthenticated)
-            {
-                return await _routingService.RouteTo(req, context, cancellationSource.Token);
-            }
-
-            return new UnauthorizedResult();
+            return await _routingService.RouteTo(req, context, cancellationSource.Token);
         }
     }
 }
