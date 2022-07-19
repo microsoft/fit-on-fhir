@@ -5,6 +5,7 @@
 
 using EnsureThat;
 using FitOnFhir.Common;
+using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Client.Responses;
@@ -21,17 +22,23 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
     {
         private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
+        private readonly ITokenValidationService _tokenValidationService;
         private readonly ILogger<GoogleFitAuthorizationHandler> _logger;
 
         private GoogleFitAuthorizationHandler()
         {
         }
 
-        public GoogleFitAuthorizationHandler(IGoogleFitAuthService authService, IUsersService usersService, ILogger<GoogleFitAuthorizationHandler> logger)
+        public GoogleFitAuthorizationHandler(
+            IGoogleFitAuthService authService,
+            IUsersService usersService,
+            ITokenValidationService tokenValidationService,
+            ILogger<GoogleFitAuthorizationHandler> logger)
         {
-            _authService = EnsureArg.IsNotNull(authService);
-            _usersService = EnsureArg.IsNotNull(usersService);
-            _logger = EnsureArg.IsNotNull(logger);
+            _authService = EnsureArg.IsNotNull(authService, nameof(authService));
+            _usersService = EnsureArg.IsNotNull(usersService, nameof(usersService));
+            _tokenValidationService = EnsureArg.IsNotNull(tokenValidationService, nameof(tokenValidationService));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitAuthorizationHandler();
@@ -66,17 +73,26 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
         {
             AuthState state = null;
 
-            try
-            {
-                state = new AuthState(request?.HttpRequest?.Query);
-            }
-            catch (ArgumentException)
-            {
-                return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
-            }
+            var isValidated = await _tokenValidationService.ValidateToken(request.HttpRequest, request.Token);
 
-            AuthUriResponse response = await _authService.AuthUriRequest(JsonConvert.SerializeObject(state), request.Token);
-            return new RedirectResult(response.Uri);
+            if (isValidated)
+            {
+                try
+                {
+                    state = new AuthState(request?.HttpRequest?.Query);
+                }
+                catch (ArgumentException)
+                {
+                    return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
+                }
+
+                AuthUriResponse response = await _authService.AuthUriRequest(JsonConvert.SerializeObject(state), request.Token);
+                return new RedirectResult(response.Uri);
+            }
+            else
+            {
+                return new UnauthorizedResult();
+            }
         }
 
         private async Task<IActionResult> Callback(RoutingRequest request)

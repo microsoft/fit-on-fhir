@@ -31,6 +31,15 @@ param google_max_requests_per_minute string = '300'
 @description('The period of time from now into the past, that the first Google Fit data import should cover.  30 days prior is the default.  Format is days.hours:minutes:seconds')
 param google_historical_import_time_span string = '30.00:00:00'
 
+@description('Enables anonymous logins (true) or requires authentication (false).')
+param authentication_anonymous_login_enabled bool = false
+
+@description('A list of identity provider URLs used when authentication is required.')
+param authentication_identity_providers string = ''
+
+@description('The URL that any access tokens are granted for.')
+param authentication_audience string = ''
+
 @description('The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)')
 param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read'
 
@@ -296,6 +305,9 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
     GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'google-client-secret')).secretUriWithVersion})'
 	  GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
     AzureConfiguration__UsersKeyVaultUri: 'https://kv-${basename}${environment().suffixes.keyvaultDns}'
+	AuthenticationConfiguration__IsAnonymousLoginEnabled : (authentication_anonymous_login_enabled == true) ? 'true' : 'false'
+	AuthenticationConfiguration__IdentityProviders: (authentication_anonymous_login_enabled == true) ? '' : authentication_identity_providers
+	AuthenticationConfiguration__Audience: (authentication_anonymous_login_enabled == true) ? '' : authentication_audience
     FhirService__Url: fhirServiceUrl
     FhirClient__UseManagedIdentity: 'true'
   }

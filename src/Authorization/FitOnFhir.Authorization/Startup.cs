@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FitOnFhir.Authorization;
 using FitOnFhir.Authorization.Services;
 using FitOnFhir.Common;
+using FitOnFhir.Common.Config;
 using FitOnFhir.Common.ExtensionMethods;
 using FitOnFhir.Common.Handlers;
 using FitOnFhir.Common.Interfaces;
@@ -36,7 +37,9 @@ namespace FitOnFhir.Authorization
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
             builder.Services.AddLogging();
+            builder.Services.AddAuthentication();
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
+            builder.Services.AddConfiguration<AuthenticationConfiguration>(configuration);
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
@@ -44,6 +47,9 @@ namespace FitOnFhir.Authorization
             builder.Services.AddSingleton<IUsersService, UsersService>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IRoutingService, RoutingService>();
+            builder.Services.AddHttpClient<IOpenIdConfigurationProvider, OpenIdConfigurationProvider>();
+            builder.Services.AddSingleton<ITokenValidationService, TokenValidationService>();
+            builder.Services.AddSingleton<IJwtSecurityTokenHandlerProvider, JwtSecurityTokenHandlerProvider>();
             builder.Services.AddSingleton<ITelemetryLogger, TelemetryLogger>();
             builder.Services.AddFhirClient(configuration);
             builder.Services.AddSingleton<IFhirService, FhirService>();
