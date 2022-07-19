@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
+using EnsureThat;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FitOnFhir.Common
@@ -20,13 +21,15 @@ namespace FitOnFhir.Common
         /// <inheritdoc/>
         public JwtSecurityToken ReadJwtToken(string token)
         {
-            return _jwtSecurityTokenHandler.ReadJwtToken(token);
+            return _jwtSecurityTokenHandler.ReadJwtToken(EnsureArg.IsNotNullOrWhiteSpace(token, nameof(token)));
         }
 
         /// <inheritdoc/>
         public Task<TokenValidationResult> ValidateTokenAsync(string token, TokenValidationParameters validationParameters)
         {
-            return _jwtSecurityTokenHandler.ValidateTokenAsync(token, validationParameters);
+            return _jwtSecurityTokenHandler.ValidateTokenAsync(
+                EnsureArg.IsNotNullOrWhiteSpace(token, nameof(token)),
+                EnsureArg.IsNotNull(validationParameters, nameof(validationParameters)));
         }
 
         /// <inheritdoc/>

@@ -73,20 +73,19 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
         {
             AuthState state = null;
 
-            try
-            {
-                state = new AuthState(request?.HttpRequest?.Query);
-            }
-            catch (ArgumentException)
-            {
-                return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
-            }
+            var isValidated = await _tokenValidationService.ValidateToken(request.HttpRequest, request.Token);
 
-            // is the token valid?
-            var isAuthenticated = await _tokenValidationService.ValidateToken(request.HttpRequest, request.Token);
-
-            if (isAuthenticated)
+            if (isValidated)
             {
+                try
+                {
+                    state = new AuthState(request?.HttpRequest?.Query);
+                }
+                catch (ArgumentException)
+                {
+                    return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
+                }
+
                 AuthUriResponse response = await _authService.AuthUriRequest(JsonConvert.SerializeObject(state), request.Token);
                 return new RedirectResult(response.Uri);
             }

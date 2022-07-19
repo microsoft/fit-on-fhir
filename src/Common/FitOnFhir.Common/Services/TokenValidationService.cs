@@ -18,12 +18,12 @@ namespace FitOnFhir.Common.Services
 {
     public class TokenValidationService : ITokenValidationService
     {
-        private IOpenIdConfigurationProvider _openIdConfigurationProvider;
-        private AuthenticationConfiguration _authenticationConfiguration;
+        private readonly IOpenIdConfigurationProvider _openIdConfigurationProvider;
+        private readonly AuthenticationConfiguration _authenticationConfiguration;
         private readonly IJwtSecurityTokenHandlerProvider _jwtSecurityTokenHandlerProvider;
         private readonly ILogger _logger;
-        private Dictionary<string, string> _issuers;
-        private readonly List<Task> _configurationTasks = new List<Task>();
+        private readonly Dictionary<string, string> _issuers = new ();
+        private readonly List<Task> _configurationTasks = new ();
 
         public TokenValidationService(
             IOpenIdConfigurationProvider openIdConfigurationProvider,
@@ -36,8 +36,6 @@ namespace FitOnFhir.Common.Services
             _jwtSecurityTokenHandlerProvider = EnsureArg.IsNotNull(jwtSecurityTokenHandlerProvider, nameof(jwtSecurityTokenHandlerProvider));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
-            _issuers = new Dictionary<string, string>();
-
             CreateIssuerMapping();
         }
 
@@ -45,12 +43,6 @@ namespace FitOnFhir.Common.Services
         /// Indicates whether anonymous logins are allowed.
         /// </summary>
         protected bool IsAnonymousLoginEnabled => _authenticationConfiguration.IsAnonymousLoginEnabled;
-
-        // public Dictionary<string, string> Issuers
-        // {
-        //    get => _issuers;
-        //    set => _issuers = value;
-        // }
 
         /// <inheritdoc/>
         public async Task<bool> ValidateToken(HttpRequest request, CancellationToken cancellationToken)
