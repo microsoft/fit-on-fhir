@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
-using FitOnFhir.Authorization.Services;
 using FitOnFhir.Common.Config;
 using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Services;
@@ -24,7 +23,6 @@ namespace FitOnFhir.Common.Tests
 {
     public class TokenValidationServiceTests
     {
-        private Dictionary<string, string> _issuers = new Dictionary<string, string>();
         private List<string> _metadataEndpoints = new List<string>();
         private readonly OpenIdConnectConfiguration _openIdConfiguration;
         private readonly HttpRequest _httpRequest;
@@ -48,7 +46,9 @@ namespace FitOnFhir.Common.Tests
             _jwtSecurityTokenHandlerProvider = Substitute.For<IJwtSecurityTokenHandlerProvider>();
             _logger = Substitute.For<MockLogger<TokenValidationService>>();
 
-            // create new handler for testing
+            SetupConfiguration();
+
+            // create new service for testing
             _tokenValidationService = new TokenValidationService(
                 _openIdConfigurationProvider,
                 _authenticationConfiguration,
@@ -76,16 +76,16 @@ namespace FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public async Task GivenHttpRequestIsNull_WhenAuthenticateTokenIsCalled_ThrowsArgumentNullException()
+        public async Task GivenHttpRequestIsNull_WhenValidateTokenIsCalled_ThrowsArgumentNullException()
         {
-            SetupSubstitutes();
+            SetupJwtSecurityTokenHandlerProvider();
             await Assert.ThrowsAsync<ArgumentNullException>(() => _tokenValidationService.ValidateToken(null, CancellationToken.None));
         }
 
         [Fact]
-        public async Task GivenHttpRequestHasInvalidToken_WhenAuthenticateTokenIsCalled_ReturnsFalseAndErrorIsLogged()
+        public async Task GivenHttpRequestHasInvalidToken_WhenValidateTokenIsCalled_ReturnsFalseAndErrorIsLogged()
         {
-            SetupSubstitutes();
+            SetupJwtSecurityTokenHandlerProvider();
             SetupHttpRequest(string.Empty);
 
             Assert.False(await _tokenValidationService.ValidateToken(_httpRequest, CancellationToken.None));
@@ -95,9 +95,9 @@ namespace FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public async Task GivenTokenIsMalformed_WhenAuthenticateTokenIsCalled_ReturnsFalseAndErrorIsLogged()
+        public async Task GivenReadJwtTokenThrowsException_WhenValidateTokenIsCalled_ReturnsFalseAndErrorIsLogged()
         {
-            SetupSubstitutes();
+            SetupJwtSecurityTokenHandlerProvider();
             SetupHttpRequest(ExpectedToken);
 
             string exceptionMessage = "ReadJwtToken exception";
@@ -112,24 +112,34 @@ namespace FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public async Task GivenNoMappedIssuerMatchesTokenIssuer_WhenAuthenticateTokenIsCalled_ReturnsFalseAndMessageIsLogged()
+        public async Task GivenNoMappedIssuerMatchesTokenIssuer_WhenValidateTokenIsCalled_ReturnsFalseAndMessageIsLogged()
         {
-            SetupSubstitutes();
+            SetupJwtSecurityTokenHandlerProvider();
             SetupHttpRequest(ExpectedToken);
 
-            // Clear out the issuer mapping
-            _issuers.Clear();
+            // Set the Issuer returned to not match ExpectedIssuer
+            _openIdConfiguration.Issuer = "OtherIssuer";
+            _openIdConfigurationProvider.GetConfigurationAsync(
+                Arg.Is<string>(str => str == ExpectedMetadataEndpoint),
+                Arg.Any<CancellationToken>()).Returns(_openIdConfiguration);
 
-            Assert.False(await _tokenValidationService.ValidateToken(_httpRequest, CancellationToken.None));
+            // create new service for testing
+            var service = new TokenValidationService(
+                _openIdConfigurationProvider,
+                _authenticationConfiguration,
+                _jwtSecurityTokenHandlerProvider,
+                _logger);
+
+            Assert.False(await service.ValidateToken(_httpRequest, CancellationToken.None));
             _logger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Information),
                 Arg.Is<string>(msg => msg == $"Issuer {ExpectedIssuer} not found in the list of authorized identity providers."));
         }
 
         [Fact]
-        public async Task GivenValidateTokenAsyncThrowsException_WhenAuthenticateTokenIsCalled_ReturnsFalseAndErrorIsLogged()
+        public async Task GivenValidateTokenAsyncThrowsException_WhenValidateTokenIsCalled_ReturnsFalseAndErrorIsLogged()
         {
-            SetupSubstitutes();
+            SetupJwtSecurityTokenHandlerProvider();
             SetupHttpRequest(ExpectedToken);
 
             string exceptionMessage = "ValidateTokenAsync exception";
@@ -144,9 +154,9 @@ namespace FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public async Task GivenValidateTokenAsyncReturnsInvalidTokenValidationResult_WhenAuthenticateTokenIsCalled_ReturnsFalse()
+        public async Task GivenValidateTokenAsyncReturnsInvalidTokenValidationResult_WhenValidateTokenIsCalled_ReturnsFalse()
         {
-            SetupSubstitutes();
+            SetupJwtSecurityTokenHandlerProvider();
             SetupHttpRequest(ExpectedToken);
 
             TokenValidationResult tvr = new TokenValidationResult() { IsValid = false };
@@ -156,32 +166,32 @@ namespace FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public async Task GivenNoConditions_WhenAuthenticateTokenIsCalled_ReturnsTrue()
+        public async Task GivenNoConditions_WhenValidateTokenIsCalled_ReturnsTrue()
         {
-            SetupSubstitutes();
+            SetupJwtSecurityTokenHandlerProvider();
             SetupHttpRequest(ExpectedToken);
 
             Assert.True(await _tokenValidationService.ValidateToken(_httpRequest, CancellationToken.None));
         }
 
-        private void SetupSubstitutes()
+        private void SetupConfiguration()
         {
-            // Issuers setup
-            _issuers.Add(ExpectedIssuer, ExpectedMetadataEndpoint);
-            _tokenValidationService.Issuers = _issuers;
-
             // AuthenticationConfiguration setup
             _authenticationConfiguration.IsAnonymousLoginEnabled = false;
             _authenticationConfiguration.Audience = ExpectedAudience;
             _metadataEndpoints.Add(ExpectedMetadataEndpoint);
-            _authenticationConfiguration.TokenAuthorities.Returns(_metadataEndpoints);
+            _authenticationConfiguration.TokenAuthorities.Returns(_metadataEndpoints.AsEnumerable());
+            _authenticationConfiguration.IdentityProviders = ExpectedMetadataEndpoint;
 
             // OpenIdConfiguration retrieval setup
             _openIdConfiguration.Issuer = ExpectedIssuer;
             _openIdConfigurationProvider.GetConfigurationAsync(
-                    Arg.Is<string>(str => str == ExpectedMetadataEndpoint),
-                    Arg.Any<CancellationToken>()).Returns(_openIdConfiguration);
+                Arg.Is<string>(str => str == ExpectedMetadataEndpoint),
+                Arg.Any<CancellationToken>()).Returns(_openIdConfiguration);
+        }
 
+        private void SetupJwtSecurityTokenHandlerProvider()
+        {
             // JwtSecurityToken setup
             _jwtSecurityToken = new JwtSecurityToken(issuer: ExpectedIssuer);
             _jwtSecurityTokenHandlerProvider.ReadJwtToken(Arg.Is<string>(str => str == ExpectedToken)).Returns(_jwtSecurityToken);

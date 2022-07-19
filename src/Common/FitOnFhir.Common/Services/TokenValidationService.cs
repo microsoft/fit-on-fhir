@@ -46,12 +46,11 @@ namespace FitOnFhir.Common.Services
         /// </summary>
         protected bool IsAnonymousLoginEnabled => _authenticationConfiguration.IsAnonymousLoginEnabled;
 
-        public Dictionary<string, string> Issuers
-        {
-            get => _issuers;
-
-            set => _issuers = value;
-        }
+        // public Dictionary<string, string> Issuers
+        // {
+        //    get => _issuers;
+        //    set => _issuers = value;
+        // }
 
         /// <inheritdoc/>
         public async Task<bool> ValidateToken(HttpRequest request, CancellationToken cancellationToken)
