@@ -35,20 +35,20 @@ namespace FitOnFhir.GoogleFit.Tests
 
         private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
-        private ITokenValidationService _authenticationHandler;
+        private ITokenValidationService _tokenValidationService;
         private readonly ILogger<GoogleFitAuthorizationHandler> _logger;
 
         public GoogleFitAuthorizationHandlerTests()
         {
             _authService = Substitute.For<IGoogleFitAuthService>();
             _usersService = Substitute.For<IUsersService>();
-            _authenticationHandler = Substitute.For<ITokenValidationService>();
+            _tokenValidationService = Substitute.For<ITokenValidationService>();
             _logger = NullLogger<GoogleFitAuthorizationHandler>.Instance;
 
             _googleFitAuthorizationHandler = new GoogleFitAuthorizationHandler(
                 _authService,
                 _usersService,
-                _authenticationHandler,
+                _tokenValidationService,
                 _logger);
         }
 
@@ -66,6 +66,7 @@ namespace FitOnFhir.GoogleFit.Tests
         [InlineData(true, false)]
         public async Task GivenMissingRequiredQueryParameter_WhenEvaluateCalled_Returns400Response(bool includePatientId, bool includeSystem)
         {
+            _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(true);
             var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest, includePatientId, includeSystem);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
 
@@ -78,7 +79,7 @@ namespace FitOnFhir.GoogleFit.Tests
         public async Task GivenRequestCanBeHandled_WhenRequestIsForAuthorization_RedirectsUser()
         {
             _authService.AuthUriRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
-            _authenticationHandler.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(true);
+            _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(true);
 
             var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
@@ -94,7 +95,7 @@ namespace FitOnFhir.GoogleFit.Tests
         public async Task GivenRequestTokenIsNotValidated_WhenRequestIsForAuthorization_ReturnsUnauthorizedResult()
         {
             _authService.AuthUriRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
-            _authenticationHandler.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(false);
+            _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(false);
 
             var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
