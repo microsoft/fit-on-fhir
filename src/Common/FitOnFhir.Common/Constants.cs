@@ -30,6 +30,11 @@ namespace FitOnFhir.Common
         public const string PatientIdQueryParameter = "patientId";
 
         /// <summary>
+        /// Query parameter name for platform user identifier in an external system.
+        /// </summary>
+        public const string UserIdQueryParameter = "userId";
+
+        /// <summary>
         /// Query parameter name for the system in which the patient identifier exists.
         /// </summary>
         public const string SystemQueryParameter = "system";

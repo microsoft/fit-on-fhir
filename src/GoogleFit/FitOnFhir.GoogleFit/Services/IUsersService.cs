@@ -12,5 +12,7 @@ namespace FitOnFhir.GoogleFit.Services
         Task ProcessAuthorizationCallback(string accessCode, string state, CancellationToken cancellationToken);
 
         Task QueueFitnessImport(User user, CancellationToken cancellationToken);
+
+        Task RevokeAccess(string patientId, CancellationToken cancellationToken);
     }
 }

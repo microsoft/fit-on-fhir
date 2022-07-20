@@ -35,5 +35,12 @@ namespace FitOnFhir.GoogleFit.Services
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to cancel the process.</param>
         /// <returns>The <see cref="AuthTokensResponse"/> for the operation.</returns>
         Task<AuthTokensResponse> RefreshTokensRequest(string refreshToken, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Sends a token revoke request to the platform appropriate URI.
+        /// </summary>
+        /// <param name="accessToken">The access token to be revoked.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to cancel the process.</param>
+        Task RevokeTokenRequest(string accessToken, CancellationToken cancellationToken);
     }
 }

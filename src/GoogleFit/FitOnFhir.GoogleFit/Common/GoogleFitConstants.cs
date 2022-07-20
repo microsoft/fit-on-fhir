@@ -23,6 +23,11 @@ namespace FitOnFhir.GoogleFit.Common
         public const string GoogleFitCallbackRequest = "api/googlefit/callback";
 
         /// <summary>
+        /// GoogleFit revoke access endpoint
+        /// </summary>
+        public const string GoogleFitRevokeAccessRequest = "api/googlefit/revoke";
+
+        /// <summary>
         /// String identifier for the GoogleFit platform.  Used to help identify the platform to import from, in a <see cref="QueueMessage"/>.
         /// </summary>
         public const string GoogleFitPlatformName = "GoogleFit";

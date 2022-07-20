@@ -84,5 +84,11 @@ namespace FitOnFhir.GoogleFit.Services
             AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
             return response;
         }
+
+        /// <inheritdoc/>
+        public async Task RevokeTokenRequest(string accessToken, CancellationToken cancellationToken)
+        {
+            await _googleAuthorizationCodeFlow.RevokeTokenAsync("me", accessToken, cancellationToken);
+        }
     }
 }

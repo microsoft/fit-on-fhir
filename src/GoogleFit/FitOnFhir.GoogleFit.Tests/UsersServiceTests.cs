@@ -22,14 +22,22 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly IGoogleFitUserTableRepository _googleFitUserRepository;
         private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
         private readonly IGoogleFitAuthService _authService;
+        private readonly IGoogleFitTokensService _googleFitTokensService;
+        private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly MockLogger<UsersService> _logger;
         private readonly UsersService _usersService;
+
+        private readonly DateTimeOffset _now =
+            new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
 
         public UsersServiceTests()
         {
             _googleFitUserRepository = Substitute.For<IGoogleFitUserTableRepository>();
             _usersKeyVaultRepository = Substitute.For<IUsersKeyVaultRepository>();
             _authService = Substitute.For<IGoogleFitAuthService>();
+            _googleFitTokensService = Substitute.For<IGoogleFitTokensService>();
+            _utcNowFunc = Substitute.For<Func<DateTimeOffset>>();
+            _utcNowFunc().Returns(_now);
             _logger = Substitute.For<MockLogger<UsersService>>();
 
             _usersService = new UsersService(
@@ -39,6 +47,8 @@ namespace FitOnFhir.GoogleFit.Tests
                 _usersKeyVaultRepository,
                 _authService,
                 QueueService,
+                _googleFitTokensService,
+                _utcNowFunc,
                 _logger);
 
             // Default responses.

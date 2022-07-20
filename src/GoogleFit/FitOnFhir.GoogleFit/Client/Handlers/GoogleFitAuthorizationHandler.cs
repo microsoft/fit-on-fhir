@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Web;
 using EnsureThat;
 using FitOnFhir.Common;
 using FitOnFhir.Common.Interfaces;
@@ -57,6 +58,10 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
                 {
                     return Callback(request);
                 }
+                else if (path.StartsWith(GoogleFitConstants.GoogleFitRevokeAccessRequest))
+                {
+                    return Revoke(request);
+                }
                 else
                 {
                     return null;
@@ -105,6 +110,30 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
                     request.Token);
 
                 return new OkObjectResult("Authorization completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return new NotFoundObjectResult(ex.Message);
+            }
+        }
+
+        private async Task<IActionResult> Revoke(RoutingRequest request)
+        {
+            string patientId;
+            try
+            {
+                patientId = HttpUtility.UrlDecode(EnsureArg.IsNotNullOrWhiteSpace(request?.HttpRequest?.Query?[Constants.PatientIdQueryParameter], $"query.{Constants.PatientIdQueryParameter}"));
+            }
+            catch (ArgumentException)
+            {
+                return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' is a required query parameter.");
+            }
+
+            try
+            {
+                await _usersService.RevokeAccess(patientId, request.Token);
+                return new OkObjectResult("Access revoked successfully.");
             }
             catch (Exception ex)
             {

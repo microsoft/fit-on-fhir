@@ -25,11 +25,18 @@ namespace FitOnFhir.Common.Models
         [JsonConverter(typeof(StringEnumConverter))]
         public DataImportState ImportState { get; set; }
 
+        [JsonConverter(typeof(StringEnumConverter))]
+        public RevokeReason RevokedAccessReason { get; set; }
+
+        public DateTimeOffset? RevokedTimeStamp { get; set; }
+
         public bool Equals(PlatformUserInfo other)
         {
             return PlatformName == other.PlatformName &&
                    UserId == other.UserId &&
-                   ImportState == other.ImportState;
+                   ImportState == other.ImportState &&
+                   RevokedAccessReason == other.RevokedAccessReason &&
+                   RevokedTimeStamp == other.RevokedTimeStamp;
         }
 
         public override int GetHashCode()

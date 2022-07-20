@@ -4,11 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FitOnFhir.Common.Exceptions;
 using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Services;
 using FitOnFhir.GoogleFit.Client.Models;
+using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
@@ -26,6 +28,8 @@ namespace FitOnFhir.GoogleFit.Services
         private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
         private readonly IGoogleFitAuthService _authService;
         private readonly IQueueService _queueService;
+        private readonly IGoogleFitTokensService _googleFitTokensService;
+        private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly ILogger<UsersService> _logger;
 
         public UsersService(
@@ -35,6 +39,8 @@ namespace FitOnFhir.GoogleFit.Services
             IUsersKeyVaultRepository usersKeyVaultRepository,
             IGoogleFitAuthService authService,
             IQueueService queueService,
+            IGoogleFitTokensService googleFitTokensService,
+            Func<DateTimeOffset> utcNowFunc,
             ILogger<UsersService> logger)
             : base(resourceManagementService, usersTableRepository)
         {
@@ -42,6 +48,8 @@ namespace FitOnFhir.GoogleFit.Services
             _usersKeyVaultRepository = EnsureArg.IsNotNull(usersKeyVaultRepository, nameof(usersKeyVaultRepository));
             _authService = EnsureArg.IsNotNull(authService, nameof(authService));
             _queueService = EnsureArg.IsNotNull(queueService, nameof(queueService));
+            _googleFitTokensService = EnsureArg.IsNotNull(googleFitTokensService, nameof(googleFitTokensService));
+            _utcNowFunc = utcNowFunc;
             _logger = logger;
         }
 
@@ -109,6 +117,38 @@ namespace FitOnFhir.GoogleFit.Services
             if (googleUserInfo != null)
             {
                 await _queueService.SendQueueMessage(user.Id, googleUserInfo.UserId, googleUserInfo.PlatformName, cancellationToken);
+            }
+        }
+
+        public override async Task RevokeAccess(string patientId, CancellationToken cancellationToken)
+        {
+            var user = await RetrieveUserForPatient(patientId, GoogleFitConstants.GoogleFitPlatformName, cancellationToken);
+
+            if (user != null)
+            {
+                var platformInfo = user.GetPlatformUserInfo()
+                    .FirstOrDefault(pui => pui.PlatformName == GoogleFitConstants.GoogleFitPlatformName);
+
+                if (platformInfo != default)
+                {
+                    AuthTokensResponse tokensResponse;
+                    try
+                    {
+                        tokensResponse = await _googleFitTokensService.RefreshToken(platformInfo.UserId, cancellationToken);
+                    }
+                    catch (TokenRefreshException ex)
+                    {
+                        _logger.LogError(ex, ex.Message);
+                        return;
+                    }
+
+                    await _authService.RevokeTokenRequest(tokensResponse.AccessToken, cancellationToken);
+
+                    // update the revoke reason and timestamp for this user
+                    platformInfo.RevokedAccessReason = RevokeReason.UserInitiated;
+                    platformInfo.RevokedTimeStamp = _utcNowFunc();
+                    await UpdateUser(user, cancellationToken);
+                }
             }
         }
     }

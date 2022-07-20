@@ -86,15 +86,34 @@ namespace FitOnFhir.Common.Services
                     user.AddPlatformUserInfo(new PlatformUserInfo(platformName, platformIdentifier, DataImportState.ReadyToImport));
                 }
 
-                await _usersTableRepository.Update(
-                    user,
-                    UserConflictResolvers.ResolveConflictAuthorization,
-                    cancellationToken);
+                await UpdateUser(user, cancellationToken);
             }
 
             await QueueFitnessImport(user, cancellationToken);
         }
 
+        public async Task<User> RetrieveUserForPatient(string externalPatientId, string externalSystem, CancellationToken cancellationToken)
+        {
+            Patient patient = await _resourceManagementService.GetResourceByIdentityAsync<Patient>(externalPatientId, externalSystem);
+
+            if (patient != null)
+            {
+                return await _usersTableRepository.GetById(patient.Id, cancellationToken);
+            }
+
+            return null;
+        }
+
+        public async Task UpdateUser(User user, CancellationToken cancellationToken)
+        {
+            await _usersTableRepository.Update(
+                user,
+                UserConflictResolvers.ResolveConflictAuthorization,
+                cancellationToken);
+        }
+
         public abstract Task QueueFitnessImport(User user, CancellationToken cancellationToken);
+
+        public abstract Task RevokeAccess(string userId, CancellationToken cancellationToken);
     }
 }
