@@ -20,7 +20,7 @@
     <PackageReference Include="Google.Apis.Fitness.v1" Version="1.56.0.2454" />
     <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.56.0.1869" />
     <PackageReference Include="Google.Apis.PeopleService.v1" Version="1.56.0.2616" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.11.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
     <PackageReference Include="Azure.Data.Tables" Version="12.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.7" />
