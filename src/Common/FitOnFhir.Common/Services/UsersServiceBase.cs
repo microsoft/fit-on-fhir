@@ -114,6 +114,6 @@ namespace FitOnFhir.Common.Services
 
         public abstract Task QueueFitnessImport(User user, CancellationToken cancellationToken);
 
-        public abstract Task RevokeAccess(string userId, CancellationToken cancellationToken);
+        public abstract Task<bool> RevokeAccess(string userId, string system, CancellationToken cancellationToken);
     }
 }

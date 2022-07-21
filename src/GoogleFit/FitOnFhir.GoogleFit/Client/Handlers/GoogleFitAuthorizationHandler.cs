@@ -121,19 +121,21 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
         private async Task<IActionResult> Revoke(RoutingRequest request)
         {
             string patientId;
+            string system;
             try
             {
                 patientId = HttpUtility.UrlDecode(EnsureArg.IsNotNullOrWhiteSpace(request?.HttpRequest?.Query?[Constants.PatientIdQueryParameter], $"query.{Constants.PatientIdQueryParameter}"));
+                system = HttpUtility.UrlDecode(EnsureArg.IsNotNullOrWhiteSpace(request?.HttpRequest?.Query?[Constants.SystemQueryParameter], $"query.{Constants.SystemQueryParameter}"));
             }
             catch (ArgumentException)
             {
-                return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' is a required query parameter.");
+                return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
             }
 
             try
             {
-                await _usersService.RevokeAccess(patientId, request.Token);
-                return new OkObjectResult("Access revoked successfully.");
+                return await _usersService.RevokeAccess(patientId, system, request.Token) ?
+                    new OkObjectResult("Access revoked successfully.") : new NotFoundObjectResult("Access not revoked");
             }
             catch (Exception ex)
             {

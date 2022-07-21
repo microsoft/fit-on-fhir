@@ -120,9 +120,9 @@ namespace FitOnFhir.GoogleFit.Services
             }
         }
 
-        public override async Task RevokeAccess(string patientId, CancellationToken cancellationToken)
+        public override async Task<bool> RevokeAccess(string patientId, string system, CancellationToken cancellationToken)
         {
-            var user = await RetrieveUserForPatient(patientId, GoogleFitConstants.GoogleFitPlatformName, cancellationToken);
+            var user = await RetrieveUserForPatient(patientId, system, cancellationToken);
 
             if (user != null)
             {
@@ -139,7 +139,7 @@ namespace FitOnFhir.GoogleFit.Services
                     catch (TokenRefreshException ex)
                     {
                         _logger.LogError(ex, ex.Message);
-                        return;
+                        return false;
                     }
 
                     await _authService.RevokeTokenRequest(tokensResponse.AccessToken, cancellationToken);
@@ -147,9 +147,13 @@ namespace FitOnFhir.GoogleFit.Services
                     // update the revoke reason and timestamp for this user
                     platformInfo.RevokedAccessReason = RevokeReason.UserInitiated;
                     platformInfo.RevokedTimeStamp = _utcNowFunc();
+                    platformInfo.ImportState = DataImportState.Unauthorized;
                     await UpdateUser(user, cancellationToken);
+                    return true;
                 }
             }
+
+            return false;
         }
     }
 }
