@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FitOnFhir.Authorization.Services;
-using FitOnFhir.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -24,7 +23,6 @@ namespace FitOnFhir.Authorization
 
         public AuthorizationFunction(
             IRoutingService routingService,
-            ITokenValidationService authenticationHandler,
             ILogger<AuthorizationFunction> logger)
         {
             _routingService = EnsureArg.IsNotNull(routingService, nameof(routingService));
@@ -33,7 +31,7 @@ namespace FitOnFhir.Authorization
 
         [FunctionName("api")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{p1?}/{p2?}/{p3?}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{p1?}/{p2?}")] HttpRequest req,
             ExecutionContext context,
             CancellationToken cancellationToken)
         {
