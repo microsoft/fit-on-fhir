@@ -38,7 +38,6 @@ namespace FitOnFhir.Authorization
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
             builder.Services.AddLogging();
-            builder.Services.AddAuthentication();
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
             builder.Services.AddConfiguration<AuthenticationConfiguration>(configuration);
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();

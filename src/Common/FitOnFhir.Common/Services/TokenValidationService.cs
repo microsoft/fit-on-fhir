@@ -36,7 +36,10 @@ namespace FitOnFhir.Common.Services
             _jwtSecurityTokenHandlerProvider = EnsureArg.IsNotNull(jwtSecurityTokenHandlerProvider, nameof(jwtSecurityTokenHandlerProvider));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
-            CreateIssuerMapping();
+            if (!_authenticationConfiguration.IsAnonymousLoginEnabled)
+            {
+                CreateIssuerMapping();
+            }
         }
 
         /// <summary>
