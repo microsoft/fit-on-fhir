@@ -8,7 +8,6 @@ using FitOnFhir.Common;
 using FitOnFhir.GoogleFit.Client.Models;
 using FitOnFhir.GoogleFit.Client.Responses;
 using Google.Apis.Fitness.v1.Data;
-using Hl7.Fhir.Model;
 using Claim = System.Security.Claims.Claim;
 
 namespace FitOnFhir.GoogleFit.Tests

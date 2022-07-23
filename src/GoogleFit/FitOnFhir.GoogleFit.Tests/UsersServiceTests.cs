@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using FitOnFhir.Common;
+using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
 using FitOnFhir.Common.Tests;
 using FitOnFhir.Common.Tests.Mocks;
@@ -57,6 +58,8 @@ namespace FitOnFhir.GoogleFit.Tests
 
         protected override Func<Task> ExecuteAuthorizationCallback => () => _usersService.ProcessAuthorizationCallback("TestAuthCode", Data.AuthorizationState, CancellationToken.None);
 
+        protected override Func<Task> ExecuteRevokeAccess => () => _usersService.RevokeAccess(new AuthState() { PatientId = ExpectedPatientId, System = ExpectedExternalSystem }, CancellationToken.None);
+
         protected override string ExpectedPatientIdentifierSystem => Data.Issuer;
 
         protected override string ExpectedPatientId => Data.PatientId;
@@ -68,6 +71,8 @@ namespace FitOnFhir.GoogleFit.Tests
         protected override string ExpectedExternalPatientId => Data.ExternalPatientId;
 
         protected override string ExpectedExternalSystem => Data.ExternalSystem;
+
+        protected override string ExpectedAccessToken => Data.AccessToken;
 
         [Fact]
         public async Task GivenAuthCodeIsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()

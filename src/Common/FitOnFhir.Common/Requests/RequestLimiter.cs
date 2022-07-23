@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
+
 namespace FitOnFhir.Common.Requests
 {
     public class RequestLimiter : IRequestLimiter
@@ -22,7 +24,7 @@ namespace FitOnFhir.Common.Requests
         {
             // If maxRequestsPerMinute is zero or a negative number, assume no throttling is required.
             _maxRequestsPerMinute = maxRequestsPerMinute > 0 ? maxRequestsPerMinute : int.MaxValue;
-            _utcNowFunc = utcNowFunc;
+            _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
         }
 
         private DateTimeOffset ProcessStartTime { get; set; }

@@ -41,6 +41,8 @@ namespace FitOnFhir.Common.Tests
 
         protected abstract Func<Task> ExecuteAuthorizationCallback { get; }
 
+        protected abstract Func<Task> ExecuteRevokeAccess { get;  }
+
         protected abstract string ExpectedPatientId { get; }
 
         protected abstract string ExpectedPatientIdentifierSystem { get; }
@@ -52,6 +54,8 @@ namespace FitOnFhir.Common.Tests
         protected abstract string ExpectedExternalPatientId { get; }
 
         protected abstract string ExpectedExternalSystem { get; }
+
+        protected abstract string ExpectedAccessToken { get;  }
 
         [Fact]
         public async Task GivenPatientAndUserDoNotExist_WhenProcessAuthorizationCallbackCalled_NewPatientAndUserCreatedAndMessageQueued()

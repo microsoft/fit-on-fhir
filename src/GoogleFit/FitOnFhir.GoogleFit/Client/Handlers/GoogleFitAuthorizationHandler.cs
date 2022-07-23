@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Web;
 using EnsureThat;
 using FitOnFhir.Common;
 using FitOnFhir.Common.Interfaces;
@@ -12,6 +11,7 @@ using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
@@ -120,27 +120,35 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
 
         private async Task<IActionResult> Revoke(RoutingRequest request)
         {
-            string patientId;
-            string system;
-            try
-            {
-                patientId = HttpUtility.UrlDecode(EnsureArg.IsNotNullOrWhiteSpace(request?.HttpRequest?.Query?[Constants.PatientIdQueryParameter], $"query.{Constants.PatientIdQueryParameter}"));
-                system = HttpUtility.UrlDecode(EnsureArg.IsNotNullOrWhiteSpace(request?.HttpRequest?.Query?[Constants.SystemQueryParameter], $"query.{Constants.SystemQueryParameter}"));
-            }
-            catch (ArgumentException)
-            {
-                return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
-            }
+            AuthState state = null;
 
-            try
+            var isValidated = await _tokenValidationService.ValidateToken(request.HttpRequest, request.Token);
+
+            if (isValidated)
             {
-                return await _usersService.RevokeAccess(patientId, system, request.Token) ?
-                    new OkObjectResult("Access revoked successfully.") : new NotFoundObjectResult("Access not revoked");
+                try
+                {
+                    state = new AuthState(request?.HttpRequest?.Query);
+                }
+                catch (ArgumentException)
+                {
+                    return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
+                }
+
+                try
+                {
+                    await _usersService.RevokeAccess(state, request.Token);
+                    return new OkObjectResult("Access revoked successfully.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, ex.Message);
+                    return new ObjectResult("An unexpected error occurred while attempting to revoke data access.") { StatusCode = StatusCodes.Status500InternalServerError };
+                }
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, ex.Message);
-                return new NotFoundObjectResult(ex.Message);
+                return new UnauthorizedResult();
             }
         }
     }

@@ -49,10 +49,13 @@ namespace FitOnFhir.GoogleFit.Services
             _authService = EnsureArg.IsNotNull(authService, nameof(authService));
             _queueService = EnsureArg.IsNotNull(queueService, nameof(queueService));
             _googleFitTokensService = EnsureArg.IsNotNull(googleFitTokensService, nameof(googleFitTokensService));
-            _utcNowFunc = utcNowFunc;
+            _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = logger;
         }
 
+        public override string PlatformName => GoogleFitConstants.GoogleFitPlatformName;
+
+        /// <inheritdoc/>
         public async Task ProcessAuthorizationCallback(string authCode, string state, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(authCode))
@@ -111,6 +114,7 @@ namespace FitOnFhir.GoogleFit.Services
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
         }
 
+        /// <inheritdoc/>
         public override async Task QueueFitnessImport(User user, CancellationToken cancellationToken)
         {
             var googleUserInfo = user.GetPlatformUserInfo().FirstOrDefault(usr => usr.PlatformName == GoogleFitConstants.GoogleFitPlatformName);
@@ -120,40 +124,20 @@ namespace FitOnFhir.GoogleFit.Services
             }
         }
 
-        public override async Task<bool> RevokeAccess(string patientId, string system, CancellationToken cancellationToken)
+        /// <inheritdoc/>
+        public override async Task RevokeAccessRequest(PlatformUserInfo platformUserInfo, CancellationToken cancellationToken)
         {
-            var user = await RetrieveUserForPatient(patientId, system, cancellationToken);
-
-            if (user != null)
+            if (platformUserInfo != default)
             {
-                var platformInfo = user.GetPlatformUserInfo()
-                    .FirstOrDefault(pui => pui.PlatformName == GoogleFitConstants.GoogleFitPlatformName);
+                AuthTokensResponse tokensResponse = await _googleFitTokensService.RefreshToken(platformUserInfo.UserId, cancellationToken);
 
-                if (platformInfo != default)
-                {
-                    AuthTokensResponse tokensResponse;
-                    try
-                    {
-                        tokensResponse = await _googleFitTokensService.RefreshToken(platformInfo.UserId, cancellationToken);
-                    }
-                    catch (TokenRefreshException ex)
-                    {
-                        _logger.LogError(ex, ex.Message);
-                        return false;
-                    }
+                await _authService.RevokeTokenRequest(tokensResponse.AccessToken, cancellationToken);
 
-                    await _authService.RevokeTokenRequest(tokensResponse.AccessToken, cancellationToken);
-
-                    // update the revoke reason and timestamp for this user
-                    platformInfo.RevokedAccessReason = RevokeReason.UserInitiated;
-                    platformInfo.RevokedTimeStamp = _utcNowFunc();
-                    platformInfo.ImportState = DataImportState.Unauthorized;
-                    await UpdateUser(user, cancellationToken);
-                    return true;
-                }
+                // update the revoke reason and timestamp for this user
+                platformUserInfo.RevokedAccessReason = RevokeReason.UserInitiated;
+                platformUserInfo.RevokedTimeStamp = _utcNowFunc();
+                platformUserInfo.ImportState = DataImportState.Unauthorized;
             }
-
-            return false;
         }
     }
 }

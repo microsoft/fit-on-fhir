@@ -48,7 +48,7 @@ namespace FitOnFhir.GoogleFit.Services
             }
 
             _options = EnsureArg.IsNotNull(options, nameof(options));
-            _utcNowFunc = utcNowFunc;
+            _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
             _telemetryLogger = EnsureArg.IsNotNull(telemetryLogger, nameof(telemetryLogger));
         }
