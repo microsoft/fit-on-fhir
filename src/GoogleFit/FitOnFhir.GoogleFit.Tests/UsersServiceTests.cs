@@ -180,7 +180,7 @@ namespace FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenUserForPatientExistsWithNoMatchingPlatformInfo_WhenRevokeAccessCalled_UpdatesUserWithoutRevokeReason()
+        public async Task GivenUserForPatientExistsWithNoMatchingPlatformInfo_WhenRevokeAccessCalled_DoesNotUpdateUser()
         {
             User testUser = GetUser(ExpectedPatientId, null, Array.Empty<(string name, DataImportState state)>());
             UsersTableRepository.GetById(ExpectedPatientId, Arg.Any<CancellationToken>()).Returns(testUser);
@@ -191,11 +191,8 @@ namespace FitOnFhir.GoogleFit.Tests
 
             await _authService.DidNotReceive().RevokeTokenRequest(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
-            await UsersTableRepository.Received(1)
-                .Update(
-                    Arg.Is<User>(usr => usr == testUser),
-                    Arg.Is<Func<User, User, User>>(f => f == UserConflictResolvers.ResolveConflictAuthorization),
-                    Arg.Any<CancellationToken>());
+            await UsersTableRepository.DidNotReceive()
+                .Update(Arg.Any<User>(), Arg.Any<Func<User, User, User>>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]

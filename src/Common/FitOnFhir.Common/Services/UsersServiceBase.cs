@@ -103,9 +103,12 @@ namespace FitOnFhir.Common.Services
                 var platformInfo = user.GetPlatformUserInfo()
                     .FirstOrDefault(pui => pui.PlatformName == PlatformName);
 
-                await RevokeAccessRequest(platformInfo, cancellationToken);
+                if (platformInfo != default)
+                {
+                    await RevokeAccessRequest(platformInfo, cancellationToken);
 
-                await UpdateUser(user, cancellationToken);
+                    await UpdateUser(user, cancellationToken);
+                }
             }
         }
 
