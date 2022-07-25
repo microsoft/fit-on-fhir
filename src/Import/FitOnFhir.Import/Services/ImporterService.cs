@@ -7,12 +7,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Requests;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Requests;
 
-namespace FitOnFhir.Import.Services
+namespace Microsoft.Health.FitOnFhir.Import.Services
 {
     public class ImporterService : IImporterService
     {

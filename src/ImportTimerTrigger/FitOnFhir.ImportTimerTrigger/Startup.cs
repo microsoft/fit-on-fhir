@@ -3,14 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common;
-using FitOnFhir.ImportTimerTrigger;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Health.FitOnFhir.Common;
+using Microsoft.Health.FitOnFhir.ImportTimerTrigger;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
-namespace FitOnFhir.ImportTimerTrigger
+namespace Microsoft.Health.FitOnFhir.ImportTimerTrigger
 {
     public class Startup : StartupBase
     {

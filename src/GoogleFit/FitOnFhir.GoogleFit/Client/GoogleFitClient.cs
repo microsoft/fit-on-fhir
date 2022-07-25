@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.GoogleFit.Client.Models;
-using FitOnFhir.GoogleFit.Client.Requests;
-using FitOnFhir.GoogleFit.Client.Responses;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Requests;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 
-namespace FitOnFhir.GoogleFit.Client
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client
 {
     public class GoogleFitClient : IGoogleFitClient
     {

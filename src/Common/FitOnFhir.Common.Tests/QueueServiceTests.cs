@@ -6,19 +6,19 @@
 using Azure;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
-using FitOnFhir.Common.Interfaces;
-using FitOnFhir.Common.Services;
-using FitOnFhir.Common.Tests.Mocks;
-using FitOnFhir.GoogleFit.Common;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Services;
+using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
+using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Newtonsoft.Json;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
 using Xunit;
-using QueueMessage = FitOnFhir.Common.Models.QueueMessage;
+using QueueMessage = Microsoft.Health.FitOnFhir.Common.Models.QueueMessage;
 
-namespace FitOnFhir.Common.Tests
+namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
     public class QueueServiceTests
     {

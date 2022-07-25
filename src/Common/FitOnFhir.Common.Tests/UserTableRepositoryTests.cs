@@ -4,12 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure;
-using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Repositories;
-using FitOnFhir.Common.Tests.Mocks;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
 using NSubstitute;
 
-namespace FitOnFhir.Common.Tests
+namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
     public class UserTableRepositoryTests : TableRepositoryBaseTests<User>
     {

@@ -4,11 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Data.Tables;
-using FitOnFhir.Common.Config;
-using FitOnFhir.Common.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Models;
 
-namespace FitOnFhir.Common.Repositories
+namespace Microsoft.Health.FitOnFhir.Common.Repositories
 {
     public class UsersTableRepository : TableRepository<User>, IUsersTableRepository
     {

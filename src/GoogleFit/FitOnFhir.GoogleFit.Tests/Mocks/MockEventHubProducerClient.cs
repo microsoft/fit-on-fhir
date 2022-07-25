@@ -6,7 +6,7 @@
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Producer;
 
-namespace FitOnFhir.GoogleFit.Tests.Mocks
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests.Mocks
 {
     public class MockEventHubProducerClient : EventHubProducerClient
     {

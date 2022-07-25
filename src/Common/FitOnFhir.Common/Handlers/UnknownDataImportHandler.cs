@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Requests;
+using Microsoft.Health.FitOnFhir.Common.Requests;
 
-namespace FitOnFhir.Common.Handlers
+namespace Microsoft.Health.FitOnFhir.Common.Handlers
 {
     public class UnknownDataImportHandler : UnknownOperationHandlerBase<ImportRequest, Task<bool?>>
     {

@@ -6,15 +6,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FitOnFhir.Authorization.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Authorization.Services;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
-namespace FitOnFhir.Authorization
+namespace Microsoft.Health.FitOnFhir.Authorization
 {
     public class AuthorizationFunction
     {

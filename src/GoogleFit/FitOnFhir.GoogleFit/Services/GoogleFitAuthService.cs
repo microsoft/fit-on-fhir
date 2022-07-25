@@ -4,15 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.GoogleFit.Client.Config;
-using FitOnFhir.GoogleFit.Client.Responses;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Auth.OAuth2.Web;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Config;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 
-namespace FitOnFhir.GoogleFit.Services
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 {
     public class GoogleFitAuthService : IGoogleFitAuthService
     {

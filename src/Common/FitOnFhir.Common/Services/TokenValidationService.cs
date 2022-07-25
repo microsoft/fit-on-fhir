@@ -5,16 +5,16 @@
 
 using System.IdentityModel.Tokens.Jwt;
 using EnsureThat;
-using FitOnFhir.Common.Config;
-using FitOnFhir.Common.ExtensionMethods;
-using FitOnFhir.Common.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FitOnFhir.Common.Services
+namespace Microsoft.Health.FitOnFhir.Common.Services
 {
     public class TokenValidationService : ITokenValidationService
     {

@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace FitOnFhir.GoogleFit.Client.Models
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Models
 {
     public class DataSource
     {

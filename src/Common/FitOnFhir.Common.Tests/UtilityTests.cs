@@ -3,10 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.GoogleFit;
+using Microsoft.Health.FitOnFhir.GoogleFit;
 using Xunit;
 
-namespace FitOnFhir.Common.Tests
+namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
     public class UtilityTests
     {

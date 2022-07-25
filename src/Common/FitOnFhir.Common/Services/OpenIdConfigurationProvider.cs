@@ -4,10 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
-namespace FitOnFhir.Common.Services
+namespace Microsoft.Health.FitOnFhir.Common.Services
 {
     public class OpenIdConfigurationProvider : IOpenIdConfigurationProvider
     {

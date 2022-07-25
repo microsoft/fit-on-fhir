@@ -5,17 +5,17 @@
 
 using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
-using FitOnFhir.Common.Config;
-using FitOnFhir.Common.Requests;
-using FitOnFhir.GoogleFit.Client;
-using FitOnFhir.GoogleFit.Client.Config;
-using FitOnFhir.GoogleFit.Client.Models;
-using FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Service;
+using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Requests;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Config;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Health.Logging.Telemetry;
 
-namespace FitOnFhir.GoogleFit.Services
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 {
     public class GoogleFitImportService : ParallelTaskWorker<GoogleFitImportOptions>, IGoogleFitImportService, IAsyncDisposable
     {

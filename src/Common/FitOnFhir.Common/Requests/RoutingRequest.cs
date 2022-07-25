@@ -7,7 +7,7 @@ using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
-namespace FitOnFhir.Common.Requests
+namespace Microsoft.Health.FitOnFhir.Common.Requests
 {
     public class RoutingRequest
     {

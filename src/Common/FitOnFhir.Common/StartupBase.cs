@@ -4,15 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.Common.Config;
-using FitOnFhir.Common.Interfaces;
-using FitOnFhir.Common.Repositories;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Common.DependencyInjection;
+using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
 
-namespace FitOnFhir.Common
+namespace Microsoft.Health.FitOnFhir.Common
 {
     public abstract class StartupBase : FunctionsStartup, IStartupBase
     {

@@ -6,7 +6,7 @@
 using System.Web;
 using Newtonsoft.Json;
 
-namespace FitOnFhir.Common.Serialization
+namespace Microsoft.Health.FitOnFhir.Common.Serialization
 {
     internal class UrlSafeJsonConverter : JsonConverter
     {

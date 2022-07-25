@@ -5,7 +5,7 @@
 
 using EnsureThat;
 
-namespace FitOnFhir.Common.Requests
+namespace Microsoft.Health.FitOnFhir.Common.Requests
 {
     public class RequestLimiter : IRequestLimiter
     {

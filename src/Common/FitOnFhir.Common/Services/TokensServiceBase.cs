@@ -4,13 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.Common.Exceptions;
-using FitOnFhir.Common.Interfaces;
-using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Repositories;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Exceptions;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
 
-namespace FitOnFhir.Common.Services
+namespace Microsoft.Health.FitOnFhir.Common.Services
 {
     public abstract class TokensServiceBase<TTokenResponse> : ITokensService<TTokenResponse>
         where TTokenResponse : AuthTokenBase

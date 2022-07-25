@@ -5,7 +5,7 @@
 
 using Microsoft.AspNetCore.Http;
 
-namespace FitOnFhir.Common.Interfaces
+namespace Microsoft.Health.FitOnFhir.Common.Interfaces
 {
     public interface ITokenValidationService
     {

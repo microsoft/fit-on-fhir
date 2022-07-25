@@ -5,7 +5,7 @@
 
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
-namespace FitOnFhir.Common.Interfaces
+namespace Microsoft.Health.FitOnFhir.Common.Interfaces
 {
     public interface IOpenIdConfigurationProvider
     {

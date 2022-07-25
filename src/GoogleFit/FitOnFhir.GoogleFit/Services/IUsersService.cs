@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common;
-using FitOnFhir.Common.Config;
-using FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common;
+using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Models;
 
-namespace FitOnFhir.GoogleFit.Services
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 {
     public interface IUsersService
     {

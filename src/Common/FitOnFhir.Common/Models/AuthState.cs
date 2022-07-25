@@ -5,11 +5,11 @@
 
 using System.Web;
 using EnsureThat;
-using FitOnFhir.Common.Serialization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Health.FitOnFhir.Common.Serialization;
 using Newtonsoft.Json;
 
-namespace FitOnFhir.Common.Models
+namespace Microsoft.Health.FitOnFhir.Common.Models
 {
     public class AuthState
     {

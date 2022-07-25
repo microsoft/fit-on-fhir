@@ -6,7 +6,7 @@
 using EnsureThat;
 using Microsoft.Health.Common.Telemetry;
 
-namespace FitOnFhir.GoogleFit.Client.Telemetry
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Telemetry
 {
     public static class GoogleFitMetrics
     {

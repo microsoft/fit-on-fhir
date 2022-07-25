@@ -4,14 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Repositories;
-using FitOnFhir.Common.Resolvers;
 using Microsoft.Health.Extensions.Fhir.Service;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Resolvers;
 using Identifier = Hl7.Fhir.Model.Identifier;
 using Patient = Hl7.Fhir.Model.Patient;
 
-namespace FitOnFhir.Common.Services
+namespace Microsoft.Health.FitOnFhir.Common.Services
 {
     public abstract class UsersServiceBase
     {

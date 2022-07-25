@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.GoogleFit.Client.Telemetry;
 using Microsoft.Health.Common.Config;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Telemetry;
 using Microsoft.Health.Logging.Telemetry;
 
-namespace FitOnFhir.GoogleFit.Client.Config
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Config
 {
     public class GoogleFitImportOptions
     {

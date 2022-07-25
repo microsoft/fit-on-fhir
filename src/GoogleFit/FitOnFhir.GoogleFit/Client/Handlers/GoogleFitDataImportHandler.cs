@@ -4,14 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.Common.Interfaces;
-using FitOnFhir.Common.Requests;
-using FitOnFhir.GoogleFit.Common;
-using FitOnFhir.GoogleFit.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Requests;
+using Microsoft.Health.FitOnFhir.GoogleFit.Common;
+using Microsoft.Health.FitOnFhir.GoogleFit.Services;
 
-namespace FitOnFhir.GoogleFit.Client.Handlers
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 {
     public class GoogleFitDataImportHandler : IResponsibilityHandler<ImportRequest, Task<bool?>>
     {

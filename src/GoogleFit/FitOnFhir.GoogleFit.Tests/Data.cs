@@ -4,13 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
-using FitOnFhir.Common;
-using FitOnFhir.GoogleFit.Client.Models;
-using FitOnFhir.GoogleFit.Client.Responses;
 using Google.Apis.Fitness.v1.Data;
+using Microsoft.Health.FitOnFhir.Common;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 using Claim = System.Security.Claims.Claim;
 
-namespace FitOnFhir.GoogleFit.Tests
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 {
     public static class Data
     {

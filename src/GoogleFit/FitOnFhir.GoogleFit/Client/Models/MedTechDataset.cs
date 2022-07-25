@@ -6,11 +6,11 @@
 using System.Text;
 using Azure.Messaging.EventHubs;
 using EnsureThat;
-using FitOnFhir.GoogleFit.Common;
 using Google.Apis.Fitness.v1.Data;
+using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Newtonsoft.Json.Linq;
 
-namespace FitOnFhir.GoogleFit.Client.Models
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Models
 {
     public class MedTechDataset : IMedTechDataset
     {

@@ -6,7 +6,7 @@
 using Azure;
 using Azure.Data.Tables;
 
-namespace FitOnFhir.Common.Repositories
+namespace Microsoft.Health.FitOnFhir.Common.Repositories
 {
     public interface ITableRepository<T>
         where T : class

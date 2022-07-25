@@ -8,7 +8,7 @@ using Azure.Data.Tables;
 using EnsureThat;
 using Newtonsoft.Json;
 
-namespace FitOnFhir.Common.Models
+namespace Microsoft.Health.FitOnFhir.Common.Models
 {
     public class User : EntityBase
     {

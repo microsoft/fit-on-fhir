@@ -4,10 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
-using FitOnFhir.Common.Models;
 using Google.Apis.Auth.OAuth2.Responses;
+using Microsoft.Health.FitOnFhir.Common.Models;
 
-namespace FitOnFhir.GoogleFit.Client.Responses
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses
 {
     public class AuthTokensResponse : AuthTokenBase
     {

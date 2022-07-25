@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Common.Handler;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
-namespace FitOnFhir.Authorization.Services
+namespace Microsoft.Health.FitOnFhir.Authorization.Services
 {
     public interface IRoutingService
     {

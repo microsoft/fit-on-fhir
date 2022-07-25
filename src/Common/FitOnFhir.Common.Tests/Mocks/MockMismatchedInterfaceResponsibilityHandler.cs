@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Common.Handler;
 
-namespace FitOnFhir.Common.Tests.Mocks
+namespace Microsoft.Health.FitOnFhir.Common.Tests.Mocks
 {
     internal class MockMismatchedInterfaceResponsibilityHandler : IResponsibilityHandler<HttpRequest, Task<IActionResult>>
     {

@@ -4,20 +4,19 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.Common.Exceptions;
-using FitOnFhir.Common.Interfaces;
-using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Repositories;
-using FitOnFhir.Common.Services;
-using FitOnFhir.GoogleFit.Client.Models;
-using FitOnFhir.GoogleFit.Client.Responses;
-using FitOnFhir.GoogleFit.Common;
-using FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Extensions.Fhir.Service;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Services;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
+using Microsoft.Health.FitOnFhir.GoogleFit.Common;
+using Microsoft.Health.FitOnFhir.GoogleFit.Repositories;
 using Newtonsoft.Json;
 
-namespace FitOnFhir.GoogleFit.Services
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 {
     /// <summary>
     /// User Service.

@@ -10,15 +10,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Data.Tables;
-using FitOnFhir.Common;
-using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Repositories;
-using FitOnFhir.Common.Resolvers;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Resolvers;
 using Newtonsoft.Json;
 
-namespace FitOnFhir.ImportTimerTrigger
+namespace Microsoft.Health.FitOnFhir.ImportTimerTrigger
 {
     public class ImportTimerTriggerFunction
     {

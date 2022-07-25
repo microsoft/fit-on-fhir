@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Models;
 
-namespace FitOnFhir.Common.Repositories
+namespace Microsoft.Health.FitOnFhir.Common.Repositories
 {
     public interface IUsersTableRepository : ITableRepository<User>
     {

@@ -3,25 +3,25 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Tests.Mocks;
-using FitOnFhir.GoogleFit.Client;
-using FitOnFhir.GoogleFit.Client.Config;
-using FitOnFhir.GoogleFit.Client.Models;
-using FitOnFhir.GoogleFit.Client.Responses;
-using FitOnFhir.GoogleFit.Client.Telemetry;
-using FitOnFhir.GoogleFit.Services;
-using FitOnFhir.GoogleFit.Tests.Mocks;
 using Google.Apis.Fitness.v1.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Config;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Telemetry;
+using Microsoft.Health.FitOnFhir.GoogleFit.Services;
+using Microsoft.Health.FitOnFhir.GoogleFit.Tests.Mocks;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
 using NSubstitute.Core;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
-using DataSource = FitOnFhir.GoogleFit.Client.Models.DataSource;
+using DataSource = Microsoft.Health.FitOnFhir.GoogleFit.Client.Models.DataSource;
 
-namespace FitOnFhir.GoogleFit.Tests
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 {
     public class GoogleFitImportServiceTests
     {

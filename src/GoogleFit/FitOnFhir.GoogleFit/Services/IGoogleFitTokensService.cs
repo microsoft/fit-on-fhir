@@ -3,10 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Interfaces;
-using FitOnFhir.GoogleFit.Client.Responses;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 
-namespace FitOnFhir.GoogleFit.Services
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 {
     public interface IGoogleFitTokensService : ITokensService<AuthTokensResponse>
     {

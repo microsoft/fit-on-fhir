@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Models;
 
-namespace FitOnFhir.GoogleFit.Common
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Common
 {
     /// <summary>
     /// Holds project wide constant strings for platform endpoints and names

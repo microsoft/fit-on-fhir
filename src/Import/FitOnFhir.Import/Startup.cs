@@ -5,29 +5,29 @@
 
 using System;
 using System.Threading.Tasks;
-using FitOnFhir.Common;
-using FitOnFhir.Common.ExtensionMethods;
-using FitOnFhir.Common.Handlers;
-using FitOnFhir.Common.Interfaces;
-using FitOnFhir.Common.Repositories;
-using FitOnFhir.Common.Requests;
-using FitOnFhir.GoogleFit.Client;
-using FitOnFhir.GoogleFit.Client.Config;
-using FitOnFhir.GoogleFit.Client.Handlers;
-using FitOnFhir.GoogleFit.Client.Telemetry;
-using FitOnFhir.GoogleFit.Repositories;
-using FitOnFhir.GoogleFit.Services;
-using FitOnFhir.Import;
-using FitOnFhir.Import.Services;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Common.DependencyInjection;
+using Microsoft.Health.FitOnFhir.Common;
+using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
+using Microsoft.Health.FitOnFhir.Common.Handlers;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Requests;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Config;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Telemetry;
+using Microsoft.Health.FitOnFhir.GoogleFit.Repositories;
+using Microsoft.Health.FitOnFhir.GoogleFit.Services;
+using Microsoft.Health.FitOnFhir.Import;
+using Microsoft.Health.FitOnFhir.Import.Services;
 using Microsoft.Health.Logging.Telemetry;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
-namespace FitOnFhir.Import
+namespace Microsoft.Health.FitOnFhir.Import
 {
     public class Startup : StartupBase
     {
