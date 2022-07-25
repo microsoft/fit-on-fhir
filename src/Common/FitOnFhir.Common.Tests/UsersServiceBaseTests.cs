@@ -176,7 +176,7 @@ namespace FitOnFhir.Common.Tests
             };
         }
 
-        private User GetUser(string userId, string platformUserId, params (string name, DataImportState state)[] platforms)
+        protected User GetUser(string userId, string platformUserId, params (string name, DataImportState state)[] platforms)
         {
             var user = new User(Guid.Parse(userId));
 

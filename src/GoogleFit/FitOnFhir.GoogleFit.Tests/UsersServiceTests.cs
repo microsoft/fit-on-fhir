@@ -3,9 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.IdentityModel.Tokens.Jwt;
 using FitOnFhir.Common;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Repositories;
+using FitOnFhir.Common.Resolvers;
 using FitOnFhir.Common.Tests;
 using FitOnFhir.Common.Tests.Mocks;
 using FitOnFhir.GoogleFit.Client.Models;
@@ -24,6 +26,7 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
         private readonly IGoogleFitAuthService _authService;
         private readonly IGoogleFitTokensService _googleFitTokensService;
+        private readonly JwtSecurityToken _jwtSecurityToken = new JwtSecurityToken();
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly MockLogger<UsersService> _logger;
         private readonly UsersService _usersService;
@@ -158,6 +161,61 @@ namespace FitOnFhir.GoogleFit.Tests
             await ExecuteAuthorizationCallback();
 
             await _usersKeyVaultRepository.Received(1).Upsert(Data.GoogleUserId, Data.RefreshToken, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenUserForPatientDoesNotExist_WhenRevokeAccessCalled_ReturnsWithoutUpdatingUser()
+        {
+            UsersTableRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<User>(null));
+
+            await ExecuteRevokeAccess();
+
+            await _googleFitTokensService.DidNotReceive().RefreshToken(Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+            await _authService.DidNotReceive().RevokeTokenRequest(Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+            await UsersTableRepository.DidNotReceive()
+                .Update(Arg.Any<User>(), Arg.Any<Func<User, User, User>>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenUserForPatientExistsWithNoMatchingPlatformInfo_WhenRevokeAccessCalled_UpdatesUserWithoutRevokeReason()
+        {
+            User testUser = GetUser(ExpectedPatientId, null, Array.Empty<(string name, DataImportState state)>());
+            UsersTableRepository.GetById(ExpectedPatientId, Arg.Any<CancellationToken>()).Returns(testUser);
+
+            await ExecuteRevokeAccess();
+
+            await _googleFitTokensService.DidNotReceive().RefreshToken(Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+            await _authService.DidNotReceive().RevokeTokenRequest(Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+            await UsersTableRepository.Received(1)
+                .Update(
+                    Arg.Is<User>(usr => usr == testUser),
+                    Arg.Is<Func<User, User, User>>(f => f == UserConflictResolvers.ResolveConflictAuthorization),
+                    Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenUserForPatientExists_WhenRevokeAccessCalled_UpdatesUser()
+        {
+            User testUser = GetUser(ExpectedPatientId, ExpectedPlatformUserId, (ExpectedPlatform, DataImportState.ReadyToImport));
+            UsersTableRepository.GetById(ExpectedPatientId, Arg.Any<CancellationToken>()).Returns(testUser);
+
+            AuthTokensResponse tokensResponse = new AuthTokensResponse() { AccessToken = Data.AccessToken, IdToken = _jwtSecurityToken, RefreshToken = Data.RefreshToken };
+            _googleFitTokensService.RefreshToken(
+                Arg.Is<string>(str => str == ExpectedPlatformUserId),
+                Arg.Any<CancellationToken>()).Returns(tokensResponse);
+
+            await ExecuteRevokeAccess();
+
+            await UsersTableRepository.Received(1)
+                .Update(
+                    Arg.Is<User>(usr => usr == testUser),
+                    Arg.Is<Func<User, User, User>>(f => f == UserConflictResolvers.ResolveConflictAuthorization),
+                    Arg.Any<CancellationToken>());
         }
     }
 }

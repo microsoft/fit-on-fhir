@@ -7,6 +7,7 @@ using FitOnFhir.Common;
 using FitOnFhir.Common.Interfaces;
 using FitOnFhir.Common.Models;
 using FitOnFhir.Common.Requests;
+using FitOnFhir.Common.Tests.Mocks;
 using FitOnFhir.GoogleFit.Client.Handlers;
 using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Common;
@@ -38,14 +39,14 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
         private ITokenValidationService _tokenValidationService;
-        private readonly ILogger<GoogleFitAuthorizationHandler> _logger;
+        private readonly MockLogger<GoogleFitAuthorizationHandler> _logger;
 
         public GoogleFitAuthorizationHandlerTests()
         {
             _authService = Substitute.For<IGoogleFitAuthService>();
             _usersService = Substitute.For<IUsersService>();
             _tokenValidationService = Substitute.For<ITokenValidationService>();
-            _logger = NullLogger<GoogleFitAuthorizationHandler>.Instance;
+            _logger = Substitute.For<MockLogger<GoogleFitAuthorizationHandler>>();
 
             _googleFitAuthorizationHandler = new GoogleFitAuthorizationHandler(
                 _authService,
@@ -150,7 +151,9 @@ namespace FitOnFhir.GoogleFit.Tests
         [Fact]
         public async Task GivenRequestHandledAndExceptionIsThrown_WhenRequestIsRevoke_ReturnsInternalServerError()
         {
-            _usersService.RevokeAccess(Arg.Any<AuthState>(), Arg.Any<CancellationToken>()).Throws(new Exception("exception"));
+            string exceptionMessage = "process dataset exception";
+            var exception = new Exception(exceptionMessage);
+            _usersService.RevokeAccess(Arg.Any<AuthState>(), Arg.Any<CancellationToken>()).Throws(exception);
 
             var routingRequest = CreateRoutingRequest(googleFitRevokeRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
@@ -160,6 +163,35 @@ namespace FitOnFhir.GoogleFit.Tests
             var expectedResult = new ObjectResult("An unexpected error occurred while attempting to revoke data access.");
             Assert.Equal(expectedResult.Value, actualResult?.Value);
             Assert.Equal(StatusCodes.Status500InternalServerError, actualResult.StatusCode);
+
+            _logger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<Exception>(exc => exc == exception),
+                Arg.Is<string>(msg => msg == exceptionMessage));
+        }
+
+        [Fact]
+        public async Task GivenRequestHandledAndAllConditionsMet_WhenRequestIsRevoke_ReturnsOkObjectResult()
+        {
+            _usersService.RevokeAccess(Arg.Any<AuthState>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+            var routingRequest = CreateRoutingRequest(googleFitRevokeRequest);
+            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+            Assert.IsType<OkObjectResult>(result);
+
+            var actualResult = result as OkObjectResult;
+            var expectedResult = new OkObjectResult("Access revoked successfully.");
+            Assert.Equal(expectedResult.Value, actualResult?.Value);
+        }
+
+        [Fact]
+        public async Task GivenRequestHandledAndTokenIsInvalid_WhenRequestIsRevoke_ReturnsUnauthorizedResult()
+        {
+            _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(false);
+
+            var routingRequest = CreateRoutingRequest(googleFitRevokeRequest);
+            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+            Assert.IsType<UnauthorizedResult>(result);
         }
 
         private RoutingRequest CreateRoutingRequest(PathString pathString, bool includePatientId = true, bool includeSystem = true)
