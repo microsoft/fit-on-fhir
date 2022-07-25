@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Requests;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Common.Handler;
+using Microsoft.Health.FitOnFhir.Common.Requests;
 
-namespace FitOnFhir.Common.Tests.Mocks
+namespace Microsoft.Health.FitOnFhir.Common.Tests.Mocks
 {
     internal class MockBaseResponsibilityHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
     {

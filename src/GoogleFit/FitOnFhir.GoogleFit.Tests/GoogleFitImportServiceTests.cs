@@ -3,25 +3,25 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Tests.Mocks;
-using FitOnFhir.GoogleFit.Client;
-using FitOnFhir.GoogleFit.Client.Config;
-using FitOnFhir.GoogleFit.Client.Models;
-using FitOnFhir.GoogleFit.Client.Responses;
-using FitOnFhir.GoogleFit.Client.Telemetry;
-using FitOnFhir.GoogleFit.Services;
-using FitOnFhir.GoogleFit.Tests.Mocks;
 using Google.Apis.Fitness.v1.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Config;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Telemetry;
+using Microsoft.Health.FitOnFhir.GoogleFit.Services;
+using Microsoft.Health.FitOnFhir.GoogleFit.Tests.Mocks;
 using Microsoft.Health.Logging.Telemetry;
 using NSubstitute;
 using NSubstitute.Core;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
-using DataSource = FitOnFhir.GoogleFit.Client.Models.DataSource;
+using DataSource = Microsoft.Health.FitOnFhir.GoogleFit.Client.Models.DataSource;
 
-namespace FitOnFhir.GoogleFit.Tests
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 {
     public class GoogleFitImportServiceTests
     {
@@ -36,8 +36,8 @@ namespace FitOnFhir.GoogleFit.Tests
         private readonly CancellationToken _cancellationToken = CancellationToken.None;
 
         private readonly Dataset _dataset = new Dataset();
-        private readonly DataSource _dataSource = new DataSource(_dataStreamId, _deviceUid, _applicationPackageName);
-        private readonly List<DataSource> _dataSources = new List<DataSource>();
+        private readonly Client.Models.DataSource _dataSource = new Client.Models.DataSource(_dataStreamId, _deviceUid, _applicationPackageName);
+        private readonly List<Client.Models.DataSource> _dataSources = new List<Client.Models.DataSource>();
 
         private readonly DateTimeOffset _now =
             new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
@@ -114,7 +114,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             _ = _googleFitClient.Received(1).DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Is<DataSource>(ds => ds == _dataSource),
+                Arg.Is<Client.Models.DataSource>(ds => ds == _dataSource),
                 Arg.Is<string>(str => str == expectedDataSetId),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
@@ -136,7 +136,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             _ = _googleFitClient.Received(1).DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Is<DataSource>(ds => ds == _dataSource),
+                Arg.Is<Client.Models.DataSource>(ds => ds == _dataSource),
                 Arg.Is<string>(str => str == oneDayBackDataSetId),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
@@ -150,7 +150,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<DataSource>(),
+                Arg.Any<Client.Models.DataSource>(),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(nullMedTechDataset);
@@ -205,7 +205,7 @@ namespace FitOnFhir.GoogleFit.Tests
             var datasetRequestException = new Exception(exceptionMessage);
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<DataSource>(),
+                Arg.Any<Client.Models.DataSource>(),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(datasetRequestException);
@@ -245,7 +245,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<DataSource>(),
+                Arg.Any<Client.Models.DataSource>(),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
@@ -257,7 +257,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<DataSource>(),
+                Arg.Any<Client.Models.DataSource>(),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
@@ -321,7 +321,7 @@ namespace FitOnFhir.GoogleFit.Tests
                     return true;
                 });
 
-            var dataSources = new List<DataSource>();
+            var dataSources = new List<Client.Models.DataSource>();
 
             for (int i = 0; i < dataSourcesCount; i++)
             {
@@ -351,12 +351,12 @@ namespace FitOnFhir.GoogleFit.Tests
                     dataset.GetPageToken().Returns(x => nextPageToken, pageTokenResponses.ToArray());
                 }
 
-                DataSource dataSource = new DataSource($"{_dataStreamId}{i}", _deviceUid, _applicationPackageName);
+                Client.Models.DataSource dataSource = new Client.Models.DataSource($"{_dataStreamId}{i}", _deviceUid, _applicationPackageName);
                 dataSources.Add(dataSource);
 
                 _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Is<DataSource>(d => d == dataSource),
+                Arg.Is<Client.Models.DataSource>(d => d == dataSource),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
@@ -391,7 +391,7 @@ namespace FitOnFhir.GoogleFit.Tests
 
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<DataSource>(),
+                Arg.Any<Client.Models.DataSource>(),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),

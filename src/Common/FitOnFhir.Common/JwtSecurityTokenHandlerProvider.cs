@@ -7,7 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using EnsureThat;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FitOnFhir.Common
+namespace Microsoft.Health.FitOnFhir.Common
 {
     public class JwtSecurityTokenHandlerProvider : IJwtSecurityTokenHandlerProvider
     {

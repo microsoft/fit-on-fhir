@@ -4,10 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure;
-using FitOnFhir.Common.Config;
-using FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Models;
 
-namespace FitOnFhir.Common.Interfaces
+namespace Microsoft.Health.FitOnFhir.Common.Interfaces
 {
     /// <summary>
     /// An interface for working with Azure storage queues

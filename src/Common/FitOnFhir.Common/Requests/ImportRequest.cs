@@ -4,9 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Models;
 
-namespace FitOnFhir.Common.Requests
+namespace Microsoft.Health.FitOnFhir.Common.Requests
 {
     public class ImportRequest
     {

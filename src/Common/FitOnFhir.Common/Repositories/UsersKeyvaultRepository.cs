@@ -6,10 +6,10 @@
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using EnsureThat;
-using FitOnFhir.Common.Config;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Config;
 
-namespace FitOnFhir.Common.Repositories
+namespace Microsoft.Health.FitOnFhir.Common.Repositories
 {
     public class UsersKeyVaultRepository : IUsersKeyVaultRepository
     {

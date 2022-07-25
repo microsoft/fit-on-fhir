@@ -5,14 +5,14 @@
 
 using Azure;
 using Azure.Data.Tables;
-using FitOnFhir.Common.Config;
-using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
-namespace FitOnFhir.Common.Tests
+namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
     public abstract class TableRepositoryBaseTests<T>
         where T : EntityBase

@@ -3,16 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Repositories;
-using FitOnFhir.Common.Tests.Mocks;
-using FitOnFhir.GoogleFit.Client.Responses;
-using FitOnFhir.GoogleFit.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
+using Microsoft.Health.FitOnFhir.GoogleFit.Services;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
-namespace FitOnFhir.GoogleFit.Tests
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 {
     public class GoogleFitTokensServiceTests
     {

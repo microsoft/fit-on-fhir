@@ -5,13 +5,13 @@
 
 using Azure.Storage.Queues;
 using EnsureThat;
-using FitOnFhir.Common.Config;
-using FitOnFhir.Common.Interfaces;
-using FitOnFhir.Common.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Models;
 using Newtonsoft.Json;
 
-namespace FitOnFhir.Common.Services
+namespace Microsoft.Health.FitOnFhir.Common.Services
 {
     public class QueueService : IQueueService
     {

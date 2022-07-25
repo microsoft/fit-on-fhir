@@ -4,14 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure;
-using FitOnFhir.Common.Tests;
-using FitOnFhir.Common.Tests.Mocks;
-using FitOnFhir.GoogleFit.Client.Models;
-using FitOnFhir.GoogleFit.Common;
-using FitOnFhir.GoogleFit.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Tests;
+using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
+using Microsoft.Health.FitOnFhir.GoogleFit.Common;
+using Microsoft.Health.FitOnFhir.GoogleFit.Repositories;
 using NSubstitute;
 
-namespace FitOnFhir.GoogleFit.Tests
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 {
     public class GoogleFitUserTableRepositoryTests : TableRepositoryBaseTests<GoogleFitUser>
     {

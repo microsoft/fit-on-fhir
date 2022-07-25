@@ -7,14 +7,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FitOnFhir.Common.Requests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
+using Microsoft.Health.FitOnFhir.Common.Requests;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
-namespace FitOnFhir.Authorization.Services
+namespace Microsoft.Health.FitOnFhir.Authorization.Services
 {
     public class RoutingService : IRoutingService
     {

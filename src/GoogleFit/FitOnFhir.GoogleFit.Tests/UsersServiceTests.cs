@@ -4,21 +4,21 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
-using FitOnFhir.Common;
-using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Repositories;
-using FitOnFhir.Common.Resolvers;
-using FitOnFhir.Common.Tests;
-using FitOnFhir.Common.Tests.Mocks;
-using FitOnFhir.GoogleFit.Client.Models;
-using FitOnFhir.GoogleFit.Client.Responses;
-using FitOnFhir.GoogleFit.Common;
-using FitOnFhir.GoogleFit.Repositories;
-using FitOnFhir.GoogleFit.Services;
+using Microsoft.Health.FitOnFhir.Common;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Resolvers;
+using Microsoft.Health.FitOnFhir.Common.Tests;
+using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
+using Microsoft.Health.FitOnFhir.GoogleFit.Common;
+using Microsoft.Health.FitOnFhir.GoogleFit.Repositories;
+using Microsoft.Health.FitOnFhir.GoogleFit.Services;
 using NSubstitute;
 using Xunit;
 
-namespace FitOnFhir.GoogleFit.Tests
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 {
     public class UsersServiceTests : UsersServiceBaseTests
     {

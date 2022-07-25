@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.GoogleFit.Common;
+using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 
-namespace FitOnFhir.GoogleFit.Client.Config
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Config
 {
     public class GoogleFitAuthorizationConfiguration
     {

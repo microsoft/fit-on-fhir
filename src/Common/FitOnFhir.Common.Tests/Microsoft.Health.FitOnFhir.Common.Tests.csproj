@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -10,10 +10,14 @@
   </PropertyGroup>
   <ItemGroup>
     <AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
-  </ItemGroup>  
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Microsoft.Health.Common" Version="1.0.0-20220502.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
 	<PackageReference Include="coverlet.msbuild" Version="3.1.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -39,16 +43,17 @@
     </PackageReference>	
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\FitOnFhir.Common.Tests\FitOnFhir.Common.Tests.csproj" />
-    <ProjectReference Include="..\..\GoogleFit\FitOnFhir.GoogleFit\FitOnFhir.GoogleFit.csproj" />
+    <ProjectReference Include="..\..\Authorization\FitOnFhir.Authorization\Microsoft.Health.FitOnFhir.Authorization.csproj" />
+    <ProjectReference Include="..\FitOnFhir.Common\Microsoft.Health.FitOnFhir.Common.csproj" />
+    <ProjectReference Include="..\..\GoogleFit\FitOnFhir.GoogleFit\Microsoft.Health.FitOnFhir.GoogleFit.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <NoWarn>1701;1702;</NoWarn>
+    <NoWarn>1701;1702; </NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <NoWarn>1701;1702;</NoWarn>
+    <NoWarn>1701;1702; </NoWarn>
   </PropertyGroup>  
 </Project>

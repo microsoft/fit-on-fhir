@@ -6,7 +6,7 @@
 using Azure;
 using Azure.Data.Tables;
 
-namespace FitOnFhir.Common.Models
+namespace Microsoft.Health.FitOnFhir.Common.Models
 {
     public abstract class EntityBase
     {

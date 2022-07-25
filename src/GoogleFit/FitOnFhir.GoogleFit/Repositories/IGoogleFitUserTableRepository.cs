@@ -3,10 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Repositories;
-using FitOnFhir.GoogleFit.Client.Models;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
 
-namespace FitOnFhir.GoogleFit.Repositories
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Repositories
 {
     public interface IGoogleFitUserTableRepository : ITableRepository<GoogleFitUser>
     {

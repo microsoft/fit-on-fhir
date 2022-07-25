@@ -5,7 +5,7 @@
 
 using Microsoft.Extensions.Logging;
 
-namespace FitOnFhir.Common.Tests.Mocks
+namespace Microsoft.Health.FitOnFhir.Common.Tests.Mocks
 {
     public abstract class MockLogger<T> : ILogger<T>
     {

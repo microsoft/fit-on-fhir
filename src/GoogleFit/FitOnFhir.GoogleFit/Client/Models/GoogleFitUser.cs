@@ -6,11 +6,11 @@
 using System.Collections.Concurrent;
 using Azure.Data.Tables;
 using EnsureThat;
-using FitOnFhir.Common.Models;
-using FitOnFhir.GoogleFit.Common;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Newtonsoft.Json;
 
-namespace FitOnFhir.GoogleFit.Client.Models
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Models
 {
     public class GoogleFitUser : EntityBase
     {

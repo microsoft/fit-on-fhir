@@ -3,20 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Authorization.Services;
-using FitOnFhir.Common.Requests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Common.Handler;
+using Microsoft.Health.FitOnFhir.Authorization.Services;
+using Microsoft.Health.FitOnFhir.Common.Requests;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
-namespace FitOnFhir.Common.Tests
+namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
     public class RoutingServiceTests
     {

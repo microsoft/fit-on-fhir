@@ -35,7 +35,7 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.17.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\FitOnFhir.Common\FitOnFhir.Common.csproj" />
+    <ProjectReference Include="..\..\Common\FitOnFhir.Common\Microsoft.Health.FitOnFhir.Common.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>

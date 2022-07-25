@@ -6,7 +6,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Common.Handler;
 
-namespace FitOnFhir.Common.ExtensionMethods
+namespace Microsoft.Health.FitOnFhir.Common.ExtensionMethods
 {
     /// <summary>
     /// Provides a set of extension methods for dependency injection methods for the Identity function.

@@ -7,7 +7,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Fitness.v1;
 using Google.Apis.Services;
 
-namespace FitOnFhir.GoogleFit.Client.Requests
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Requests
 {
     public class BaseFitnessRequest
     {

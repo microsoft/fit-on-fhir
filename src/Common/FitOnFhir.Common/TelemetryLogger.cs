@@ -8,7 +8,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.Health.Logging.Telemetry;
 using Metric = Microsoft.Health.Common.Telemetry.Metric;
 
-namespace FitOnFhir.Common
+namespace Microsoft.Health.FitOnFhir.Common
 {
     public class TelemetryLogger : ITelemetryLogger
     {

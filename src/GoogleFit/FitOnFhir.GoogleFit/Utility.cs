@@ -6,7 +6,7 @@
 using System.Text;
 using SimpleBase;
 
-namespace FitOnFhir.GoogleFit
+namespace Microsoft.Health.FitOnFhir.GoogleFit
 {
     public static class Utility
     {

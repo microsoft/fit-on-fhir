@@ -4,13 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Data.Tables;
-using FitOnFhir.Common.Config;
-using FitOnFhir.Common.Repositories;
-using FitOnFhir.GoogleFit.Client.Models;
-using FitOnFhir.GoogleFit.Common;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
+using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 
-namespace FitOnFhir.GoogleFit.Repositories
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Repositories
 {
     public class GoogleFitUserTableRepository : TableRepository<GoogleFitUser>, IGoogleFitUserTableRepository
     {

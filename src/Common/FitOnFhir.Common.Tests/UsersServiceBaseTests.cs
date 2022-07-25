@@ -3,10 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FitOnFhir.Common.Interfaces;
-using FitOnFhir.Common.Models;
-using FitOnFhir.Common.Repositories;
 using Microsoft.Health.Extensions.Fhir.Service;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
 using NSubstitute;
 using Xunit;
 using Bundle = Hl7.Fhir.Model.Bundle;
@@ -15,7 +15,7 @@ using Patient = Hl7.Fhir.Model.Patient;
 using Resource = Hl7.Fhir.Model.Resource;
 using ResourceType = Hl7.Fhir.Model.ResourceType;
 
-namespace FitOnFhir.Common.Tests
+namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
     public abstract class UsersServiceBaseTests
     {

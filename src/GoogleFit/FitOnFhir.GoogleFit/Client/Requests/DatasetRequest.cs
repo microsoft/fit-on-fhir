@@ -4,10 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.GoogleFit.Client.Models;
 using Google.Apis.Fitness.v1;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
 
-namespace FitOnFhir.GoogleFit.Client.Requests
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Requests
 {
     public class DatasetRequest : BaseFitnessRequest
     {

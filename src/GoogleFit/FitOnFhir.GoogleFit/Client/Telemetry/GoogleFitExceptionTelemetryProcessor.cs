@@ -6,7 +6,7 @@
 using EnsureThat;
 using Microsoft.Health.Logging.Telemetry;
 
-namespace FitOnFhir.GoogleFit.Client.Telemetry
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Telemetry
 {
     public class GoogleFitExceptionTelemetryProcessor : ExceptionTelemetryProcessor
     {

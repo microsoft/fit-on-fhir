@@ -6,13 +6,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FitOnFhir.Common.Models;
-using FitOnFhir.Import.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Import.Services;
 using Newtonsoft.Json;
 
-namespace FitOnFhir.Import
+namespace Microsoft.Health.FitOnFhir.Import
 {
     public class ImportFunction
     {

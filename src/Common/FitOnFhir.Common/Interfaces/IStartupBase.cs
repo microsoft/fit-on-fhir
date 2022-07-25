@@ -6,7 +6,7 @@
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 
-namespace FitOnFhir.Common.Interfaces
+namespace Microsoft.Health.FitOnFhir.Common.Interfaces
 {
     public interface IStartupBase
     {

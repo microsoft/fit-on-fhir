@@ -4,10 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Messaging.EventHubs;
-using FitOnFhir.GoogleFit.Client.Config;
 using Google.Apis.Fitness.v1.Data;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Config;
 
-namespace FitOnFhir.GoogleFit.Client.Models
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Models
 {
     public interface IMedTechDataset
     {

@@ -4,13 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FitOnFhir.Common.Exceptions;
-using FitOnFhir.Common.Repositories;
-using FitOnFhir.Common.Services;
-using FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Exceptions;
+using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Services;
+using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 
-namespace FitOnFhir.GoogleFit.Services
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 {
     public class GoogleFitTokensService : TokensServiceBase<AuthTokensResponse>, IGoogleFitTokensService
     {

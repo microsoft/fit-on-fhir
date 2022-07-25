@@ -7,7 +7,7 @@ using EnsureThat;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace FitOnFhir.Common.Models
+namespace Microsoft.Health.FitOnFhir.Common.Models
 {
     public class PlatformUserInfo : IEquatable<PlatformUserInfo>
     {

@@ -5,10 +5,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using FitOnFhir.Common.Models;
 using Microsoft.Health.Common.Handler;
+using Microsoft.Health.FitOnFhir.Common.Models;
 
-namespace FitOnFhir.Import.Services
+namespace Microsoft.Health.FitOnFhir.Import.Services
 {
     public interface IImporterService
     {

@@ -5,7 +5,7 @@
 
 using EnsureThat;
 
-namespace FitOnFhir.Common.Models
+namespace Microsoft.Health.FitOnFhir.Common.Models
 {
     public class QueueMessage
     {

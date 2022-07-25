@@ -6,7 +6,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FitOnFhir.Common
+namespace Microsoft.Health.FitOnFhir.Common
 {
     /// <summary>
     /// An interface which wraps around a <see cref="JwtSecurityTokenHandler"/>.

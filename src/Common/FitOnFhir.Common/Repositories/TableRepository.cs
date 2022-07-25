@@ -6,10 +6,10 @@
 using Azure;
 using Azure.Data.Tables;
 using EnsureThat;
-using FitOnFhir.Common.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Models;
 
-namespace FitOnFhir.Common.Repositories
+namespace Microsoft.Health.FitOnFhir.Common.Repositories
 {
     public abstract class TableRepository<TEntity>
         where TEntity : EntityBase, new()

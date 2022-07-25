@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
 
-namespace FitOnFhir.Common.ExtensionMethods
+namespace Microsoft.Health.FitOnFhir.Common.ExtensionMethods
 {
     public static class HttpRequestExtensions
     {

@@ -5,11 +5,11 @@
 
 using System.Text;
 using Azure.Messaging.EventHubs;
-using FitOnFhir.GoogleFit.Common;
+using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-namespace FitOnFhir.GoogleFit.Tests
+namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 {
     public class MedTechDatasetTests
     {

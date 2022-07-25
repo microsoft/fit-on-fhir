@@ -5,7 +5,7 @@
 
 using Microsoft.Health.Common.Handler;
 
-namespace FitOnFhir.Common.Handlers
+namespace Microsoft.Health.FitOnFhir.Common.Handlers
 {
     public class UnknownOperationHandlerBase<TRequest, TResult> : IResponsibilityHandler<TRequest, TResult>
     where TResult : class
