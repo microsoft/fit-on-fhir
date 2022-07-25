@@ -42,7 +42,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected string ExpectedPlatformName => GoogleFitConstants.GoogleFitPlatformName;
 
-        protected string ExpectedMessageText => JsonConvert.SerializeObject(new Models.QueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName));
+        protected string ExpectedMessageText => JsonConvert.SerializeObject(new QueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName));
 
         [Fact]
         public async Task GivenQueueExists_WhenInitQueueCalled_NoQueueIsCreated()

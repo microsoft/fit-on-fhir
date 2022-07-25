@@ -36,8 +36,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         private readonly CancellationToken _cancellationToken = CancellationToken.None;
 
         private readonly Dataset _dataset = new Dataset();
-        private readonly Client.Models.DataSource _dataSource = new Client.Models.DataSource(_dataStreamId, _deviceUid, _applicationPackageName);
-        private readonly List<Client.Models.DataSource> _dataSources = new List<Client.Models.DataSource>();
+        private readonly DataSource _dataSource = new DataSource(_dataStreamId, _deviceUid, _applicationPackageName);
+        private readonly List<DataSource> _dataSources = new List<DataSource>();
 
         private readonly DateTimeOffset _now =
             new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
@@ -114,7 +114,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             _ = _googleFitClient.Received(1).DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Is<Client.Models.DataSource>(ds => ds == _dataSource),
+                Arg.Is<DataSource>(ds => ds == _dataSource),
                 Arg.Is<string>(str => str == expectedDataSetId),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
@@ -136,7 +136,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             _ = _googleFitClient.Received(1).DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Is<Client.Models.DataSource>(ds => ds == _dataSource),
+                Arg.Is<DataSource>(ds => ds == _dataSource),
                 Arg.Is<string>(str => str == oneDayBackDataSetId),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken));
@@ -150,7 +150,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<Client.Models.DataSource>(),
+                Arg.Any<DataSource>(),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Returns(nullMedTechDataset);
@@ -205,7 +205,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             var datasetRequestException = new Exception(exceptionMessage);
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<Client.Models.DataSource>(),
+                Arg.Any<DataSource>(),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken)).Throws(datasetRequestException);
@@ -245,7 +245,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<Client.Models.DataSource>(),
+                Arg.Any<DataSource>(),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
@@ -257,7 +257,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<Client.Models.DataSource>(),
+                Arg.Any<DataSource>(),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
@@ -321,7 +321,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
                     return true;
                 });
 
-            var dataSources = new List<Client.Models.DataSource>();
+            var dataSources = new List<DataSource>();
 
             for (int i = 0; i < dataSourcesCount; i++)
             {
@@ -351,12 +351,12 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
                     dataset.GetPageToken().Returns(x => nextPageToken, pageTokenResponses.ToArray());
                 }
 
-                Client.Models.DataSource dataSource = new Client.Models.DataSource($"{_dataStreamId}{i}", _deviceUid, _applicationPackageName);
+                DataSource dataSource = new DataSource($"{_dataStreamId}{i}", _deviceUid, _applicationPackageName);
                 dataSources.Add(dataSource);
 
                 _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Is<Client.Models.DataSource>(d => d == dataSource),
+                Arg.Is<DataSource>(d => d == dataSource),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
@@ -391,7 +391,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             _googleFitClient.DatasetRequest(
                 Arg.Is<string>(access => access == _tokensResponse.AccessToken),
-                Arg.Any<Client.Models.DataSource>(),
+                Arg.Any<DataSource>(),
                 Arg.Any<string>(),
                 Arg.Any<int>(),
                 Arg.Is<CancellationToken>(token => token == _cancellationToken),
