@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
 using FitOnFhir.Authorization;
 using FitOnFhir.Authorization.Services;
@@ -44,6 +45,7 @@ namespace FitOnFhir.Authorization
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
+            builder.Services.AddSingleton<IGoogleFitTokensService, GoogleFitTokensService>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IRoutingService, RoutingService>();
             builder.Services.AddHttpClient<IOpenIdConfigurationProvider, OpenIdConfigurationProvider>();
@@ -56,6 +58,7 @@ namespace FitOnFhir.Authorization
             builder.Services.AddSingleton<GoogleFitAuthorizationHandler>();
             builder.Services.AddSingleton<UnknownAuthorizationHandler>();
             builder.Services.AddSingleton<IQueueService, QueueService>();
+            builder.Services.AddSingleton(typeof(Func<DateTimeOffset>), () => DateTimeOffset.UtcNow);
             builder.Services.AddSingleton(sp => sp.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(GoogleFitAuthorizationHandler), typeof(UnknownAuthorizationHandler)));
         }
     }

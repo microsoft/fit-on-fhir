@@ -11,6 +11,7 @@ using FitOnFhir.Common.Requests;
 using FitOnFhir.GoogleFit.Client.Responses;
 using FitOnFhir.GoogleFit.Common;
 using FitOnFhir.GoogleFit.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
@@ -56,6 +57,10 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
                 else if (path.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest))
                 {
                     return Callback(request);
+                }
+                else if (path.StartsWith(GoogleFitConstants.GoogleFitRevokeAccessRequest))
+                {
+                    return Revoke(request);
                 }
                 else
                 {
@@ -110,6 +115,40 @@ namespace FitOnFhir.GoogleFit.Client.Handlers
             {
                 _logger.LogError(ex, ex.Message);
                 return new NotFoundObjectResult(ex.Message);
+            }
+        }
+
+        private async Task<IActionResult> Revoke(RoutingRequest request)
+        {
+            AuthState state = null;
+
+            var isValidated = await _tokenValidationService.ValidateToken(request.HttpRequest, request.Token);
+
+            if (isValidated)
+            {
+                try
+                {
+                    state = new AuthState(request?.HttpRequest?.Query);
+                }
+                catch (ArgumentException)
+                {
+                    return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
+                }
+
+                try
+                {
+                    await _usersService.RevokeAccess(state, request.Token);
+                    return new OkObjectResult("Access revoked successfully.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, ex.Message);
+                    return new ObjectResult("An unexpected error occurred while attempting to revoke data access.") { StatusCode = StatusCodes.Status500InternalServerError };
+                }
+            }
+            else
+            {
+                return new UnauthorizedResult();
             }
         }
     }

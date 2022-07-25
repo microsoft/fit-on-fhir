@@ -24,6 +24,8 @@ namespace FitOnFhir.Common.Services
             _usersTableRepository = EnsureArg.IsNotNull(usersTableRepository, nameof(usersTableRepository));
         }
 
+        public abstract string PlatformName { get; }
+
         public async Task EnsurePatientAndUser(string platformName, string platformIdentifier, string platformSystem, AuthState state, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(platformName, nameof(platformName));
@@ -86,15 +88,52 @@ namespace FitOnFhir.Common.Services
                     user.AddPlatformUserInfo(new PlatformUserInfo(platformName, platformIdentifier, DataImportState.ReadyToImport));
                 }
 
-                await _usersTableRepository.Update(
-                    user,
-                    UserConflictResolvers.ResolveConflictAuthorization,
-                    cancellationToken);
+                await UpdateUser(user, cancellationToken);
             }
 
             await QueueFitnessImport(user, cancellationToken);
         }
 
+        public async Task RevokeAccess(AuthState state, CancellationToken cancellationToken)
+        {
+            var user = await RetrieveUserForPatient(state.PatientId, state.System, cancellationToken);
+
+            if (user != null)
+            {
+                var platformInfo = user.GetPlatformUserInfo()
+                    .FirstOrDefault(pui => pui.PlatformName == PlatformName);
+
+                if (platformInfo != default)
+                {
+                    await RevokeAccessRequest(platformInfo, cancellationToken);
+
+                    await UpdateUser(user, cancellationToken);
+                }
+            }
+        }
+
+        public async Task<User> RetrieveUserForPatient(string externalPatientId, string externalSystem, CancellationToken cancellationToken)
+        {
+            Patient patient = await _resourceManagementService.GetResourceByIdentityAsync<Patient>(externalPatientId, externalSystem);
+
+            if (patient != null)
+            {
+                return await _usersTableRepository.GetById(patient.Id, cancellationToken);
+            }
+
+            return null;
+        }
+
+        public async Task UpdateUser(User user, CancellationToken cancellationToken)
+        {
+            await _usersTableRepository.Update(
+                user,
+                UserConflictResolvers.ResolveConflictAuthorization,
+                cancellationToken);
+        }
+
         public abstract Task QueueFitnessImport(User user, CancellationToken cancellationToken);
+
+        public abstract Task RevokeAccessRequest(PlatformUserInfo platformUserInfo, CancellationToken cancellationToken);
     }
 }
