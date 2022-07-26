@@ -6,7 +6,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common;
@@ -38,7 +37,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
         private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
-        private ITokenValidationService _tokenValidationService;
+        private readonly ITokenValidationService _tokenValidationService;
+        private readonly IAuthStateService _authStateService;
         private readonly MockLogger<GoogleFitAuthorizationHandler> _logger;
 
         public GoogleFitAuthorizationHandlerTests()
@@ -46,12 +46,14 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _authService = Substitute.For<IGoogleFitAuthService>();
             _usersService = Substitute.For<IUsersService>();
             _tokenValidationService = Substitute.For<ITokenValidationService>();
+            _authStateService = Substitute.For<IAuthStateService>();
             _logger = Substitute.For<MockLogger<GoogleFitAuthorizationHandler>>();
 
             _googleFitAuthorizationHandler = new GoogleFitAuthorizationHandler(
                 _authService,
                 _usersService,
                 _tokenValidationService,
+                _authStateService,
                 _logger);
 
             _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(true);
@@ -66,17 +68,17 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             Assert.Null(result);
         }
 
-        [Theory]
-        [InlineData(false, true)]
-        [InlineData(true, false)]
-        public async Task GivenMissingRequiredQueryParameter_WhenEvaluateCalled_Returns400Response(bool includePatientId, bool includeSystem)
+        [Fact]
+        public async Task GivenCreateAuthStateThrowsException_WhenRequestIsForAuthorization_ReturnsBadRequestObjectResult()
         {
-            var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest, includePatientId, includeSystem);
+            _authStateService.CreateAuthState(Arg.Any<HttpRequest>()).Throws(new ArgumentException("exception"));
+
+            var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest, false, false);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
 
             Assert.IsType<BadRequestObjectResult>(result);
             Assert.IsType<string>(((BadRequestObjectResult)result).Value);
-            Assert.Equal($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.", ((BadRequestObjectResult)result).Value);
+            Assert.Equal($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are required query parameters.", ((BadRequestObjectResult)result).Value);
         }
 
         [Fact]
@@ -133,18 +135,17 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             Assert.Equal(expectedResult.Value, actualResult?.Value);
         }
 
-        [Theory]
-        [InlineData(false, true)]
-        [InlineData(true, false)]
-        [InlineData(false, false)]
-        public async Task GivenRequestMissingPatientIdAndOrSystem_WhenRequestIsRevoke_ReturnsBadRequestObjectResult(bool includePatientId, bool includeSystem)
+        [Fact]
+        public async Task GivenCreateAuthStateThrowsException_WhenRequestIsRevoke_ReturnsBadRequestObjectResult()
         {
-            var routingRequest = CreateRoutingRequest(googleFitRevokeRequest, includePatientId, includeSystem);
+            _authStateService.CreateAuthState(Arg.Any<HttpRequest>()).Throws(new ArgumentException("exception"));
+
+            var routingRequest = CreateRoutingRequest(googleFitRevokeRequest, false, false);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
             Assert.IsType<BadRequestObjectResult>(result);
 
             var actualResult = result as BadRequestObjectResult;
-            var expectedResult = new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
+            var expectedResult = new BadRequestObjectResult($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are required query parameters.");
             Assert.Equal(expectedResult.Value, actualResult?.Value);
         }
 
@@ -203,12 +204,12 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             {
                 if (includePatientId)
                 {
-                    httpRequest.Query[Constants.PatientIdQueryParameter].Returns(new StringValues(Data.ExternalPatientId));
+                    httpRequest.Query[Constants.ExternalIdQueryParameter].Returns(new StringValues(Data.ExternalPatientId));
                 }
 
                 if (includeSystem)
                 {
-                    httpRequest.Query[Constants.SystemQueryParameter].Returns(new StringValues(Data.ExternalSystem));
+                    httpRequest.Query[Constants.ExternalSystemQueryParameter].Returns(new StringValues(Data.ExternalSystem));
                 }
             }
             else if (pathString == googleFitCallbackRequest)

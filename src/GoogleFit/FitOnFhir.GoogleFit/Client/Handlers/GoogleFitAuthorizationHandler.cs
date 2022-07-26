@@ -24,6 +24,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
         private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
         private readonly ITokenValidationService _tokenValidationService;
+        private readonly IAuthStateService _authStateService;
         private readonly ILogger<GoogleFitAuthorizationHandler> _logger;
 
         private GoogleFitAuthorizationHandler()
@@ -34,11 +35,13 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
             IGoogleFitAuthService authService,
             IUsersService usersService,
             ITokenValidationService tokenValidationService,
+            IAuthStateService authStateService,
             ILogger<GoogleFitAuthorizationHandler> logger)
         {
             _authService = EnsureArg.IsNotNull(authService, nameof(authService));
             _usersService = EnsureArg.IsNotNull(usersService, nameof(usersService));
             _tokenValidationService = EnsureArg.IsNotNull(tokenValidationService, nameof(tokenValidationService));
+            _authStateService = EnsureArg.IsNotNull(authStateService, nameof(authStateService));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
@@ -84,11 +87,11 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
             {
                 try
                 {
-                    state = new AuthState(request?.HttpRequest?.Query);
+                    state = _authStateService.CreateAuthState(request.HttpRequest);
                 }
                 catch (ArgumentException)
                 {
-                    return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
+                    return new BadRequestObjectResult($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are required query parameters.");
                 }
 
                 AuthUriResponse response = await _authService.AuthUriRequest(JsonConvert.SerializeObject(state), request.Token);
@@ -128,11 +131,11 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
             {
                 try
                 {
-                    state = new AuthState(request?.HttpRequest?.Query);
+                    state = _authStateService.CreateAuthState(request.HttpRequest);
                 }
                 catch (ArgumentException)
                 {
-                    return new BadRequestObjectResult($"'{Constants.PatientIdQueryParameter}' and '{Constants.SystemQueryParameter}' are required query parameters.");
+                    return new BadRequestObjectResult($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are required query parameters.");
                 }
 
                 try

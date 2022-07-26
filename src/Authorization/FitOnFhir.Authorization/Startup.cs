@@ -51,6 +51,7 @@ namespace Microsoft.Health.FitOnFhir.Authorization
             builder.Services.AddHttpClient<IOpenIdConfigurationProvider, OpenIdConfigurationProvider>();
             builder.Services.AddSingleton<ITokenValidationService, TokenValidationService>();
             builder.Services.AddSingleton<IJwtSecurityTokenHandlerProvider, JwtSecurityTokenHandlerProvider>();
+            builder.Services.AddSingleton<IAuthStateService, AuthStateService>();
             builder.Services.AddSingleton<ITelemetryLogger, TelemetryLogger>();
             builder.Services.AddFhirClient(configuration);
             builder.Services.AddSingleton<IFhirService, FhirService>();

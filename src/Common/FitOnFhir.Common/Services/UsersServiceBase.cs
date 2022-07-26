@@ -31,8 +31,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             EnsureArg.IsNotNullOrWhiteSpace(platformName, nameof(platformName));
             EnsureArg.IsNotNullOrWhiteSpace(platformIdentifier, nameof(platformIdentifier));
             EnsureArg.IsNotNullOrWhiteSpace(platformSystem, nameof(platformSystem));
-            string externalPatientId = EnsureArg.IsNotNullOrWhiteSpace(state.PatientId, nameof(state.PatientId));
-            string externalSystem = EnsureArg.IsNotNullOrWhiteSpace(state.System, nameof(state.System));
+            string externalPatientId = EnsureArg.IsNotNullOrWhiteSpace(state.ExternalIdentifier, nameof(state.ExternalIdentifier));
+            string externalSystem = EnsureArg.IsNotNullOrWhiteSpace(state.ExternalSystem, nameof(state.ExternalSystem));
 
             // 1. Check if a Patient exists that contains the EXTERNAL Patient Identifier.
             Patient patient = await _resourceManagementService.GetResourceByIdentityAsync<Patient>(externalPatientId, externalSystem);
@@ -96,7 +96,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
         public async Task RevokeAccess(AuthState state, CancellationToken cancellationToken)
         {
-            var user = await RetrieveUserForPatient(state.PatientId, state.System, cancellationToken);
+            var user = await RetrieveUserForPatient(state.ExternalIdentifier, state.ExternalSystem, cancellationToken);
 
             if (user != null)
             {
