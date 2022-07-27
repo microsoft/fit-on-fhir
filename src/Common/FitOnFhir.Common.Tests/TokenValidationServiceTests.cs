@@ -201,28 +201,14 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         private void SetupHttpRequest(string token)
         {
-            if (token != string.Empty)
-            {
-                _httpRequest.Headers.TryGetValue(
-                        Arg.Is<string>(str => str == HeaderNames.Authorization),
-                        out Arg.Any<StringValues>()).
-                    Returns(x =>
-                    {
-                        x[1] = new StringValues(TokenAuthScheme + token);
-                        return true;
-                    });
-            }
-            else
-            {
-                _httpRequest.Headers.TryGetValue(
-                        Arg.Is<string>(str => str == HeaderNames.Authorization),
-                        out Arg.Any<StringValues>()).
-                    Returns(x =>
-                    {
-                        x[1] = new StringValues(TokenAuthScheme + token);
-                        return false;
-                    });
-            }
+            _httpRequest.Headers.TryGetValue(
+                    Arg.Is<string>(str => str == HeaderNames.Authorization),
+                    out Arg.Any<StringValues>()).
+                Returns(x =>
+                {
+                    x[1] = new StringValues(TokenAuthScheme + token);
+                    return token != string.Empty;
+                });
         }
     }
 }

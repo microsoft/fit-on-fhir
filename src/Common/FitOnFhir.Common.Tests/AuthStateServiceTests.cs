@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.Services;
@@ -67,8 +69,69 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             var authState = _authStateService.CreateAuthState(_httpRequest);
 
-            Assert.Equal(ExpectedExternalIdentifier, authState.ExternalIdentifier);
             Assert.Equal(ExpectedExternalSystem, authState.ExternalSystem);
+            Assert.Equal(ExpectedExternalIdentifier, authState.ExternalIdentifier);
+        }
+
+        [Fact]
+        public void GivenAnonymousLoginDisabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithSubjectAndIssuer()
+        {
+            SetupConfiguration(false);
+            SetupJwtSecurityTokenHandlerProvider();
+            SetupHttpRequest(ExpectedToken, false);
+
+            var authState = _authStateService.CreateAuthState(_httpRequest);
+
+            Assert.Equal(ExpectedIssuer, authState.ExternalSystem);
+            Assert.Equal(ExpectedSubject, authState.ExternalIdentifier);
+        }
+
+        [Fact]
+        public void GivenAnonymousLoginDisabledWithQueryParametersInRequest_WhenCreateAuthStateCalled_ThrowsArgumentException()
+        {
+            SetupConfiguration(false);
+            SetupJwtSecurityTokenHandlerProvider();
+            SetupHttpRequest(ExpectedToken, true);
+
+            Assert.Throws<ArgumentException>(() => _authStateService.CreateAuthState(_httpRequest));
+
+            _logger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg =>
+                    msg == $"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are forbidden query parameters with non-anonymous authorization."));
+        }
+
+        [Fact]
+        public void GivenHttpRequestHasInvalidToken_WhenValidateTokenIsCalled_ReturnsDefaultAndErrorIsLogged()
+        {
+            SetupConfiguration(false);
+            SetupJwtSecurityTokenHandlerProvider();
+            SetupHttpRequest(string.Empty);
+
+            var authState = _authStateService.CreateAuthState(_httpRequest);
+
+            Assert.Null(authState);
+            _logger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg => msg == "The request Authorization header is invalid."));
+        }
+
+        [Fact]
+        public void GivenReadJwtTokenReturnsDefault_WhenValidateTokenIsCalled_ReturnsDefaultAndErrorIsLogged()
+        {
+            SetupConfiguration(false);
+            SetupJwtSecurityTokenHandlerProvider();
+            SetupHttpRequest(ExpectedToken);
+
+            JwtSecurityToken jwtSecurityToken = default;
+            _jwtSecurityTokenHandlerProvider.ReadJwtToken(Arg.Is<string>(str => str == ExpectedToken)).Returns(jwtSecurityToken);
+
+            var authState = _authStateService.CreateAuthState(_httpRequest);
+
+            Assert.Null(authState);
+            _logger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg => msg == "The JWT token is empty."));
         }
 
         private void SetupConfiguration(bool anonymousLoginEnabled)
@@ -84,7 +147,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         private void SetupJwtSecurityTokenHandlerProvider()
         {
             // JwtSecurityToken setup
-            _jwtSecurityToken = new JwtSecurityToken(issuer: ExpectedIssuer);
+            List<Claim> claims = new List<Claim>();
+            claims.Add(new Claim("sub", ExpectedSubject));
+            _jwtSecurityToken = new JwtSecurityToken(issuer: ExpectedIssuer, claims: claims.AsEnumerable());
             _jwtSecurityTokenHandlerProvider.ReadJwtToken(Arg.Is<string>(str => str == ExpectedToken)).Returns(_jwtSecurityToken);
 
             // TokenValidationResult setup

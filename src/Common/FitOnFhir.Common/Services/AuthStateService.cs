@@ -39,17 +39,15 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         /// <inheritdoc/>
         public AuthState CreateAuthState(HttpRequest httpRequest)
         {
-            var externalId = HttpUtility.UrlDecode(EnsureArg.IsNotNullOrWhiteSpace(
-                httpRequest.Query[Constants.ExternalIdQueryParameter], $"query.{Constants.ExternalIdQueryParameter}"));
+            var externalId = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalIdQueryParameter]);
 
-            var externalSystem = HttpUtility.UrlDecode(EnsureArg.IsNotNullOrWhiteSpace(
-                httpRequest.Query[Constants.ExternalSystemQueryParameter], $"query.{Constants.ExternalSystemQueryParameter}"));
+            var externalSystem = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalSystemQueryParameter]);
 
             // is this for anonymous logins?
             if (_authenticationConfiguration.IsAnonymousLoginEnabled)
             {
-                ExternalIdentifier = externalId;
-                ExternalSystem = externalSystem;
+                ExternalIdentifier = EnsureArg.IsNotNullOrWhiteSpace(externalId, nameof(externalId));
+                ExternalSystem = EnsureArg.IsNotNullOrWhiteSpace(externalSystem, nameof(externalSystem));
             }
             else
             {
