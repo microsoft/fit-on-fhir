@@ -22,10 +22,6 @@ stages:
     parameters:
       environment: ${{ variables.environment }}
 
-  - template: ./templates/stages/deploy.yml
-    parameters:
-      environment: ${{ variables.environment }}
-
-  - template: ./templates/stages/clean.yml
+  - template: ./templates/stages/package.yml
     parameters:
       environment: ${{ variables.environment }}
