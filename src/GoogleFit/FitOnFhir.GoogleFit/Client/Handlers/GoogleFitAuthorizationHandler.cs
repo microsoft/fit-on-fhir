@@ -115,8 +115,16 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
         private async Task<IActionResult> Authorize(RoutingRequest request, AuthState state)
         {
-            AuthUriResponse response = await _authService.AuthUriRequest(JsonConvert.SerializeObject(state), request.Token);
-            return new RedirectResult(response.Uri);
+            try
+            {
+                AuthUriResponse response = await _authService.AuthUriRequest(JsonConvert.SerializeObject(state), request.Token);
+                return new RedirectResult(response.Uri);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return new ObjectResult("An unexpected error occurred while attempting to revoke data access.") { StatusCode = StatusCodes.Status500InternalServerError };
+            }
         }
 
         private async Task<IActionResult> Revoke(RoutingRequest request, AuthState state)

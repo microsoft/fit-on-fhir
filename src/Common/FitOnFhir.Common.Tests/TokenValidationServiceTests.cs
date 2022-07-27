@@ -69,9 +69,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             SecurityTokenHandlerProvider.ReadJwtToken(Arg.Is<string>(str => str == ExpectedToken)).Returns(jwtSecurityToken);
 
             Assert.False(await _tokenValidationService.ValidateToken(Request, CancellationToken.None));
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg => msg == "The JWT token is empty."));
         }
 
         [Fact]

@@ -86,9 +86,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             var authState = _authStateService.CreateAuthState(Request);
 
             Assert.Null(authState);
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg => msg == "The JWT token is empty."));
         }
     }
 }

@@ -70,7 +70,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
             if (jwtSecurityToken == default)
             {
-                _logger.LogError("The JWT token is empty.");
                 return false;
             }
 

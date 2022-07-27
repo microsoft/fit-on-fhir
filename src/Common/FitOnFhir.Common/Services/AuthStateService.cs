@@ -54,8 +54,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 // do not allow the ExternalId or ExternalSystem query params when authentication is enabled
                 if (!string.IsNullOrEmpty(externalId) || !string.IsNullOrEmpty(externalSystem))
                 {
-                    _logger.LogError($"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are forbidden query parameters with non-anonymous authorization.");
-                    throw new ArgumentException();
+                    string errorMessage = $"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are forbidden query parameters with non-anonymous authorization.";
+                    _logger.LogError(errorMessage);
+                    throw new ArgumentException(errorMessage);
                 }
 
                 // extract the token from the header.
@@ -71,7 +72,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
                 if (jwtSecurityToken == default)
                 {
-                    _logger.LogError("The JWT token is empty.");
                     return default;
                 }
 
