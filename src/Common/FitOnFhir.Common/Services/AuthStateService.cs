@@ -67,16 +67,13 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                     return default;
                 }
 
-                // Read the token into the handler.
+                // Read the token
                 _jwtSecurityTokenHandlerProvider.SetMapInboundClaims(false);
-                JwtSecurityToken jwtSecurityToken;
-                try
+                var jwtSecurityToken = _jwtSecurityTokenHandlerProvider.ReadJwtToken(token);
+
+                if (jwtSecurityToken == default)
                 {
-                    jwtSecurityToken = _jwtSecurityTokenHandlerProvider.ReadJwtToken(token);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "The request JWT is malformed.");
+                    _logger.LogError("The JWT token is empty.");
                     return default;
                 }
 

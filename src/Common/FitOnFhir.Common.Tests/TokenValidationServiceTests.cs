@@ -95,20 +95,18 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public async Task GivenReadJwtTokenThrowsException_WhenValidateTokenIsCalled_ReturnsFalseAndErrorIsLogged()
+        public async Task GivenReadJwtTokenReturnsDefault_WhenValidateTokenIsCalled_ReturnsFalseAndErrorIsLogged()
         {
             SetupJwtSecurityTokenHandlerProvider();
             SetupHttpRequest(ExpectedToken);
 
-            string exceptionMessage = "ReadJwtToken exception";
-            var exception = new Exception(exceptionMessage);
-            _jwtSecurityTokenHandlerProvider.ReadJwtToken(Arg.Is<string>(str => str == ExpectedToken)).Throws(exception);
+            JwtSecurityToken jwtSecurityToken = default;
+            _jwtSecurityTokenHandlerProvider.ReadJwtToken(Arg.Is<string>(str => str == ExpectedToken)).Returns(jwtSecurityToken);
 
             Assert.False(await _tokenValidationService.ValidateToken(_httpRequest, CancellationToken.None));
             _logger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<Exception>(),
-                Arg.Is<string>(msg => msg == "The request JWT is malformed."));
+                Arg.Is<string>(msg => msg == "The JWT token is empty."));
         }
 
         [Fact]
