@@ -123,7 +123,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return new ObjectResult("An unexpected error occurred while attempting to revoke data access.") { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult("An unexpected error occurred while attempting to authorize access.") { StatusCode = StatusCodes.Status500InternalServerError };
             }
         }
 
