@@ -61,7 +61,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
         protected override Func<Task> ExecuteAuthorizationCallback => () => _usersService.ProcessAuthorizationCallback("TestAuthCode", Data.AuthorizationState, CancellationToken.None);
 
-        protected override Func<Task> ExecuteRevokeAccess => () => _usersService.RevokeAccess(new AuthState() { PatientId = ExpectedPatientId, System = ExpectedExternalSystem }, CancellationToken.None);
+        protected override Func<Task> ExecuteRevokeAccess => () => _usersService.RevokeAccess(new AuthState() { ExternalIdentifier = ExpectedPatientId, ExternalSystem = ExpectedExternalSystem }, CancellationToken.None);
 
         protected override string ExpectedPatientIdentifierSystem => Data.Issuer;
 
@@ -102,12 +102,12 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         }
 
         [Theory]
-        [InlineData(Constants.PatientIdQueryParameter, null, Constants.SystemQueryParameter, Data.ExternalSystem)]
-        [InlineData(Constants.PatientIdQueryParameter, "", Constants.SystemQueryParameter, Data.ExternalSystem)]
-        [InlineData(Constants.PatientIdQueryParameter, Data.ExternalPatientId, Constants.SystemQueryParameter, null)]
-        [InlineData(Constants.PatientIdQueryParameter, Data.ExternalPatientId, Constants.SystemQueryParameter, "")]
-        [InlineData("IncorrectPatientIdKey", Data.ExternalPatientId, Constants.SystemQueryParameter, Data.ExternalSystem)]
-        [InlineData(Constants.PatientIdQueryParameter, Data.ExternalPatientId, "IncorrectSystemKey", Data.ExternalSystem)]
+        [InlineData(Constants.ExternalIdQueryParameter, null, Constants.ExternalSystemQueryParameter, Data.ExternalSystem)]
+        [InlineData(Constants.ExternalIdQueryParameter, "", Constants.ExternalSystemQueryParameter, Data.ExternalSystem)]
+        [InlineData(Constants.ExternalIdQueryParameter, Data.ExternalPatientId, Constants.ExternalSystemQueryParameter, null)]
+        [InlineData(Constants.ExternalIdQueryParameter, Data.ExternalPatientId, Constants.ExternalSystemQueryParameter, "")]
+        [InlineData("IncorrectPatientIdKey", Data.ExternalPatientId, Constants.ExternalSystemQueryParameter, Data.ExternalSystem)]
+        [InlineData(Constants.ExternalIdQueryParameter, Data.ExternalPatientId, "IncorrectSystemKey", Data.ExternalSystem)]
         public async Task GivenStateIsFormattedIncorrectly_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown(string patientKey, string patientValue, string systemKey, string systemValue)
         {
             string patientId = patientValue == null ? "null" : $"\"{patientValue}\"";

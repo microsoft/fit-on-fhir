@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Web;
 using EnsureThat;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Health.FitOnFhir.Common.Serialization;
 using Newtonsoft.Json;
 
@@ -18,28 +16,28 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
         {
         }
 
-        public AuthState(IQueryCollection query)
+        public AuthState(string externalIdentifier, string externalSystem)
         {
-            PatientId = HttpUtility.UrlDecode(EnsureArg.IsNotNullOrWhiteSpace(query?[Constants.PatientIdQueryParameter], $"query.{Constants.PatientIdQueryParameter}"));
-            System = HttpUtility.UrlDecode(EnsureArg.IsNotNullOrWhiteSpace(query?[Constants.SystemQueryParameter], $"query.{Constants.SystemQueryParameter}"));
+            ExternalIdentifier = EnsureArg.IsNotEmptyOrWhiteSpace(externalIdentifier, nameof(externalIdentifier));
+            ExternalSystem = EnsureArg.IsNotEmptyOrWhiteSpace(externalSystem, nameof(externalSystem));
         }
 
-        [JsonProperty(Constants.PatientIdQueryParameter)]
+        [JsonProperty(Constants.ExternalIdQueryParameter)]
         [JsonConverter(typeof(UrlSafeJsonConverter))]
         [JsonRequired]
-        public string PatientId { get; set; }
+        public string ExternalIdentifier { get; set; }
 
-        [JsonProperty(Constants.SystemQueryParameter)]
+        [JsonProperty(Constants.ExternalSystemQueryParameter)]
         [JsonConverter(typeof(UrlSafeJsonConverter))]
         [JsonRequired]
-        public string System { get; set; }
+        public string ExternalSystem { get; set; }
 
         public static AuthState Parse(string jsonString)
         {
             EnsureArg.IsNotNullOrWhiteSpace(jsonString, nameof(jsonString));
             AuthState authState = JsonConvert.DeserializeObject<AuthState>(jsonString);
 
-            if (string.IsNullOrEmpty(authState.PatientId) || string.IsNullOrEmpty(authState.System))
+            if (string.IsNullOrEmpty(authState.ExternalIdentifier) || string.IsNullOrEmpty(authState.ExternalSystem))
             {
                 throw new ArgumentException();
             }
