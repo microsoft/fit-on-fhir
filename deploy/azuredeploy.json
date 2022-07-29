@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.8.9.13224",
-      "templateHash": "2702093357060843998"
+      "templateHash": "945698026806621114"
     }
   },
   "parameters": {
@@ -277,7 +277,7 @@
     {
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
-      "name": "[format('{0}/{1}/{2}', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1], 'authentication_blob_container_name')]",
+      "name": "[format('{0}/{1}/{2}', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1], parameters('authentication_blob_container_name'))]",
       "properties": {
         "publicAccess": "None"
       },
