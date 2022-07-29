@@ -12,5 +12,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
         public string UsersKeyVaultUri { get; set; }
 
         public string EventHubConnectionString { get; set; }
+
+        public string BlobContainerName { get; set; }
     }
 }

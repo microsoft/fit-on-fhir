@@ -6,8 +6,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using Google.Apis.Fitness.v1.Data;
 using Microsoft.Health.FitOnFhir.Common;
+using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
+using Newtonsoft.Json;
 using Claim = System.Security.Claims.Claim;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
@@ -27,6 +29,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         public const string ExternalPatientId = "ExternalPatientId";
         public const string ExternalSystem = "ExternalSystem";
         public const string AuthorizationState = $"{{\"{Constants.ExternalIdQueryParameter}\":\"{ExternalPatientId}\", \"{Constants.ExternalSystemQueryParameter}\":\"{ExternalSystem}\"}}";
+        public static readonly AuthState StoredAuthState = JsonConvert.DeserializeObject<AuthState>(AuthorizationState);
 
         public static MedTechDataset GetMedTechDataset(string deviceUid = DeviceUid, string packageName = PackageName, int pointCount = 1)
         {

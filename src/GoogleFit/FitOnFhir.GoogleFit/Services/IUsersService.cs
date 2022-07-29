@@ -17,9 +17,9 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         /// The ID token's subject and issuer are stored as identifiers for a patient in the FHIR server instance.
         /// </summary>
         /// <param name="authCode">The authorization code provided by Google and used to retrieve tokens.</param>
-        /// <param name="state">The <see cref="AuthState"/> which contains the PatientID for the user in the corresponding external medical records system.</param>
+        /// <param name="nonce">The nonce that was used to authorize with the device platform.</param>
         /// <param name="cancellationToken">The token used to cancel the operation.</param>
-        Task ProcessAuthorizationCallback(string authCode, string state, CancellationToken cancellationToken);
+        Task ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken);
 
         /// <summary>
         /// Inserts a <see cref="QueueMessage"/> for the <see cref="User"/> into the Queue identified by the connection string in

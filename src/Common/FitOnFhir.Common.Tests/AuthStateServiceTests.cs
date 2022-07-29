@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.Services;
 using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
 using NSubstitute;
@@ -14,6 +16,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
     public class AuthStateServiceTests : AuthenticationBaseTests
     {
+        private readonly AzureConfiguration _azureConfiguration;
+        private readonly BlobServiceClient _blobServiceClient;
         private readonly MockLogger<AuthStateService> _logger;
         private readonly AuthStateService _authStateService;
 
@@ -22,8 +26,15 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             SetupConfiguration(false);
 
             // create new service for testing
+            _azureConfiguration = Substitute.For<AzureConfiguration>();
+            _blobServiceClient = Substitute.For<BlobServiceClient>();
             _logger = Substitute.For<MockLogger<AuthStateService>>();
-            _authStateService = new AuthStateService(AuthConfiguration, SecurityTokenHandlerProvider, _logger);
+            _authStateService = new AuthStateService(
+                _azureConfiguration,
+                AuthConfiguration,
+                SecurityTokenHandlerProvider,
+                _blobServiceClient,
+                _logger);
         }
 
         [Fact]

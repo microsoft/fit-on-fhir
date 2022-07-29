@@ -15,7 +15,6 @@ using Microsoft.Health.FitOnFhir.Common.Requests;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Microsoft.Health.FitOnFhir.GoogleFit.Services;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 {
@@ -117,7 +116,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
         {
             try
             {
-                AuthUriResponse response = await _authService.AuthUriRequest(JsonConvert.SerializeObject(state), request.Token);
+                var nonce = await _authStateService.StoreAuthState(state, request.Token);
+                AuthUriResponse response = await _authService.AuthUriRequest(nonce, request.Token);
                 return new RedirectResult(response.Uri);
             }
             catch (Exception ex)
