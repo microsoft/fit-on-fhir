@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.8.9.13224",
-      "templateHash": "15638335300315121251"
+      "templateHash": "2702093357060843998"
     }
   },
   "parameters": {
@@ -83,6 +83,13 @@
       "defaultValue": false,
       "metadata": {
         "description": "Enables anonymous logins (true) or requires authentication (false)."
+      }
+    },
+    "authentication_blob_container_name": {
+      "type": "string",
+      "defaultValue": "authdata",
+      "metadata": {
+        "description": "Name for the authentication data storage container."
       }
     },
     "authentication_identity_providers": {
@@ -268,6 +275,18 @@
       ]
     },
     {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[format('{0}/{1}/{2}', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1], 'authentication_blob_container_name')]",
+      "properties": {
+        "publicAccess": "None"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1])]"
+      ]
+    },
+    {
       "type": "Microsoft.Storage/storageAccounts/fileServices",
       "apiVersion": "2021-04-01",
       "name": "[format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
@@ -406,6 +425,7 @@
         "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')).secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
         "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]",
+        "AzureConfiguration__BlobContainerName": "[parameters('authentication_blob_container_name')]",
         "AuthenticationConfiguration__IsAnonymousLoginEnabled": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), 'true', 'false')]",
         "AuthenticationConfiguration__IdentityProviders": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), '', parameters('authentication_identity_providers'))]",
         "AuthenticationConfiguration__Audience": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), '', parameters('authentication_audience'))]",

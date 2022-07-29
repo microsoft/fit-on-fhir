@@ -6,6 +6,7 @@
 using System.Text;
 using System.Web;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
@@ -130,6 +131,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
                 // Get a reference to the blob
                 BlobClient blobClient = _blobContainerClient.GetBlobClient(nonce);
+
+                // Set the CacheControl property to expire in 5 minutes (300 seconds)
+                await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { CacheControl = "max-age=300" }, cancellationToken: cancellationToken);
 
                 // store state to blob storage
                 await blobClient.UploadAsync(new BinaryData(JsonConvert.SerializeObject(state)), true, cancellationToken);

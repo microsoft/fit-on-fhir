@@ -34,6 +34,9 @@ param google_historical_import_time_span string = '30.00:00:00'
 @description('Enables anonymous logins (true) or requires authentication (false).')
 param authentication_anonymous_login_enabled bool = false
 
+@description('Name for the authentication data storage container.')
+param authentication_blob_container_name string = 'authdata'
+
 @description('A list of identity provider URLs used when authentication is required.')
 param authentication_identity_providers string = ''
 
@@ -182,6 +185,17 @@ resource sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@202
   ]
 }
 
+resource sa_basename_default_auth_state 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-04-01' = {
+  name: 'authentication_blob_container_name'
+  parent: sa_basename_default
+  properties: {
+    publicAccess: 'None'
+  }
+  dependsOn: [
+    sa_basename
+  ]
+}
+
 resource Microsoft_Storage_storageAccounts_fileServices_sa_basename_default 'Microsoft.Storage/storageAccounts/fileServices@2021-04-01' = {
   name: '${replace('sa-${basename}', '-', '')}/default'
   properties: {}
@@ -305,6 +319,7 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
     GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'google-client-secret')).secretUriWithVersion})'
 	  GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
     AzureConfiguration__UsersKeyVaultUri: 'https://kv-${basename}${environment().suffixes.keyvaultDns}'
+	AzureConfiguration__BlobContainerName: authentication_blob_container_name
 	AuthenticationConfiguration__IsAnonymousLoginEnabled : (authentication_anonymous_login_enabled == true) ? 'true' : 'false'
 	AuthenticationConfiguration__IdentityProviders: (authentication_anonymous_login_enabled == true) ? '' : authentication_identity_providers
 	AuthenticationConfiguration__Audience: (authentication_anonymous_login_enabled == true) ? '' : authentication_audience
