@@ -897,17 +897,6 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
   ]
 }
 
-resource sa_basename_default_auth_state 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-04-01' = {
-  parent: Microsoft_Storage_storageAccounts_blobServices_sa_basename_default
-  name: authentication_blob_container_name
-  properties: {
-	metadata: {}
-  }
-  dependsOn: [
-    sa_basename
-  ]
-}
-
 output authorizeAppName string = 'authorize-${basename}'
 output importTimerAppName string = 'import-timer-${basename}'
 output importDataAppName string = 'import-data-${basename}'
