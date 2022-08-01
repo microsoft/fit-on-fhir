@@ -158,7 +158,7 @@ resource sa_basename 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   }
 }
 
-resource sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@2021-04-01' = {
+resource Microsoft_Storage_storageAccounts_blobServices_sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@2021-04-01' = {
   name: '${replace('sa-${basename}', '-', '')}/default'
   properties: {
     changeFeed: {
@@ -186,9 +186,11 @@ resource sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@202
 }
 
 resource sa_basename_default_auth_state 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-04-01' = {
+  parent: Microsoft_Storage_storageAccounts_blobServices_sa_basename_default
   name: authentication_blob_container_name
-  parent: sa_basename_default
-  properties: {}
+  properties: {
+	metadata: {}
+  }
   dependsOn: [
     sa_basename
   ]

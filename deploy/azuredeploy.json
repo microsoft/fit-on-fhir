@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.8.9.13224",
-      "templateHash": "6783489085274077225"
+      "templateHash": "12429358091584368469"
     }
   },
   "parameters": {
@@ -278,10 +278,12 @@
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2021-04-01",
       "name": "[format('{0}/{1}/{2}', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1], parameters('authentication_blob_container_name'))]",
-      "properties": {},
+      "properties": {
+        "metadata": {}
+      },
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
-        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1])]"
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1])]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
