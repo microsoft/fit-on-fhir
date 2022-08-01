@@ -188,9 +188,7 @@ resource sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@202
 resource sa_basename_default_auth_state 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-04-01' = {
   name: authentication_blob_container_name
   parent: sa_basename_default
-  properties: {
-    publicAccess: 'None'
-  }
+  properties: {}
   dependsOn: [
     sa_basename
   ]
