@@ -158,7 +158,7 @@ resource sa_basename 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   }
 }
 
-resource Microsoft_Storage_storageAccounts_blobServices_sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@2021-04-01' = {
+resource sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@2021-04-01' = {
   name: '${replace('sa-${basename}', '-', '')}/default'
   properties: {
     changeFeed: {
