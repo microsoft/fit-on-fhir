@@ -34,9 +34,6 @@ param google_historical_import_time_span string = '30.00:00:00'
 @description('Enables anonymous logins (true) or requires authentication (false).')
 param authentication_anonymous_login_enabled bool = false
 
-@description('Name for the authentication data storage container.')
-param authentication_blob_container_name string = 'authdata'
-
 @description('A list of identity provider URLs used when authentication is required.')
 param authentication_identity_providers string = ''
 
@@ -45,6 +42,9 @@ param authentication_audience string = ''
 
 @description('The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)')
 param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read'
+
+@description('Name for the authentication data storage container.')
+param authentication_blob_container_name string = 'authdata'
 
 var fhirServiceUrl = 'https://${replace('hw-${basename}', '-', '')}-fs-${basename}.fhir.azurehealthcareapis.com'
 var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'

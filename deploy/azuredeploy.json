@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.8.9.13224",
-      "templateHash": "945698026806621114"
+      "templateHash": "6769424909127961088"
     }
   },
   "parameters": {
@@ -85,13 +85,6 @@
         "description": "Enables anonymous logins (true) or requires authentication (false)."
       }
     },
-    "authentication_blob_container_name": {
-      "type": "string",
-      "defaultValue": "authdata",
-      "metadata": {
-        "description": "Name for the authentication data storage container."
-      }
-    },
     "authentication_identity_providers": {
       "type": "string",
       "defaultValue": "",
@@ -111,6 +104,13 @@
       "defaultValue": "https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read",
       "metadata": {
         "description": "The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)"
+      }
+    },
+    "authentication_blob_container_name": {
+      "type": "string",
+      "defaultValue": "authdata",
+      "metadata": {
+        "description": "Name for the authentication data storage container."
       }
     }
   },
