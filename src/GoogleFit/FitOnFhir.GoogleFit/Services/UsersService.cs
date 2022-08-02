@@ -14,7 +14,6 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Microsoft.Health.FitOnFhir.GoogleFit.Repositories;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 {
@@ -28,6 +27,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         private readonly IGoogleFitAuthService _authService;
         private readonly IQueueService _queueService;
         private readonly IGoogleFitTokensService _googleFitTokensService;
+        private readonly IAuthStateService _authStateService;
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly ILogger<UsersService> _logger;
 
@@ -39,6 +39,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             IGoogleFitAuthService authService,
             IQueueService queueService,
             IGoogleFitTokensService googleFitTokensService,
+            IAuthStateService authStateService,
             Func<DateTimeOffset> utcNowFunc,
             ILogger<UsersService> logger)
             : base(resourceManagementService, usersTableRepository)
@@ -48,6 +49,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             _authService = EnsureArg.IsNotNull(authService, nameof(authService));
             _queueService = EnsureArg.IsNotNull(queueService, nameof(queueService));
             _googleFitTokensService = EnsureArg.IsNotNull(googleFitTokensService, nameof(googleFitTokensService));
+            _authStateService = EnsureArg.IsNotNull(authStateService, nameof(authStateService));
             _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = logger;
         }
@@ -55,7 +57,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         public override string PlatformName => GoogleFitConstants.GoogleFitPlatformName;
 
         /// <inheritdoc/>
-        public async Task ProcessAuthorizationCallback(string authCode, string state, CancellationToken cancellationToken)
+        public async Task ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(authCode))
             {
@@ -63,17 +65,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
                 throw new Exception("The Google authorization service failed to return an access code.");
             }
 
-            AuthState authState;
-
-            try
-            {
-                authState = AuthState.Parse(state);
-            }
-            catch (Exception e) when (e is ArgumentException || e is JsonSerializationException)
-            {
-                // This exception message will be visible to the caller.
-                throw new Exception("The Google authorization service failed to return the expected authorization state.");
-            }
+            var validNonce = EnsureArg.IsNotNullOrWhiteSpace(nonce);
+            AuthState authState = await _authStateService.RetrieveAuthState(validNonce, cancellationToken);
 
             // Exchange the code for Auth, Refresh and Id tokens.
             var tokenResponse = await _authService.AuthTokensRequest(authCode, cancellationToken);

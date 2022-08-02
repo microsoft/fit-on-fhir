@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.8.9.13224",
-      "templateHash": "15638335300315121251"
+      "templateHash": "14382847576739928189"
     }
   },
   "parameters": {
@@ -104,6 +104,13 @@
       "defaultValue": "https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read",
       "metadata": {
         "description": "The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)"
+      }
+    },
+    "authentication_blob_container_name": {
+      "type": "string",
+      "defaultValue": "authdata",
+      "metadata": {
+        "description": "Name for the authentication data storage container."
       }
     }
   },
@@ -406,6 +413,7 @@
         "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')).secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
         "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]",
+        "AzureConfiguration__BlobContainerName": "[parameters('authentication_blob_container_name')]",
         "AuthenticationConfiguration__IsAnonymousLoginEnabled": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), 'true', 'false')]",
         "AuthenticationConfiguration__IdentityProviders": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), '', parameters('authentication_identity_providers'))]",
         "AuthenticationConfiguration__Audience": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), '', parameters('authentication_audience'))]",
