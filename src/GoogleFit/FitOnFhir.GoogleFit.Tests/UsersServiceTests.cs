@@ -16,6 +16,7 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Microsoft.Health.FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Health.FitOnFhir.GoogleFit.Services;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
@@ -93,13 +94,13 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenStateIsNull_WhenProcessAuthorizationCallbackCalled_ArgumentNullExceptionIsThrown()
+        public async Task GivenNonceIsNull_WhenProcessAuthorizationCallbackCalled_ArgumentNullExceptionIsThrown()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", null, CancellationToken.None));
         }
 
         [Fact]
-        public async Task GivenStateIsEmpty_WhenProcessAuthorizationCallbackCalled_ArgumentExceptionIsThrown()
+        public async Task GivenNonceIsEmpty_WhenProcessAuthorizationCallbackCalled_ArgumentExceptionIsThrown()
         {
             await Assert.ThrowsAsync<ArgumentException>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", string.Empty, CancellationToken.None));
         }
@@ -148,6 +149,17 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             await ExecuteAuthorizationCallback();
 
             await _usersKeyVaultRepository.Received(1).Upsert(Data.GoogleUserId, Data.RefreshToken, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenRetrieveAuthStateThrowsException_WhenProcessAuthorizationCallbackCalled_ThrowsException()
+        {
+            string exceptionMessage = "RetrieveAuthState exception";
+            var exception = new Exception(exceptionMessage);
+
+            AuthStateService.RetrieveAuthState(Arg.Is<string>(str => str == AuthorizationNonce), Arg.Any<CancellationToken>()).Throws(exception);
+
+            await Assert.ThrowsAsync<Exception>(() => ExecuteAuthorizationCallback());
         }
 
         [Fact]
