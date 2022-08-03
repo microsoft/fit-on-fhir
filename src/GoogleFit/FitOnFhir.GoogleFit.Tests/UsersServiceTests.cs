@@ -5,7 +5,6 @@
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
-using Microsoft.Health.FitOnFhir.Common;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
 using Microsoft.Health.FitOnFhir.Common.Resolvers;
@@ -32,7 +31,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly MockLogger<UsersService> _logger;
         private readonly UsersService _usersService;
-        private readonly HttpClient _httpClient;
 
         private readonly DateTimeOffset _now =
             new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
@@ -43,7 +41,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _usersKeyVaultRepository = Substitute.For<IUsersKeyVaultRepository>();
             _authService = Substitute.For<IGoogleFitAuthService>();
             _googleFitTokensService = Substitute.For<IGoogleFitTokensService>();
-            _httpClient = Substitute.For<HttpClient>();
             _utcNowFunc = Substitute.For<Func<DateTimeOffset>>();
             _utcNowFunc().Returns(_now);
             _logger = Substitute.For<MockLogger<UsersService>>();
@@ -51,8 +48,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             // Default responses.
             _authService.AuthTokensRequest(Arg.Any<string>(), Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult(Data.GetAuthTokensResponse()));
-            _httpClient.GetAsync(Arg.Any<string>())
-                .Returns(new HttpResponseMessage(HttpStatusCode.OK));
+            SetupHttpClient("Redirect successful", HttpStatusCode.OK);
 
             _usersService = new UsersService(
                 ResourceService,
@@ -63,7 +59,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
                 QueueService,
                 _googleFitTokensService,
                 AuthStateService,
-                _httpClient,
+                HttpClient,
                 _utcNowFunc,
                 _logger);
         }

@@ -111,7 +111,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
 
             // Redirect back to the provided authorization URL
-            await RedirectAuthorization(authState);
+            await RedirectAuthorization(authState, cancellationToken);
         }
 
         /// <inheritdoc/>
@@ -140,14 +140,14 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             }
         }
 
-        private async Task RedirectAuthorization(AuthState state)
+        private async Task RedirectAuthorization(AuthState state, CancellationToken cancellationToken)
         {
             var query = new Dictionary<string, string>()
             {
                 [Constants.StateQueryParameter] = state.State,
             };
             var uri = QueryHelpers.AddQueryString(state.RedirectUrl, query);
-            var response = await _httpClient.GetAsync(uri);
+            var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, uri), cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {

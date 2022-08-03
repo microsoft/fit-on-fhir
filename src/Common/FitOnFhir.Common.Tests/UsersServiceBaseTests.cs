@@ -3,10 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Net;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
+using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
 using NSubstitute;
 using Xunit;
 using Bundle = Hl7.Fhir.Model.Bundle;
@@ -43,6 +45,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         protected IQueueService QueueService { get; }
 
         protected IAuthStateService AuthStateService { get; }
+
+        protected HttpClient HttpClient { get; set; }
 
         protected string AuthorizationNonce => "ABCDEFGHIJKLMNOPQRSTUVWX";
 
@@ -224,6 +228,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
                         string.Equals(ExpectedPlatformUserId, x.UserId, StringComparison.OrdinalIgnoreCase) &&
                         expectedImportState == x.ImportState;
                 });
+        }
+
+        protected void SetupHttpClient(string response, HttpStatusCode httpStatusCode)
+        {
+            var messageHandler = new MockHttpMessageHandler(response, httpStatusCode);
+            HttpClient = new HttpClient(messageHandler);
         }
     }
 }
