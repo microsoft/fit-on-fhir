@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using Microsoft.Health.FitOnFhir.Common;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
@@ -16,6 +17,7 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Microsoft.Health.FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Health.FitOnFhir.GoogleFit.Services;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
@@ -30,6 +32,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly MockLogger<UsersService> _logger;
         private readonly UsersService _usersService;
+        private readonly HttpClient _httpClient;
 
         private readonly DateTimeOffset _now =
             new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
@@ -40,9 +43,16 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _usersKeyVaultRepository = Substitute.For<IUsersKeyVaultRepository>();
             _authService = Substitute.For<IGoogleFitAuthService>();
             _googleFitTokensService = Substitute.For<IGoogleFitTokensService>();
+            _httpClient = Substitute.For<HttpClient>();
             _utcNowFunc = Substitute.For<Func<DateTimeOffset>>();
             _utcNowFunc().Returns(_now);
             _logger = Substitute.For<MockLogger<UsersService>>();
+
+            // Default responses.
+            _authService.AuthTokensRequest(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(Data.GetAuthTokensResponse()));
+            _httpClient.GetAsync(Arg.Any<string>())
+                .Returns(new HttpResponseMessage(HttpStatusCode.OK));
 
             _usersService = new UsersService(
                 ResourceService,
@@ -52,16 +62,17 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
                 _authService,
                 QueueService,
                 _googleFitTokensService,
+                AuthStateService,
+                _httpClient,
                 _utcNowFunc,
                 _logger);
-
-            // Default responses.
-            _authService.AuthTokensRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(Data.GetAuthTokensResponse()));
         }
 
-        protected override Func<Task> ExecuteAuthorizationCallback => () => _usersService.ProcessAuthorizationCallback("TestAuthCode", Data.AuthorizationState, CancellationToken.None);
+        protected override Func<Task> ExecuteAuthorizationCallback => () => _usersService.ProcessAuthorizationCallback("TestAuthCode", AuthorizationNonce, CancellationToken.None);
 
         protected override Func<Task> ExecuteRevokeAccess => () => _usersService.RevokeAccess(new AuthState() { ExternalIdentifier = ExpectedPatientId, ExternalSystem = ExpectedExternalSystem }, CancellationToken.None);
+
+        protected override Func<AuthState> RetrieveAuthStateReturnFunc => () => Data.StoredAuthState;
 
         protected override string ExpectedPatientIdentifierSystem => Data.Issuer;
 
@@ -90,31 +101,15 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenStateIsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
+        public async Task GivenNonceIsNull_WhenProcessAuthorizationCallbackCalled_ArgumentNullExceptionIsThrown()
         {
-            await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", null, CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", null, CancellationToken.None));
         }
 
         [Fact]
-        public async Task GivenStateIsEmpty_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
+        public async Task GivenNonceIsEmpty_WhenProcessAuthorizationCallbackCalled_ArgumentExceptionIsThrown()
         {
-            await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", string.Empty, CancellationToken.None));
-        }
-
-        [Theory]
-        [InlineData(Constants.ExternalIdQueryParameter, null, Constants.ExternalSystemQueryParameter, Data.ExternalSystem)]
-        [InlineData(Constants.ExternalIdQueryParameter, "", Constants.ExternalSystemQueryParameter, Data.ExternalSystem)]
-        [InlineData(Constants.ExternalIdQueryParameter, Data.ExternalPatientId, Constants.ExternalSystemQueryParameter, null)]
-        [InlineData(Constants.ExternalIdQueryParameter, Data.ExternalPatientId, Constants.ExternalSystemQueryParameter, "")]
-        [InlineData("IncorrectPatientIdKey", Data.ExternalPatientId, Constants.ExternalSystemQueryParameter, Data.ExternalSystem)]
-        [InlineData(Constants.ExternalIdQueryParameter, Data.ExternalPatientId, "IncorrectSystemKey", Data.ExternalSystem)]
-        public async Task GivenStateIsFormattedIncorrectly_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown(string patientKey, string patientValue, string systemKey, string systemValue)
-        {
-            string patientId = patientValue == null ? "null" : $"\"{patientValue}\"";
-            string system = systemValue == null ? "null" : $"\"{systemValue}\"";
-            string state = $"{{\"{patientKey}\":{patientId}, \"{systemKey}\":{system}}}";
-
-            await Assert.ThrowsAsync<Exception>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", state, CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentException>(() => _usersService.ProcessAuthorizationCallback("TestAuthCode", string.Empty, CancellationToken.None));
         }
 
         [Fact]
@@ -161,6 +156,17 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             await ExecuteAuthorizationCallback();
 
             await _usersKeyVaultRepository.Received(1).Upsert(Data.GoogleUserId, Data.RefreshToken, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenRetrieveAuthStateThrowsException_WhenProcessAuthorizationCallbackCalled_ThrowsException()
+        {
+            string exceptionMessage = "RetrieveAuthState exception";
+            var exception = new Exception(exceptionMessage);
+
+            AuthStateService.RetrieveAuthState(Arg.Is<string>(str => str == AuthorizationNonce), Arg.Any<CancellationToken>()).Throws(exception);
+
+            await Assert.ThrowsAsync<Exception>(() => ExecuteAuthorizationCallback());
         }
 
         [Fact]

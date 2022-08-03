@@ -33,5 +33,31 @@ namespace Microsoft.Health.FitOnFhir.Common
         /// Query parameter name for the system in which the patient identifier exists.
         /// </summary>
         public const string ExternalSystemQueryParameter = "externalSystem";
+
+        /// <summary>
+        /// Query parameter name for the URL that will be redirected to once
+        /// authorization is completed successfully
+        /// </summary>
+        public const string RedirectUrlQueryParameter = "redirect_url";
+
+        /// <summary>
+        /// Query parameter name for the session state to be preserved
+        /// </summary>
+        public const string StateQueryParameter = "state";
+
+        /// <summary>
+        /// The name of the container in blob storage that holds the temporary authorization credentials.
+        /// </summary>
+        public const string BlobStorageContainerName = "FitOnFhirAuthStorage";
+
+        /// <summary>
+        /// The name of the blob containing the authorization credentials.
+        /// </summary>
+        public const string BlobName = "FitOnFhirAuthBlob";
+
+        /// <summary>
+        /// The length of a generated nonce.
+        /// </summary>
+        public const int NonceLength = 24;
     }
 }

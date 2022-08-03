@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Extensions.Fhir.Service;
+using Microsoft.Health.FitOnFhir.Common;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
@@ -14,7 +16,6 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Client.Models;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Microsoft.Health.FitOnFhir.GoogleFit.Repositories;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 {
@@ -28,6 +29,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         private readonly IGoogleFitAuthService _authService;
         private readonly IQueueService _queueService;
         private readonly IGoogleFitTokensService _googleFitTokensService;
+        private readonly IAuthStateService _authStateService;
+        private readonly HttpClient _httpClient;
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly ILogger<UsersService> _logger;
 
@@ -39,6 +42,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             IGoogleFitAuthService authService,
             IQueueService queueService,
             IGoogleFitTokensService googleFitTokensService,
+            IAuthStateService authStateService,
+            HttpClient httpClient,
             Func<DateTimeOffset> utcNowFunc,
             ILogger<UsersService> logger)
             : base(resourceManagementService, usersTableRepository)
@@ -48,6 +53,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             _authService = EnsureArg.IsNotNull(authService, nameof(authService));
             _queueService = EnsureArg.IsNotNull(queueService, nameof(queueService));
             _googleFitTokensService = EnsureArg.IsNotNull(googleFitTokensService, nameof(googleFitTokensService));
+            _authStateService = EnsureArg.IsNotNull(authStateService, nameof(authStateService));
+            _httpClient = EnsureArg.IsNotNull(httpClient, nameof(httpClient));
             _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = logger;
         }
@@ -55,7 +62,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         public override string PlatformName => GoogleFitConstants.GoogleFitPlatformName;
 
         /// <inheritdoc/>
-        public async Task ProcessAuthorizationCallback(string authCode, string state, CancellationToken cancellationToken)
+        public async Task ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(authCode))
             {
@@ -63,17 +70,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
                 throw new Exception("The Google authorization service failed to return an access code.");
             }
 
-            AuthState authState;
-
-            try
-            {
-                authState = AuthState.Parse(state);
-            }
-            catch (Exception e) when (e is ArgumentException || e is JsonSerializationException)
-            {
-                // This exception message will be visible to the caller.
-                throw new Exception("The Google authorization service failed to return the expected authorization state.");
-            }
+            var validNonce = EnsureArg.IsNotNullOrWhiteSpace(nonce);
+            AuthState authState = await _authStateService.RetrieveAuthState(validNonce, cancellationToken);
 
             // Exchange the code for Auth, Refresh and Id tokens.
             var tokenResponse = await _authService.AuthTokensRequest(authCode, cancellationToken);
@@ -111,6 +109,9 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 
             // Insert refresh token into users KV by userId
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
+
+            // Redirect back to the provided authorization URL
+            await RedirectAuthorization(authState);
         }
 
         /// <inheritdoc/>
@@ -136,6 +137,21 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
                 platformUserInfo.RevokedAccessReason = RevokeReason.UserInitiated;
                 platformUserInfo.RevokedTimeStamp = _utcNowFunc();
                 platformUserInfo.ImportState = DataImportState.Unauthorized;
+            }
+        }
+
+        private async Task RedirectAuthorization(AuthState state)
+        {
+            var query = new Dictionary<string, string>()
+            {
+                [Constants.StateQueryParameter] = state.State,
+            };
+            var uri = QueryHelpers.AddQueryString(state.RedirectUrl, query);
+            var response = await _httpClient.GetAsync(uri);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Redirect attempt unsuccessful.  Status:{response.StatusCode} Reason:{response.ReasonPhrase}");
             }
         }
     }

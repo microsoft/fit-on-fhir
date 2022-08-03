@@ -3,16 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.FitOnFhir.Common.Config
+namespace Microsoft.Health.FitOnFhir.Common.Exceptions
 {
-    public class AzureConfiguration
+    public class RedirectUrlException : Exception
     {
-        public string StorageAccountConnectionString { get; set; }
-
-        public string UsersKeyVaultUri { get; set; }
-
-        public string EventHubConnectionString { get; set; }
-
-        public string BlobContainerName { get; set; }
+        public RedirectUrlException(string message)
+            : base(message)
+        {
+        }
     }
 }

@@ -9,13 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common;
+using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Requests;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Microsoft.Health.FitOnFhir.GoogleFit.Services;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 {
@@ -70,6 +70,10 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
                     {
                         return new BadRequestObjectResult($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are required query parameters.");
                     }
+                    catch (RedirectUrlException ex)
+                    {
+                        return new BadRequestObjectResult(ex.Message);
+                    }
                 }
                 else
                 {
@@ -117,13 +121,14 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
         {
             try
             {
-                AuthUriResponse response = await _authService.AuthUriRequest(JsonConvert.SerializeObject(state), request.Token);
+                var nonce = await _authStateService.StoreAuthState(state, request.Token);
+                AuthUriResponse response = await _authService.AuthUriRequest(nonce, request.Token);
                 return new RedirectResult(response.Uri);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return new ObjectResult("An unexpected error occurred while attempting to revoke data access.") { StatusCode = StatusCodes.Status500InternalServerError };
+                return new ObjectResult("An unexpected error occurred while attempting to authorize access.") { StatusCode = StatusCodes.Status500InternalServerError };
             }
         }
 
