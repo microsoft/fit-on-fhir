@@ -48,6 +48,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected HttpClient HttpClient { get; set; }
 
+        protected MockHttpMessageHandler HttpMessageHandler { get; set; }
+
         protected string AuthorizationNonce => "ABCDEFGHIJKLMNOPQRSTUVWX";
 
         protected abstract Func<AuthState> RetrieveAuthStateReturnFunc { get; }
@@ -232,8 +234,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected void SetupHttpClient(string response, HttpStatusCode httpStatusCode)
         {
-            var messageHandler = new MockHttpMessageHandler(response, httpStatusCode);
-            HttpClient = new HttpClient(messageHandler);
+            HttpMessageHandler = new MockHttpMessageHandler(response, httpStatusCode);
+            HttpClient = new HttpClient(HttpMessageHandler);
         }
     }
 }

@@ -18,17 +18,14 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests.Mocks
             _statusCode = statusCode;
         }
 
-        public string Query { get; private set; }
-
         public int CallCount { get; private set; }
+
+        public Uri RequestUri { get; private set; }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             CallCount++;
-            if (request.RequestUri.Query != null)
-            {
-                Query = request.RequestUri.Query;
-            }
+            RequestUri = request.RequestUri;
 
             return Task.FromResult<HttpResponseMessage>(new HttpResponseMessage
             {

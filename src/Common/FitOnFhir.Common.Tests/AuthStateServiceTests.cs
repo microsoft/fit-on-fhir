@@ -9,6 +9,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Services;
 using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
@@ -60,31 +61,53 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected AuthState StoredAuthState => JsonConvert.DeserializeObject<AuthState>(AuthorizationState);
 
-        [Fact]
-        public void GivenAnonymousLoginEnabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithQueryParams()
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public void GivenAnonymousLoginEnabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithQueryParams(bool includeStateQueryParam)
         {
             SetupConfiguration(true);
-            SetupHttpRequest(ExpectedToken, true);
+            SetupHttpRequest(ExpectedToken, true, includeStateQueryParam);
 
             var authState = _authStateService.CreateAuthState(Request);
 
             Assert.Equal(ExpectedExternalSystem, authState.ExternalSystem);
             Assert.Equal(ExpectedExternalIdentifier, authState.ExternalIdentifier);
+            Assert.Equal(ExpectedRedirectUrl, authState.RedirectUrl);
+            if (includeStateQueryParam)
+            {
+                Assert.Equal(ExpectedState, authState.State);
+            }
+            else
+            {
+                Assert.Null(authState.State);
+            }
         }
 
-        [Fact]
-        public void GivenAnonymousLoginDisabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithSubjectAndIssuer()
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public void GivenAnonymousLoginDisabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithSubjectAndIssuer(bool includeStateQueryParam)
         {
-            SetupHttpRequest(ExpectedToken);
+            SetupHttpRequest(ExpectedToken, includeState: includeStateQueryParam);
 
             var authState = _authStateService.CreateAuthState(Request);
 
             Assert.Equal(ExpectedIssuer, authState.ExternalSystem);
             Assert.Equal(ExpectedSubject, authState.ExternalIdentifier);
+            Assert.Equal(ExpectedRedirectUrl, authState.RedirectUrl);
+            if (includeStateQueryParam)
+            {
+                Assert.Equal(ExpectedState, authState.State);
+            }
+            else
+            {
+                Assert.Null(authState.State);
+            }
         }
 
         [Fact]
-        public void GivenAnonymousLoginDisabledWithQueryParametersInRequest_WhenCreateAuthStateCalled_ThrowsArgumentException()
+        public void GivenAnonymousLoginDisabledWithExternalQueryParametersInRequest_WhenCreateAuthStateCalled_ThrowsArgumentException()
         {
             SetupHttpRequest(ExpectedToken, true);
 
@@ -94,6 +117,20 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
                 Arg.Is<string>(msg =>
                     msg == $"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are forbidden query parameters with non-anonymous authorization."));
+        }
+
+        [Fact]
+        public void GivenRedirectUrlNotInApprovedList_WhenCreateAuthStateCalled_ThrowsRedirectUrlExceptionAndErrorIsLogged()
+        {
+            SetupHttpRequest(ExpectedToken);
+            AuthConfiguration.ApprovedRedirectUrls.Returns(new List<string>());
+
+            Assert.Throws<RedirectUrlException>(() => _authStateService.CreateAuthState(Request));
+
+            _logger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg =>
+                    msg == $"{ExpectedRedirectUrl} was not found in the list of approved redirect URLs."));
         }
 
         [Fact]

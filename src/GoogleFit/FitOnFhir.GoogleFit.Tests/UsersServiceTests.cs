@@ -18,6 +18,7 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Services;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
+using Constants = Microsoft.Health.FitOnFhir.Common.Constants;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 {
@@ -83,6 +84,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         protected override string ExpectedExternalSystem => Data.ExternalSystem;
 
         protected override string ExpectedAccessToken => Data.AccessToken;
+
+        protected string ExpectedAbsoluteUri => Data.RedirectUrl + "/?" + Constants.StateQueryParameter + "=" + Data.State;
 
         [Fact]
         public async Task GivenAuthCodeIsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
@@ -152,6 +155,15 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             await ExecuteAuthorizationCallback();
 
             await _usersKeyVaultRepository.Received(1).Upsert(Data.GoogleUserId, Data.RefreshToken, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task GivenAllConditionsMet_WhenProcessAuthorizationCallbackCalled_UserIsRedirectedToRedirectUrl()
+        {
+            await ExecuteAuthorizationCallback();
+
+            Assert.Equal(1, HttpMessageHandler.CallCount);
+            Assert.Equal(ExpectedAbsoluteUri, HttpMessageHandler.RequestUri.AbsoluteUri);
         }
 
         [Fact]
