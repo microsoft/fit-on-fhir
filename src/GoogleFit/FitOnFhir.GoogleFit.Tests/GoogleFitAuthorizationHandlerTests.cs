@@ -72,10 +72,11 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
         [InlineData("/" + GoogleFitConstants.GoogleFitRevokeAccessRequest)]
         [Theory]
-        public async Task GivenCreateAuthStateThrowsArgumentException_WhenRequestIsNotCallback_ReturnsBadRequestObjectResult(PathString requestPath)
+        public async Task GivenCreateAuthStateThrowsArgumentException_WhenRequestIsNotCallback_ReturnsBadRequestObjectResult(string request)
         {
             _authStateService.CreateAuthState(Arg.Any<HttpRequest>()).Throws(new ArgumentException("exception"));
 
+            PathString requestPath = new PathString(request);
             var routingRequest = CreateRoutingRequest(requestPath, false, false);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
 
@@ -87,11 +88,12 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
         [InlineData("/" + GoogleFitConstants.GoogleFitRevokeAccessRequest)]
         [Theory]
-        public async Task GivenCreateAuthStateThrowsRedirectUrlException_WhenRequestIsNotCallback_ReturnsBadRequestObjectResult(PathString requestPath)
+        public async Task GivenCreateAuthStateThrowsRedirectUrlException_WhenRequestIsNotCallback_ReturnsBadRequestObjectResult(string request)
         {
             string exceptionMessage = "failed to redirect";
             _authStateService.CreateAuthState(Arg.Any<HttpRequest>()).Throws(new RedirectUrlException(exceptionMessage));
 
+            PathString requestPath = new PathString(request);
             var routingRequest = CreateRoutingRequest(requestPath, false, false);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
 
