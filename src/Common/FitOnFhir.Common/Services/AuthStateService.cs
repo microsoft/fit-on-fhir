@@ -9,6 +9,7 @@ using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
@@ -26,6 +27,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         private BlobServiceClient _blobServiceClient;
         private readonly AuthenticationConfiguration _authenticationConfiguration;
         private readonly IJwtSecurityTokenHandlerProvider _jwtSecurityTokenHandlerProvider;
+        private HttpClient _httpClient;
         private readonly ILogger _logger;
 
         public AuthStateService(
@@ -33,6 +35,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             AuthenticationConfiguration authenticationConfiguration,
             IJwtSecurityTokenHandlerProvider jwtSecurityTokenHandlerProvider,
             BlobServiceClient blobServiceClient,
+            HttpClient httpClient,
             ILogger<AuthStateService> logger)
         {
             if (blobServiceClient == null)
@@ -50,6 +53,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             _blobContainerClient = _blobServiceClient.GetBlobContainerClient(azureConfiguration.BlobContainerName);
             _authenticationConfiguration = EnsureArg.IsNotNull(authenticationConfiguration, nameof(authenticationConfiguration));
             _jwtSecurityTokenHandlerProvider = EnsureArg.IsNotNull(jwtSecurityTokenHandlerProvider, nameof(jwtSecurityTokenHandlerProvider));
+            _httpClient = EnsureArg.IsNotNull(httpClient, nameof(httpClient));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
@@ -139,12 +143,41 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 // store state to blob storage
                 await blobClient.UploadAsync(new BinaryData(JsonConvert.SerializeObject(state)), true, cancellationToken);
 
+                // set blob expiry
+                await SetBlobExpiry(blobClient, cancellationToken);
+
                 return nonce;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to store the auth state.");
                 return null;
+            }
+        }
+
+        private async Task SetBlobExpiry(BlobClient blobClient, CancellationToken cancellationToken)
+        {
+
+            var query = new Dictionary<string, string>()
+            {
+                ["comp"] = "expiry",
+            };
+            string url = blobClient.AccountName + '/' + blobClient.BlobContainerName + '/' + blobClient.Name;
+            var uri = QueryHelpers.AddQueryString(url, query);
+            var request = new HttpRequestMessage(HttpMethod.Put, uri)
+            {
+                Headers =
+                {
+                    { "x-ms-expiry-option", "RelativeToNow" },
+                    { "x-ms-expiry-time", "300000" },
+                },
+            };
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Blob storage expiry not set.  Status:{response.StatusCode} Reason:{response.ReasonPhrase}");
             }
         }
 

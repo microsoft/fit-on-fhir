@@ -66,7 +66,15 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             }
 
             var validNonce = EnsureArg.IsNotNullOrWhiteSpace(nonce);
-            AuthState authState = await _authStateService.RetrieveAuthState(validNonce, cancellationToken);
+            AuthState authState;
+            try
+            {
+                authState = await _authStateService.RetrieveAuthState(validNonce, cancellationToken);
+            }
+            catch (Exception)
+            {
+                throw new Exception("An error occurred while validating the Google authorization callback 'state' parameter.");
+            }
 
             // Exchange the code for Auth, Refresh and Id tokens.
             var tokenResponse = await _authService.AuthTokensRequest(authCode, cancellationToken);
