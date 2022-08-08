@@ -24,3 +24,12 @@ stages:
               pathtoPublish: '$(build.artifactStagingDirectory)/nupkgs'
               artifactName: 'nuget'
               publishLocation: 'container'
+          - task: NuGetAuthenticate@0
+            displayName: 'NuGet Authenticate'
+          - task: NuGetCommand@2
+            displayName: 'Push NuGets'
+            inputs:
+              command: push
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/nupkgs/*.nupkg'
+              publishVstsFeed: 'InternalBuilds'
+              allowPackageConflicts: true
