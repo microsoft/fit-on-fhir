@@ -1,10 +1,10 @@
 stages:
   - stage: Package
-    displayName: Packaging Nugets
+    displayName: Publishing Nugets
     dependsOn: [Build]
     jobs:
       - job: Package
-        displayName: Package Nugets
+        displayName: Publishing Nugets
         steps:
           - task: DotNetCoreCLI@2
             displayName: 'dotnet pack nugets'
