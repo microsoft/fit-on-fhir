@@ -5,6 +5,7 @@
 
 using System.IdentityModel.Tokens.Jwt;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Microsoft.Health.FitOnFhir.Common
@@ -12,16 +13,26 @@ namespace Microsoft.Health.FitOnFhir.Common
     public class JwtSecurityTokenHandlerProvider : IJwtSecurityTokenHandlerProvider
     {
         private JwtSecurityTokenHandler _jwtSecurityTokenHandler;
+        private readonly ILogger _logger;
 
-        public JwtSecurityTokenHandlerProvider()
+        public JwtSecurityTokenHandlerProvider(ILogger<JwtSecurityTokenHandlerProvider> logger)
         {
             _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         /// <inheritdoc/>
         public JwtSecurityToken ReadJwtToken(string token)
         {
-            return _jwtSecurityTokenHandler.ReadJwtToken(EnsureArg.IsNotNullOrWhiteSpace(token, nameof(token)));
+            try
+            {
+                return _jwtSecurityTokenHandler.ReadJwtToken(EnsureArg.IsNotNullOrWhiteSpace(token, nameof(token)));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "The request JWT is malformed.");
+                return default;
+            }
         }
 
         /// <inheritdoc/>
