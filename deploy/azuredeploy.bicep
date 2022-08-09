@@ -179,6 +179,50 @@ resource sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@202
       days: 7
     }
     isVersioningEnabled: false
+	lastAccessTimeTrackingPolicy: {
+      blobType: [
+        'blockBlob'
+      ]
+      enable: true
+      name: 'AccessTimeTracking'
+      trackingGranularityInDays: 1
+    }
+  }
+  dependsOn: [
+    sa_basename
+  ]
+}
+
+resource sa_basename_default_management_policy 'Microsoft.Storage/storageAccounts/managementPolicies@2021-04-01' = {
+  name: '${replace('sa-${basename}', '-', '')}/default'
+  properties: {
+    policy: {
+      rules: [
+        {
+          definition: {
+            actions: {
+              baseBlob: {
+                delete: {
+                  daysAfterLastAccessTimeGreaterThan: 1
+                }
+                enableAutoTierToHotFromCool: false
+              }
+            }
+			filters: {
+              blobTypes: [
+                'blockBlob'
+              ]
+			  prefixMatch: [
+				'${authentication_blob_container_name}/'
+			  ]
+            }
+          }
+          enabled: true
+          name: 'blob management policy'
+          type: 'Lifecycle'
+        }
+      ]
+    }
   }
   dependsOn: [
     sa_basename
