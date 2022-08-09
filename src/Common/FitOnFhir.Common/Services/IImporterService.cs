@@ -3,21 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
-using System.Threading.Tasks;
+using Azure.Storage.Queues.Models;
 using Microsoft.Health.Common.Handler;
-using Microsoft.Health.FitOnFhir.Common.Models;
 
-namespace Microsoft.Health.FitOnFhir.Import.Services
+namespace Microsoft.Health.FitOnFhir.Common.Services
 {
     public interface IImporterService
     {
         /// <summary>
-        /// Passes along a <see cref="QueueMessage"/> to an <see cref="IResponsibilityHandler{TRequest,TResult}"/>, which
+        /// Passes along a string to an <see cref="IResponsibilityHandler{TRequest,TResult}"/>, which
         /// can then evaluate it and have the appropriate platform specific data importing handler take action.
         /// </summary>
-        /// <param name="message">The <see cref="QueueMessage"/> to take action on.</param>
+        /// <param name="message">A <see cref="string"/> to take action on (should deserialize to a <see cref="QueueMessage"/> object.</param>
         /// <param name="cancellationToken">A cancellation token for graceful recovery.</param>
-        public Task Import(QueueMessage message, CancellationToken cancellationToken);
+        public Task Import(string message, CancellationToken cancellationToken);
     }
 }
