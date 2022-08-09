@@ -1,0 +1,36 @@
+stages:
+  - stage: Package
+    displayName: Publishing Nugets
+    dependsOn: [Build]
+    jobs:
+      - job: Package
+        displayName: Publishing Nugets
+        steps:
+          - task: DotNetCoreCLI@2
+            displayName: 'dotnet pack nugets'
+            inputs:
+              command: pack
+              configuration: '$(buildConfiguration)'
+              packagesToPack: '**/*.csproj;!**/*.Authorization.csproj;!**/*.Import.csproj;!**/*.ImportTimerTrigger.csproj'
+              packDirectory: '$(build.artifactStagingDirectory)/nupkgs'
+              versioningScheme: 'byEnvVar'
+              versionEnvVar: 'nuget_version'
+              zipAfterPublish: true
+            env:
+              nuget_version: 1.0.0-$(build.buildNumber)
+          - task: PublishBuildArtifacts@1
+            displayName: 'publish nuget artifacts'
+            inputs:
+              pathtoPublish: '$(build.artifactStagingDirectory)/nupkgs'
+              artifactName: 'nuget'
+              publishLocation: 'container'
+          - task: NuGetAuthenticate@0
+            displayName: 'NuGet Authenticate'
+          - task: NuGetCommand@2
+            displayName: 'Push NuGets'
+            inputs:
+              command: push
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/nupkgs/*.nupkg'
+              publishVstsFeed: 'InternalBuilds'
+              allowPackageConflicts: true
+              
