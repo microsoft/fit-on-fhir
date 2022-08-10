@@ -59,5 +59,10 @@ namespace Microsoft.Health.FitOnFhir.Common
         /// The length of a generated nonce.
         /// </summary>
         public const int NonceLength = 24;
+
+        /// <summary>
+        /// The amount of time that an AuthState instance can be used to authorize with, from the time it is created.
+        /// </summary>
+        public static readonly TimeSpan AuthStateExpiry = TimeSpan.FromMinutes(5);
     }
 }

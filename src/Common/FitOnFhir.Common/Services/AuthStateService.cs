@@ -28,12 +28,14 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         private readonly AuthenticationConfiguration _authenticationConfiguration;
         private readonly IJwtSecurityTokenHandlerProvider _jwtSecurityTokenHandlerProvider;
         private readonly ILogger _logger;
+        private readonly Func<DateTimeOffset> _utcNowFunc;
 
         public AuthStateService(
             AzureConfiguration azureConfiguration,
             AuthenticationConfiguration authenticationConfiguration,
             IJwtSecurityTokenHandlerProvider jwtSecurityTokenHandlerProvider,
             BlobServiceClient blobServiceClient,
+            Func<DateTimeOffset> utcNowFunc,
             ILogger<AuthStateService> logger)
         {
             if (blobServiceClient == null)
@@ -51,6 +53,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             _blobContainerClient = _blobServiceClient.GetBlobContainerClient(azureConfiguration.BlobContainerName);
             _authenticationConfiguration = EnsureArg.IsNotNull(authenticationConfiguration, nameof(authenticationConfiguration));
             _jwtSecurityTokenHandlerProvider = EnsureArg.IsNotNull(jwtSecurityTokenHandlerProvider, nameof(jwtSecurityTokenHandlerProvider));
+            _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
@@ -116,7 +119,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             RedirectUrl = redirectUrl;
             State = HttpUtility.UrlDecode(httpRequest.Query[Constants.StateQueryParameter]);
 
-            return new AuthState(ExternalIdentifier, ExternalSystem, RedirectUrl, State);
+            return new AuthState(
+                ExternalIdentifier,
+                ExternalSystem,
+                _utcNowFunc() + Constants.AuthStateExpiry,
+                RedirectUrl,
+                State);
         }
 
         public async Task<AuthState> RetrieveAuthState(string nonce, CancellationToken cancellationToken)

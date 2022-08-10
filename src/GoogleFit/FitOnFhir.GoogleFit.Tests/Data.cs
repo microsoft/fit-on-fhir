@@ -32,6 +32,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         public const string State = "State";
         public const string AuthorizationState = $"{{\"{Constants.ExternalIdQueryParameter}\":\"{ExternalPatientId}\", " +
                                                  $"\"{Constants.ExternalSystemQueryParameter}\":\"{ExternalSystem}\", " +
+                                                 $"\"ExpirationTimeStamp\":\"1/12/2004 12:01:00 AM -05:00\", " +
                                                  $"\"{Constants.RedirectUrlQueryParameter}\":\"{RedirectUrl}\", " +
                                                  $"\"{Constants.StateQueryParameter}\":\"{State}\"}}";
 

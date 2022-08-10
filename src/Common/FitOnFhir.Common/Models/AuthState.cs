@@ -16,10 +16,16 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
         {
         }
 
-        public AuthState(string externalIdentifier, string externalSystem, string redirectUrl, string state = null)
+        public AuthState(
+            string externalIdentifier,
+            string externalSystem,
+            DateTimeOffset expirationTimeStamp,
+            string redirectUrl,
+            string state = null)
         {
             ExternalIdentifier = EnsureArg.IsNotEmptyOrWhiteSpace(externalIdentifier, nameof(externalIdentifier));
             ExternalSystem = EnsureArg.IsNotEmptyOrWhiteSpace(externalSystem, nameof(externalSystem));
+            ExpirationTimeStamp = expirationTimeStamp;
             RedirectUrl = EnsureArg.IsNotEmptyOrWhiteSpace(redirectUrl, nameof(redirectUrl));
             State = state;
         }
@@ -44,6 +50,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
         [JsonRequired]
         public string State { get; set; }
 
+        public DateTimeOffset ExpirationTimeStamp { get; set; }
+
         public static AuthState Parse(string jsonString)
         {
             EnsureArg.IsNotNullOrWhiteSpace(jsonString, nameof(jsonString));
@@ -51,7 +59,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
 
             if (string.IsNullOrEmpty(authState.ExternalIdentifier) ||
                 string.IsNullOrEmpty(authState.ExternalSystem) ||
-                string.IsNullOrEmpty(authState.RedirectUrl))
+                string.IsNullOrEmpty(authState.RedirectUrl) ||
+                authState.ExpirationTimeStamp == default)
             {
                 throw new ArgumentException();
             }
