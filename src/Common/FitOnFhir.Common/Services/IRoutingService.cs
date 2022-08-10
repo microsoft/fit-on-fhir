@@ -3,14 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Common.Handler;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
-namespace Microsoft.Health.FitOnFhir.Authorization.Services
+namespace Microsoft.Health.FitOnFhir.Common.Services
 {
     public interface IRoutingService
     {

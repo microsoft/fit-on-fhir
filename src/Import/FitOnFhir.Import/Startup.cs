@@ -15,6 +15,7 @@ using Microsoft.Health.FitOnFhir.Common.Handlers;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
 using Microsoft.Health.FitOnFhir.Common.Requests;
+using Microsoft.Health.FitOnFhir.Common.Services;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Config;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers;
@@ -22,7 +23,6 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Client.Telemetry;
 using Microsoft.Health.FitOnFhir.GoogleFit.Repositories;
 using Microsoft.Health.FitOnFhir.GoogleFit.Services;
 using Microsoft.Health.FitOnFhir.Import;
-using Microsoft.Health.FitOnFhir.Import.Services;
 using Microsoft.Health.Logging.Telemetry;
 
 [assembly: FunctionsStartup(typeof(Startup))]
@@ -33,7 +33,6 @@ namespace Microsoft.Health.FitOnFhir.Import
     {
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
-            builder.Services.AddLogging();
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
             builder.Services.AddConfiguration<GoogleFitDataImporterConfiguration>(configuration);
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
