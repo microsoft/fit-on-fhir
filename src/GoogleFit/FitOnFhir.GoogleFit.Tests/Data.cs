@@ -28,7 +28,10 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         public const string PatientId = "12345678-9101-1121-3141-516171819202";
         public const string ExternalPatientId = "ExternalPatientId";
         public const string ExternalSystem = "ExternalSystem";
-        public const string AuthorizationState = $"{{\"{Constants.ExternalIdQueryParameter}\":\"{ExternalPatientId}\", \"{Constants.ExternalSystemQueryParameter}\":\"{ExternalSystem}\"}}";
+        public const string AuthorizationState = $"{{\"{Constants.ExternalIdQueryParameter}\":\"{ExternalPatientId}\"," +
+                                                 $" \"{Constants.ExternalSystemQueryParameter}\":\"{ExternalSystem}\"," +
+                                                 $" \"ExpirationTimeStamp\":\"1/12/2004 12:01:00 AM -05:00\"}}";
+
         public static readonly AuthState StoredAuthState = JsonConvert.DeserializeObject<AuthState>(AuthorizationState);
 
         public static MedTechDataset GetMedTechDataset(string deviceUid = DeviceUid, string packageName = PackageName, int pointCount = 1)

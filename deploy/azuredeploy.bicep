@@ -193,7 +193,7 @@ resource sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@202
   ]
 }
 
-resource sa_basename_default_management_policy 'Microsoft.Storage/storageAccounts/managementPolicies@2021-04-01' = {
+resource sa_basename_default_management_policy 'Microsoft.Storage/storageAccounts/managementPolicies@2021-06-01' = {
   name: '${replace('sa-${basename}', '-', '')}/default'
   properties: {
     policy: {
@@ -203,7 +203,7 @@ resource sa_basename_default_management_policy 'Microsoft.Storage/storageAccount
             actions: {
               baseBlob: {
                 delete: {
-                  daysAfterLastAccessTimeGreaterThan: 1
+                  daysAfterModificationGreaterThan: 1
                 }
                 enableAutoTierToHotFromCool: false
               }

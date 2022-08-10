@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.9.1.41621",
-      "templateHash": "13975702932902341415"
+      "templateHash": "7739926137165311584"
     }
   },
   "parameters": {
@@ -284,7 +284,7 @@
     },
     {
       "type": "Microsoft.Storage/storageAccounts/managementPolicies",
-      "apiVersion": "2021-04-01",
+      "apiVersion": "2021-06-01",
       "name": "[format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
       "properties": {
         "policy": {
@@ -294,7 +294,7 @@
                 "actions": {
                   "baseBlob": {
                     "delete": {
-                      "daysAfterLastAccessTimeGreaterThan": 1
+                      "daysAfterModificationGreaterThan": 1
                     },
                     "enableAutoTierToHotFromCool": false
                   }

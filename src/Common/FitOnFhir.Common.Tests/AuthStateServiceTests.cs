@@ -28,8 +28,14 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         private StreamWriter _authStateWriter;
         private readonly AzureConfiguration _azureConfiguration;
         private readonly BlobServiceClient _blobServiceClient;
+        private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly MockLogger<AuthStateService> _logger;
         private readonly AuthStateService _authStateService;
+
+        private static readonly DateTimeOffset _now =
+            new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
+
+        private readonly DateTimeOffset _expiresAt = _now + Constants.AuthStateExpiry;
 
         public AuthStateServiceTests()
         {
@@ -38,6 +44,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             // create new service for testing
             _azureConfiguration = Substitute.For<AzureConfiguration>();
             _blobServiceClient = Substitute.For<BlobServiceClient>();
+            _utcNowFunc = Substitute.For<Func<DateTimeOffset>>();
+            _utcNowFunc().Returns(_now);
             _logger = Substitute.For<MockLogger<AuthStateService>>();
             SetupBlobSubstitutes();
             _authStateService = new AuthStateService(
@@ -45,6 +53,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
                 AuthConfiguration,
                 SecurityTokenHandlerProvider,
                 _blobServiceClient,
+                _utcNowFunc,
                 _logger);
         }
 
@@ -52,12 +61,14 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected string ExpectedNonce => "Nonce";
 
-        protected string AuthorizationState => $"{{\"{Constants.ExternalIdQueryParameter}\":\"{ExpectedExternalIdentifier}\", \"{Constants.ExternalSystemQueryParameter}\":\"{ExpectedExternalSystem}\"}}";
+        protected string AuthorizationState => $"{{\"{Constants.ExternalIdQueryParameter}\":\"{ExpectedExternalIdentifier}\"," +
+                                               $" \"{Constants.ExternalSystemQueryParameter}\":\"{ExpectedExternalSystem}\"," +
+                                               $" \"ExpirationTimeStamp\":\"{_utcNowFunc().ToString()}\"}}";
 
         protected AuthState StoredAuthState => JsonConvert.DeserializeObject<AuthState>(AuthorizationState);
 
         [Fact]
-        public void GivenAnonymousLoginEnabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithQueryParams()
+        public void GivenAnonymousLoginEnabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithQueryParamsAndExpirationTimeStamp()
         {
             SetupConfiguration(true);
             SetupHttpRequest(ExpectedToken, true);
@@ -66,10 +77,11 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             Assert.Equal(ExpectedExternalSystem, authState.ExternalSystem);
             Assert.Equal(ExpectedExternalIdentifier, authState.ExternalIdentifier);
+            Assert.Equal(_expiresAt, authState.ExpirationTimeStamp);
         }
 
         [Fact]
-        public void GivenAnonymousLoginDisabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithSubjectAndIssuer()
+        public void GivenAnonymousLoginDisabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithSubjectAndIssuerAndExpirationTimeStamp()
         {
             SetupHttpRequest(ExpectedToken);
 
@@ -77,6 +89,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             Assert.Equal(ExpectedIssuer, authState.ExternalSystem);
             Assert.Equal(ExpectedSubject, authState.ExternalIdentifier);
+            Assert.Equal(_expiresAt, authState.ExpirationTimeStamp);
         }
 
         [Fact]

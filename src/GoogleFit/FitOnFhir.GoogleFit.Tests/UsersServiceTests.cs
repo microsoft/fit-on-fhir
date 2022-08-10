@@ -34,6 +34,9 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         private readonly DateTimeOffset _now =
             new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
 
+        private readonly DateTimeOffset _expired =
+            new DateTimeOffset(2004, 1, 12, 0, 2, 0, new TimeSpan(-5, 0, 0));
+
         public UsersServiceTests()
         {
             _googleFitUserRepository = Substitute.For<IGoogleFitUserTableRepository>();
@@ -109,6 +112,13 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         {
             _authService.AuthTokensRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult<AuthTokensResponse>(null));
 
+            await Assert.ThrowsAsync<Exception>(async () => await ExecuteAuthorizationCallback());
+        }
+
+        [Fact]
+        public async Task GivenAuthStateExpired_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()
+        {
+            _utcNowFunc().Returns(_expired);
             await Assert.ThrowsAsync<Exception>(async () => await ExecuteAuthorizationCallback());
         }
 

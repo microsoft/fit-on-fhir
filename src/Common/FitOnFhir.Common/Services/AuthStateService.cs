@@ -27,12 +27,14 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         private readonly AuthenticationConfiguration _authenticationConfiguration;
         private readonly IJwtSecurityTokenHandlerProvider _jwtSecurityTokenHandlerProvider;
         private readonly ILogger _logger;
+        private readonly Func<DateTimeOffset> _utcNowFunc;
 
         public AuthStateService(
             AzureConfiguration azureConfiguration,
             AuthenticationConfiguration authenticationConfiguration,
             IJwtSecurityTokenHandlerProvider jwtSecurityTokenHandlerProvider,
             BlobServiceClient blobServiceClient,
+            Func<DateTimeOffset> utcNowFunc,
             ILogger<AuthStateService> logger)
         {
             if (blobServiceClient == null)
@@ -50,6 +52,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             _blobContainerClient = _blobServiceClient.GetBlobContainerClient(azureConfiguration.BlobContainerName);
             _authenticationConfiguration = EnsureArg.IsNotNull(authenticationConfiguration, nameof(authenticationConfiguration));
             _jwtSecurityTokenHandlerProvider = EnsureArg.IsNotNull(jwtSecurityTokenHandlerProvider, nameof(jwtSecurityTokenHandlerProvider));
+            _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
@@ -100,7 +103,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 ExternalSystem = jwtSecurityToken.Issuer;
             }
 
-            return new AuthState(ExternalIdentifier, ExternalSystem);
+            return new AuthState(ExternalIdentifier, ExternalSystem, _utcNowFunc() + Constants.AuthStateExpiry);
         }
 
         public async Task<AuthState> RetrieveAuthState(string nonce, CancellationToken cancellationToken)
