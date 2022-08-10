@@ -3,8 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 using System.Web;
+using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
@@ -13,22 +14,45 @@ using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.Common.Services
 {
     public class AuthStateService : IAuthStateService
     {
+        private string _base36Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        private Random _random = new Random();
+        private BlobContainerClient _blobContainerClient;
+        private BlobServiceClient _blobServiceClient;
         private readonly AuthenticationConfiguration _authenticationConfiguration;
         private readonly IJwtSecurityTokenHandlerProvider _jwtSecurityTokenHandlerProvider;
         private readonly ILogger _logger;
+        private readonly Func<DateTimeOffset> _utcNowFunc;
 
         public AuthStateService(
+            AzureConfiguration azureConfiguration,
             AuthenticationConfiguration authenticationConfiguration,
             IJwtSecurityTokenHandlerProvider jwtSecurityTokenHandlerProvider,
+            BlobServiceClient blobServiceClient,
+            Func<DateTimeOffset> utcNowFunc,
             ILogger<AuthStateService> logger)
         {
+            if (blobServiceClient == null)
+            {
+                var connectionString = EnsureArg.IsNotNullOrWhiteSpace(
+                    azureConfiguration.StorageAccountConnectionString,
+                    nameof(azureConfiguration.StorageAccountConnectionString));
+                _blobServiceClient = new BlobServiceClient(connectionString);
+            }
+            else
+            {
+                _blobServiceClient = blobServiceClient;
+            }
+
+            _blobContainerClient = _blobServiceClient.GetBlobContainerClient(azureConfiguration.BlobContainerName);
             _authenticationConfiguration = EnsureArg.IsNotNull(authenticationConfiguration, nameof(authenticationConfiguration));
             _jwtSecurityTokenHandlerProvider = EnsureArg.IsNotNull(jwtSecurityTokenHandlerProvider, nameof(jwtSecurityTokenHandlerProvider));
+            _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
@@ -79,7 +103,63 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 ExternalSystem = jwtSecurityToken.Issuer;
             }
 
-            return new AuthState(ExternalIdentifier, ExternalSystem);
+            return new AuthState(ExternalIdentifier, ExternalSystem, _utcNowFunc() + Constants.AuthStateExpiry);
+        }
+
+        public async Task<AuthState> RetrieveAuthState(string nonce, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var blobName = EnsureArg.IsNotNullOrWhiteSpace(nonce);
+
+                // Get a reference to the blob
+                BlobClient blobClient = _blobContainerClient.GetBlobClient(blobName);
+
+                // Get the AuthState
+                var response = await blobClient.DownloadAsync(cancellationToken);
+
+                // deserialize the AuthState
+                StreamReader reader = new StreamReader(response.Value.Content);
+                string json = reader.ReadToEnd();
+                return AuthState.Parse(json);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve the auth state.");
+                throw;
+            }
+        }
+
+        public async Task<string> StoreAuthState(AuthState state, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var nonce = GenerateNonce(Constants.NonceLength);
+
+                // Get a reference to the blob
+                BlobClient blobClient = _blobContainerClient.GetBlobClient(nonce);
+
+                // store state to blob storage
+                await blobClient.UploadAsync(new BinaryData(JsonConvert.SerializeObject(state)), true, cancellationToken);
+
+                return nonce;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to store the auth state.");
+                return null;
+            }
+        }
+
+        private string GenerateNonce(int length)
+        {
+            var nonce = new StringBuilder();
+            for (var i = 0; i < length; i++)
+            {
+                nonce.Append(_base36Chars[_random.Next(0, _base36Chars.Length - 1)]);
+            }
+
+            return nonce.ToString();
         }
     }
 }

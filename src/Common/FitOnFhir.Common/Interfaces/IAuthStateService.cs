@@ -22,5 +22,22 @@ namespace Microsoft.Health.FitOnFhir.Common.Interfaces
         /// Will throw an <see cref="ArgumentException"/> if <see cref="AuthenticationConfiguration.IsAnonymousLoginEnabled"/> is false and
         /// query params <see cref="Constants.ExternalIdQueryParameter"/> and <see cref="Constants.ExternalSystemQueryParameter"/> are present in the <see cref="HttpRequest"/>.</returns>
         AuthState CreateAuthState(HttpRequest httpRequest);
+
+        /// <summary>
+        /// Stores an <see cref="AuthState"/> as a blob under a generated nonce name.
+        /// The generated nonce returned is used later on for retrieval of the AuthState data.
+        /// </summary>
+        /// <param name="state">The <see cref="AuthState"/> to store.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to cancel the process.</param>
+        /// <returns>The generated nonce which the <see cref="AuthState"/> is stored under.</returns>
+        Task<string> StoreAuthState(AuthState state, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Retrieves stored <see cref="AuthState"/> data from a blob, as identified by the provided nonce.
+        /// </summary>
+        /// <param name="nonce">The nonce which the blob is named after.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> used to cancel the process.</param>
+        /// <returns>The <see cref="AuthState"/> stored in the blob specified by the provided nonce.</returns>
+        Task<AuthState> RetrieveAuthState(string nonce, CancellationToken cancellationToken);
     }
 }

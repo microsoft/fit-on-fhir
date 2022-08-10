@@ -43,6 +43,9 @@ param authentication_audience string = ''
 @description('The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)')
 param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read'
 
+@description('Name for the authentication data storage container.')
+param authentication_blob_container_name string = 'authdata'
+
 var fhirServiceUrl = 'https://${replace('hw-${basename}', '-', '')}-fs-${basename}.fhir.azurehealthcareapis.com'
 var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
 var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
@@ -176,7 +179,59 @@ resource sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@202
       days: 7
     }
     isVersioningEnabled: false
+	lastAccessTimeTrackingPolicy: {
+      blobType: [
+        'blockBlob'
+      ]
+      enable: true
+      name: 'AccessTimeTracking'
+      trackingGranularityInDays: 1
+    }
   }
+  dependsOn: [
+    sa_basename
+  ]
+}
+
+resource sa_basename_default_management_policy 'Microsoft.Storage/storageAccounts/managementPolicies@2021-06-01' = {
+  name: '${replace('sa-${basename}', '-', '')}/default'
+  properties: {
+    policy: {
+      rules: [
+        {
+          definition: {
+            actions: {
+              baseBlob: {
+                delete: {
+                  daysAfterModificationGreaterThan: 1
+                }
+                enableAutoTierToHotFromCool: false
+              }
+            }
+			filters: {
+              blobTypes: [
+                'blockBlob'
+              ]
+			  prefixMatch: [
+				'${authentication_blob_container_name}/'
+			  ]
+            }
+          }
+          enabled: true
+          name: 'blob management policy'
+          type: 'Lifecycle'
+        }
+      ]
+    }
+  }
+  dependsOn: [
+    sa_basename
+  ]
+}
+
+resource sa_basename_default_blob_container 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-04-01' = {
+  parent: sa_basename_default
+  name: authentication_blob_container_name
   dependsOn: [
     sa_basename
   ]
@@ -294,7 +349,7 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
   properties: {
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
-    PROJECT: 'src/Authorization/FitOnFhir.Authorization/FitOnFhir.Authorization.csproj'
+    PROJECT: 'src/Authorization/FitOnFhir.Authorization/Microsoft.Health.FitOnFhir.Authorization.csproj'
 	  AzureWebJobsStorage: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     AzureConfiguration__StorageAccountConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
@@ -305,6 +360,7 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
     GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'google-client-secret')).secretUriWithVersion})'
 	  GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
     AzureConfiguration__UsersKeyVaultUri: 'https://kv-${basename}${environment().suffixes.keyvaultDns}'
+	AzureConfiguration__BlobContainerName: authentication_blob_container_name
 	AuthenticationConfiguration__IsAnonymousLoginEnabled : (authentication_anonymous_login_enabled == true) ? 'true' : 'false'
 	AuthenticationConfiguration__IdentityProviders: (authentication_anonymous_login_enabled == true) ? '' : authentication_identity_providers
 	AuthenticationConfiguration__Audience: (authentication_anonymous_login_enabled == true) ? '' : authentication_audience
@@ -358,7 +414,7 @@ resource import_timer_basename_appsettings 'Microsoft.Web/sites/config@2015-08-0
   properties: {
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
-    PROJECT: 'src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/FitOnFhir.ImportTimerTrigger.csproj'
+    PROJECT: 'src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/Microsoft.Health.FitOnFhir.ImportTimerTrigger.csproj'
     AzureWebJobsStorage: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     AzureConfiguration__StorageAccountConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
@@ -413,7 +469,7 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01
   properties: {
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
-    PROJECT: 'src/Import/FitOnFhir.Import/FitOnFhir.Import.csproj'
+    PROJECT: 'src/Import/FitOnFhir.Import/Microsoft.Health.FitOnFhir.Import.csproj'
     AzureWebJobsStorage: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     AzureConfiguration__StorageAccountConnectionString: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'storage-account-connection-string')).secretUriWithVersion})'
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey

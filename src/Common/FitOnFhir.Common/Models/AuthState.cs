@@ -16,10 +16,11 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
         {
         }
 
-        public AuthState(string externalIdentifier, string externalSystem)
+        public AuthState(string externalIdentifier, string externalSystem, DateTimeOffset expirationTimeStamp)
         {
             ExternalIdentifier = EnsureArg.IsNotEmptyOrWhiteSpace(externalIdentifier, nameof(externalIdentifier));
             ExternalSystem = EnsureArg.IsNotEmptyOrWhiteSpace(externalSystem, nameof(externalSystem));
+            ExpirationTimeStamp = expirationTimeStamp;
         }
 
         [JsonProperty(Constants.ExternalIdQueryParameter)]
@@ -32,12 +33,16 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
         [JsonRequired]
         public string ExternalSystem { get; set; }
 
+        public DateTimeOffset ExpirationTimeStamp { get; set; }
+
         public static AuthState Parse(string jsonString)
         {
             EnsureArg.IsNotNullOrWhiteSpace(jsonString, nameof(jsonString));
             AuthState authState = JsonConvert.DeserializeObject<AuthState>(jsonString);
 
-            if (string.IsNullOrEmpty(authState.ExternalIdentifier) || string.IsNullOrEmpty(authState.ExternalSystem))
+            if (string.IsNullOrEmpty(authState.ExternalIdentifier) ||
+                string.IsNullOrEmpty(authState.ExternalSystem) ||
+                authState.ExpirationTimeStamp == default)
             {
                 throw new ArgumentException();
             }

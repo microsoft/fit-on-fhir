@@ -12,6 +12,7 @@ using Xunit;
 using Bundle = Hl7.Fhir.Model.Bundle;
 using Identifier = Hl7.Fhir.Model.Identifier;
 using Patient = Hl7.Fhir.Model.Patient;
+using Received = NSubstitute.Received;
 using Resource = Hl7.Fhir.Model.Resource;
 using ResourceType = Hl7.Fhir.Model.ResourceType;
 
@@ -27,10 +28,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             ResourceService = new ResourceManagementService(_fhirService);
             UsersTableRepository = Substitute.For<IUsersTableRepository>();
             QueueService = Substitute.For<IQueueService>();
+            AuthStateService = Substitute.For<IAuthStateService>();
 
             // Default responses.
             _fhirService.SearchForResourceAsync(ResourceType.Patient, Arg.Any<string>()).Returns(Task.FromResult(GetBundle(EnsurePatient(null, true, true))));
             _fhirService.CreateResourceAsync(Arg.Any<Patient>()).Returns(x => EnsurePatient(x.ArgAt<Patient>(0), false, false));
+            AuthStateService.RetrieveAuthState(Arg.Is<string>(str => str == AuthorizationNonce), Arg.Any<CancellationToken>()).Returns(RetrieveAuthStateReturnFunc());
         }
 
         protected ResourceManagementService ResourceService { get; }
@@ -38,6 +41,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         protected IUsersTableRepository UsersTableRepository { get; }
 
         protected IQueueService QueueService { get; }
+
+        protected IAuthStateService AuthStateService { get; }
+
+        protected string AuthorizationNonce => "ABCDEFGHIJKLMNOPQRSTUVWX";
+
+        protected abstract Func<AuthState> RetrieveAuthStateReturnFunc { get; }
 
         protected abstract Func<Task> ExecuteAuthorizationCallback { get; }
 
