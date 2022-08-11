@@ -46,6 +46,9 @@ param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.email
 @description('Name for the authentication data storage container.')
 param authentication_blob_container_name string = 'authdata'
 
+@description('A comma delimited list of approved redirect URLs that can be navigated to when authentication completes successfully.')
+param authentication_redirect_urls string = ''
+
 var fhirServiceUrl = 'https://${replace('hw-${basename}', '-', '')}-fs-${basename}.fhir.azurehealthcareapis.com'
 var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
 var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
@@ -364,6 +367,7 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
 	AuthenticationConfiguration__IsAnonymousLoginEnabled : (authentication_anonymous_login_enabled == true) ? 'true' : 'false'
 	AuthenticationConfiguration__IdentityProviders: (authentication_anonymous_login_enabled == true) ? '' : authentication_identity_providers
 	AuthenticationConfiguration__Audience: (authentication_anonymous_login_enabled == true) ? '' : authentication_audience
+	AuthenticationConfiguration__RedirectUrls: authentication_redirect_urls
     FhirService__Url: fhirServiceUrl
     FhirClient__UseManagedIdentity: 'true'
   }

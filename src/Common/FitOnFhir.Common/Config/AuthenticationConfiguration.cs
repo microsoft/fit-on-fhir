@@ -8,6 +8,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
     public class AuthenticationConfiguration
     {
         private string[] _providerMetadataEndpoints = new string[] { };
+        private string[] _approvedRedirectUrls = new string[] { };
 
         /// <summary>
         /// Indicates whether anonymous logins are allowed.
@@ -22,7 +23,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
         /// <summary>
         /// The list of user allowed identity providers.
         /// </summary>
-        public virtual IEnumerable<string> TokenAuthorities => _providerMetadataEndpoints.Any() ? _providerMetadataEndpoints : Enumerable.Empty<string>();
+        public virtual IEnumerable<string> TokenAuthorities => _providerMetadataEndpoints;
 
         /// <summary>
         /// A comma delimited list of the identity providers for auth token verification.
@@ -45,6 +46,36 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     _providerMetadataEndpoints = value.Replace(" ", string.Empty).Split(',');
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The list of user allowed identity providers.
+        /// </summary>
+        public virtual IEnumerable<string> ApprovedRedirectUrls => _approvedRedirectUrls;
+
+        /// <summary>
+        /// A comma delimited list of user approved redirect URLs.
+        /// </summary>
+        public string RedirectUrls
+        {
+            get
+            {
+                if (_approvedRedirectUrls != null && _approvedRedirectUrls.Any())
+                {
+                    return string.Join(", ", _approvedRedirectUrls);
+                }
+
+                return null;
+            }
+
+            set
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    _approvedRedirectUrls = value.Replace(" ", string.Empty).Split(',');
                     return;
                 }
             }

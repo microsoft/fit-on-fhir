@@ -9,6 +9,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Services;
 using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
@@ -19,13 +20,12 @@ using Xunit;
 
 namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
-    public class AuthStateServiceTests : AuthenticationBaseTests, IDisposable
+    public class AuthStateServiceTests : AuthenticationBaseTests
     {
         private BlobContainerClient _blobContainerClient;
         private BlobClient _blobClient;
-        private BlobDownloadInfo _blobDownloadInfo;
-        private Stream _authStateStream;
-        private StreamWriter _authStateWriter;
+        private BlobDownloadResult _blobDownloadResult;
+        private BinaryData _authStateBinaryData;
         private readonly AzureConfiguration _azureConfiguration;
         private readonly BlobServiceClient _blobServiceClient;
         private readonly Func<DateTimeOffset> _utcNowFunc;
@@ -61,39 +61,64 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected string ExpectedNonce => "Nonce";
 
-        protected string AuthorizationState => $"{{\"{Constants.ExternalIdQueryParameter}\":\"{ExpectedExternalIdentifier}\"," +
-                                               $" \"{Constants.ExternalSystemQueryParameter}\":\"{ExpectedExternalSystem}\"," +
-                                               $" \"ExpirationTimeStamp\":\"{_utcNowFunc().ToString()}\"}}";
+        protected string AuthorizationState =>
+            $"{{\"{Constants.ExternalIdQueryParameter}\":\"{ExpectedExternalIdentifier}\", " +
+            $"\"{Constants.ExternalSystemQueryParameter}\":\"{ExpectedExternalSystem}\", " +
+            $"\"ExpirationTimeStamp\":\"{_utcNowFunc().ToString()}\", " +
+            $"\"{Constants.RedirectUrlQueryParameter}\":\"{ExpectedRedirectUrl}\", " +
+            $"\"{Constants.StateQueryParameter}\":\"{ExpectedState}\"}}";
 
         protected AuthState StoredAuthState => JsonConvert.DeserializeObject<AuthState>(AuthorizationState);
 
-        [Fact]
-        public void GivenAnonymousLoginEnabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithQueryParamsAndExpirationTimeStamp()
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public void GivenAnonymousLoginEnabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithQueryParams(bool includeStateQueryParam)
         {
             SetupConfiguration(true);
-            SetupHttpRequest(ExpectedToken, true);
+            SetupHttpRequest(ExpectedToken, true, includeStateQueryParam);
 
             var authState = _authStateService.CreateAuthState(Request);
 
             Assert.Equal(ExpectedExternalSystem, authState.ExternalSystem);
             Assert.Equal(ExpectedExternalIdentifier, authState.ExternalIdentifier);
             Assert.Equal(_expiresAt, authState.ExpirationTimeStamp);
+            Assert.Equal(ExpectedRedirectUrl, authState.RedirectUrl);
+            if (includeStateQueryParam)
+            {
+                Assert.Equal(ExpectedState, authState.State);
+            }
+            else
+            {
+                Assert.Null(authState.State);
+            }
         }
 
-        [Fact]
-        public void GivenAnonymousLoginDisabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithSubjectAndIssuerAndExpirationTimeStamp()
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public void GivenAnonymousLoginDisabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithSubjectAndIssuer(bool includeStateQueryParam)
         {
-            SetupHttpRequest(ExpectedToken);
+            SetupHttpRequest(ExpectedToken, includeState: includeStateQueryParam);
 
             var authState = _authStateService.CreateAuthState(Request);
 
             Assert.Equal(ExpectedIssuer, authState.ExternalSystem);
             Assert.Equal(ExpectedSubject, authState.ExternalIdentifier);
             Assert.Equal(_expiresAt, authState.ExpirationTimeStamp);
+            Assert.Equal(ExpectedRedirectUrl, authState.RedirectUrl);
+            if (includeStateQueryParam)
+            {
+                Assert.Equal(ExpectedState, authState.State);
+            }
+            else
+            {
+                Assert.Null(authState.State);
+            }
         }
 
         [Fact]
-        public void GivenAnonymousLoginDisabledWithQueryParametersInRequest_WhenCreateAuthStateCalled_ThrowsArgumentException()
+        public void GivenAnonymousLoginDisabledWithExternalQueryParametersInRequest_WhenCreateAuthStateCalled_ThrowsArgumentException()
         {
             SetupHttpRequest(ExpectedToken, true);
 
@@ -103,6 +128,43 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
                 Arg.Is<string>(msg =>
                     msg == $"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are forbidden query parameters with non-anonymous authorization."));
+        }
+
+        [Fact]
+        public void GivenRedirectUrlNotInApprovedList_WhenCreateAuthStateCalled_ThrowsRedirectUrlExceptionAndErrorIsLogged()
+        {
+            SetupHttpRequest(ExpectedToken);
+            AuthConfiguration.ApprovedRedirectUrls.Returns(new List<string>());
+
+            Assert.Throws<RedirectUrlException>(() => _authStateService.CreateAuthState(Request));
+
+            _logger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg =>
+                    msg == "The redirect URL was not found in the list of approved redirect URLs."));
+
+            _logger.DidNotReceive().Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg =>
+                    msg == $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request"));
+        }
+
+        [Fact]
+        public void GivenRedirectUrlNotInRequest_WhenCreateAuthStateCalled_ThrowsRedirectUrlExceptionAndErrorIsLogged()
+        {
+            SetupHttpRequest(ExpectedToken, includeRedirectUrl: false);
+
+            Assert.Throws<RedirectUrlException>(() => _authStateService.CreateAuthState(Request));
+
+            _logger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg =>
+                    msg == $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request"));
+
+            _logger.DidNotReceive().Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg =>
+                    msg == "The redirect URL was not found in the list of approved redirect URLs."));
         }
 
         [Fact]
@@ -159,7 +221,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             string exceptionMessage = "DownloadAsync exception";
             var exception = new Exception(exceptionMessage);
 
-            _blobClient.DownloadAsync(Arg.Any<CancellationToken>()).Throws(exception);
+            _blobClient.DownloadContentAsync(Arg.Any<CancellationToken>()).Throws(exception);
             await Assert.ThrowsAsync<Exception>(() => _authStateService.RetrieveAuthState(ExpectedNonce, CancellationToken.None));
         }
 
@@ -235,28 +297,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             _blobClient = Substitute.For<BlobClient>();
             _blobContainerClient.GetBlobClient(Arg.Is<string>(str => str == ExpectedNonce)).Returns(_blobClient);
 
-            _authStateStream = BuildAuthStream(AuthorizationState);
-            _blobDownloadInfo = BlobsModelFactory.BlobDownloadInfo(content: _authStateStream);
-            var blobDownloadInfoResponse = Substitute.For<Response<BlobDownloadInfo>>();
-            blobDownloadInfoResponse.Value.Returns(_blobDownloadInfo);
+            _authStateBinaryData = new BinaryData(AuthorizationState);
+            _blobDownloadResult = BlobsModelFactory.BlobDownloadResult(content: _authStateBinaryData);
+            Response<BlobDownloadResult> blobDownloadInfoResponse = Substitute.For<Response<BlobDownloadResult>>();
+            blobDownloadInfoResponse.Value.Returns(_blobDownloadResult);
 
-            _blobClient.DownloadAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<Response<BlobDownloadInfo>>(blobDownloadInfoResponse));
-        }
-
-        private Stream BuildAuthStream(string serializedAuthState)
-        {
-            var stream = new MemoryStream();
-            _authStateWriter = new StreamWriter(stream);
-            _authStateWriter.Write(serializedAuthState);
-            _authStateWriter.Flush();
-            stream.Position = 0;
-            return stream;
-        }
-
-        public void Dispose()
-        {
-            _authStateStream.Dispose();
-            _authStateWriter.Dispose();
+            _blobClient.DownloadContentAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<Response<BlobDownloadResult>>(blobDownloadInfoResponse));
         }
     }
 }

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
 using Microsoft.Health.FitOnFhir.Common.Resolvers;
@@ -17,6 +18,7 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Services;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
+using Constants = Microsoft.Health.FitOnFhir.Common.Constants;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 {
@@ -47,6 +49,10 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _utcNowFunc().Returns(_now);
             _logger = Substitute.For<MockLogger<UsersService>>();
 
+            // Default responses.
+            _authService.AuthTokensRequest(Arg.Any<string>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(Data.GetAuthTokensResponse()));
+
             _usersService = new UsersService(
                 ResourceService,
                 UsersTableRepository,
@@ -58,9 +64,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
                 AuthStateService,
                 _utcNowFunc,
                 _logger);
-
-            // Default responses.
-            _authService.AuthTokensRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(Data.GetAuthTokensResponse()));
         }
 
         protected override Func<Task> ExecuteAuthorizationCallback => () => _usersService.ProcessAuthorizationCallback("TestAuthCode", AuthorizationNonce, CancellationToken.None);
@@ -82,6 +85,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         protected override string ExpectedExternalSystem => Data.ExternalSystem;
 
         protected override string ExpectedAccessToken => Data.AccessToken;
+
+        protected string ExpectedAbsoluteUri => Data.RedirectUrl + "/?" + Constants.StateQueryParameter + "=" + Data.State;
 
         [Fact]
         public async Task GivenAuthCodeIsNull_WhenProcessAuthorizationCallbackCalled_ExceptionIsThrown()

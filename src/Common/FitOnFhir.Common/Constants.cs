@@ -35,6 +35,17 @@ namespace Microsoft.Health.FitOnFhir.Common
         public const string ExternalSystemQueryParameter = "externalSystem";
 
         /// <summary>
+        /// Query parameter name for the URL that will be redirected to once
+        /// authorization is completed successfully
+        /// </summary>
+        public const string RedirectUrlQueryParameter = "redirect_url";
+
+        /// <summary>
+        /// Query parameter name for the session state to be preserved
+        /// </summary>
+        public const string StateQueryParameter = "state";
+
+        /// <summary>
         /// The name of the container in blob storage that holds the temporary authorization credentials.
         /// </summary>
         public const string BlobStorageContainerName = "FitOnFhirAuthStorage";

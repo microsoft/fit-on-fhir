@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common;
+using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Requests;
@@ -69,6 +70,10 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
                     {
                         return new BadRequestObjectResult($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are required query parameters.");
                     }
+                    catch (RedirectUrlException ex)
+                    {
+                        return new BadRequestObjectResult(ex.Message);
+                    }
                 }
                 else
                 {
@@ -98,12 +103,12 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
         {
             try
             {
-                await _usersService.ProcessAuthorizationCallback(
+                var url = await _usersService.ProcessAuthorizationCallback(
                     request?.HttpRequest?.Query?["code"],
                     request?.HttpRequest?.Query?["state"],
                     request.Token);
 
-                return new OkObjectResult("Authorization completed successfully.");
+                return new RedirectResult(url);
             }
             catch (Exception ex)
             {

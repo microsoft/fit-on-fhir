@@ -21,6 +21,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
     {
         private JwtSecurityToken _jwtSecurityToken;
         private List<string> _metadataEndpoints = new List<string>();
+        private List<string> _redirectUrls = new List<string>();
 
         private readonly HttpRequest _httpRequest;
         private readonly AuthenticationConfiguration _authenticationConfiguration;
@@ -66,14 +67,21 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected string TokenAuthScheme => $"{JwtBearerDefaults.AuthenticationScheme} ";
 
+        protected string ExpectedRedirectUrl => "http://localhost";
+
+        protected string ExpectedState => "ExpectedState";
+
         protected void SetupConfiguration(bool anonymousLoginEnabled)
         {
             // AuthenticationConfiguration setup
             _authenticationConfiguration.IsAnonymousLoginEnabled = anonymousLoginEnabled;
             _authenticationConfiguration.Audience = ExpectedAudience;
             _metadataEndpoints.Add(ExpectedMetadataEndpoint);
-            _authenticationConfiguration.TokenAuthorities.Returns(_metadataEndpoints.AsEnumerable());
+            _authenticationConfiguration.TokenAuthorities.Returns(_metadataEndpoints);
             _authenticationConfiguration.IdentityProviders = ExpectedMetadataEndpoint;
+            _redirectUrls.Add(ExpectedRedirectUrl);
+            _authenticationConfiguration.ApprovedRedirectUrls.Returns(_redirectUrls);
+            _authenticationConfiguration.RedirectUrls = ExpectedRedirectUrl;
 
             // OpenIdConfiguration retrieval setup
             _openIdConfiguration.Issuer = ExpectedIssuer;
@@ -95,7 +103,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             _jwtSecurityTokenHandlerProvider.ValidateTokenAsync(Arg.Any<string>(), Arg.Any<TokenValidationParameters>()).Returns(tvr);
         }
 
-        protected void SetupHttpRequest(string token, bool includePatientAndSystem = false)
+        protected void SetupHttpRequest(string token, bool includePatientAndSystem = false, bool includeState = false, bool includeRedirectUrl = true)
         {
             _httpRequest.Headers.TryGetValue(
                     Arg.Is<string>(str => str == HeaderNames.Authorization),
@@ -110,6 +118,16 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             {
                 _httpRequest.Query[Constants.ExternalIdQueryParameter].Returns(new StringValues(ExpectedExternalIdentifier));
                 _httpRequest.Query[Constants.ExternalSystemQueryParameter].Returns(new StringValues(ExpectedExternalSystem));
+            }
+
+            if (includeState)
+            {
+                _httpRequest.Query[Constants.StateQueryParameter].Returns(new StringValues(ExpectedState));
+            }
+
+            if (includeRedirectUrl)
+            {
+                _httpRequest.Query[Constants.RedirectUrlQueryParameter].Returns(new StringValues(ExpectedRedirectUrl));
             }
         }
     }

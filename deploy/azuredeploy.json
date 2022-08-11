@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.9.1.41621",
-      "templateHash": "7739926137165311584"
+      "templateHash": "945223196791703654"
     }
   },
   "parameters": {
@@ -111,6 +111,13 @@
       "defaultValue": "authdata",
       "metadata": {
         "description": "Name for the authentication data storage container."
+      }
+    },
+    "authentication_redirect_urls": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "A comma delimited list of approved redirect URLs that can be navigated to when authentication completes successfully."
       }
     }
   },
@@ -471,6 +478,7 @@
         "AuthenticationConfiguration__IsAnonymousLoginEnabled": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), 'true', 'false')]",
         "AuthenticationConfiguration__IdentityProviders": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), '', parameters('authentication_identity_providers'))]",
         "AuthenticationConfiguration__Audience": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), '', parameters('authentication_audience'))]",
+        "AuthenticationConfiguration__RedirectUrls": "[parameters('authentication_redirect_urls')]",
         "FhirService__Url": "[variables('fhirServiceUrl')]",
         "FhirClient__UseManagedIdentity": "true"
       },

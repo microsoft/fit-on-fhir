@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Extensions.Fhir.Service;
+using Microsoft.Health.FitOnFhir.Common;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
@@ -57,7 +59,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         public override string PlatformName => GoogleFitConstants.GoogleFitPlatformName;
 
         /// <inheritdoc/>
-        public async Task ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken)
+        public async Task<string> ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(authCode))
             {
@@ -117,6 +119,11 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 
             // Insert refresh token into users KV by userId
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
+
+            // Return the provided authorization URL
+            var redirectUrl = string.IsNullOrEmpty(authState.State) ? authState.RedirectUrl :
+                QueryHelpers.AddQueryString(authState.RedirectUrl, Constants.StateQueryParameter, authState.State);
+            return redirectUrl;
         }
 
         /// <inheritdoc/>

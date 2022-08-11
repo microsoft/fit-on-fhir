@@ -31,6 +31,11 @@ You must provide the following parameters when deploying the ARM Template.
 |**google_fit_scopes**|**The Google Fit data authorization scopes allowed for users of this service (see [https://developers.google.com/fit/datatypes#authorization_scopes](https://developers.google.com/fit/datatypes#authorization_scopes) for more info).** *Defaults to all available scopes*|false
 |**google_max_requests_per_minute**|**The maximum number of requests that can be made to the Google APIs in a one minute period.** *Defaults to 300*|false
 |**google_historical_import_time_span**|**The time period in days, hours, minutes, and seconds from now into the past, that the first data import will cover.** *Defaults to 30 days*|false
+|**authentication_anonymous_login_enabled**|Enables anonymous logins (true) or requires authentication (false). *Defaults to false*|false
+|**authentication_identity_providers**|A list of identity provider URLs used when authentication is required.|false
+|**authentication_audience**|The URL that any access tokens are granted for.|false
+|**authentication_blob_container_name**|Name for the authentication data storage container.|false
+|**authentication_redirect_urls**|A comma delimited list of approved redirect URLs that can be navigated to when authentication completes successfully.|false
 
 ## Provision using Azure CLI (Bicep or ARM)
 

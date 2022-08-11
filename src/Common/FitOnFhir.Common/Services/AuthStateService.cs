@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
@@ -60,6 +61,10 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
         public string ExternalSystem { get; set; }
 
+        public string RedirectUrl { get; set; }
+
+        public string State { get; set; }
+
         /// <inheritdoc/>
         public AuthState CreateAuthState(HttpRequest httpRequest)
         {
@@ -103,7 +108,31 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 ExternalSystem = jwtSecurityToken.Issuer;
             }
 
-            return new AuthState(ExternalIdentifier, ExternalSystem, _utcNowFunc() + Constants.AuthStateExpiry);
+            var redirectUrl = HttpUtility.UrlDecode(httpRequest.Query[Constants.RedirectUrlQueryParameter]);
+
+            if (string.IsNullOrEmpty(redirectUrl))
+            {
+                string errorMessage = $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request";
+                _logger.LogError(errorMessage);
+                throw new RedirectUrlException(errorMessage);
+            }
+
+            if (!_authenticationConfiguration.ApprovedRedirectUrls.Any(url => string.Equals(url, redirectUrl, StringComparison.OrdinalIgnoreCase)))
+            {
+                string errorMessage = "The redirect URL was not found in the list of approved redirect URLs.";
+                _logger.LogError(errorMessage);
+                throw new RedirectUrlException(errorMessage);
+            }
+
+            RedirectUrl = redirectUrl;
+            State = HttpUtility.UrlDecode(httpRequest.Query[Constants.StateQueryParameter]);
+
+            return new AuthState(
+                ExternalIdentifier,
+                ExternalSystem,
+                _utcNowFunc() + Constants.AuthStateExpiry,
+                RedirectUrl,
+                State);
         }
 
         public async Task<AuthState> RetrieveAuthState(string nonce, CancellationToken cancellationToken)
@@ -116,10 +145,10 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 BlobClient blobClient = _blobContainerClient.GetBlobClient(blobName);
 
                 // Get the AuthState
-                var response = await blobClient.DownloadAsync(cancellationToken);
+                var response = await blobClient.DownloadContentAsync(cancellationToken);
 
                 // deserialize the AuthState
-                StreamReader reader = new StreamReader(response.Value.Content);
+                StreamReader reader = new StreamReader(response.Value.Content.ToStream());
                 string json = reader.ReadToEnd();
                 return AuthState.Parse(json);
             }
