@@ -47,7 +47,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
 
         [JsonProperty(Constants.StateQueryParameter)]
         [JsonConverter(typeof(UrlSafeJsonConverter))]
-        [JsonRequired]
         public string State { get; set; }
 
         public DateTimeOffset ExpirationTimeStamp { get; set; }

@@ -46,7 +46,7 @@ param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.email
 @description('Name for the authentication data storage container.')
 param authentication_blob_container_name string = 'authdata'
 
-@description('An approved list of redirect URLs that can be navigated to when authentication completes successfully.')
+@description('A comma delimited list of approved redirect URLs that can be navigated to when authentication completes successfully.')
 param authentication_redirect_urls string = ''
 
 var fhirServiceUrl = 'https://${replace('hw-${basename}', '-', '')}-fs-${basename}.fhir.azurehealthcareapis.com'

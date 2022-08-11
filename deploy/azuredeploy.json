@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.9.1.41621",
-      "templateHash": "13863535459032431209"
+      "templateHash": "945223196791703654"
     }
   },
   "parameters": {
@@ -117,7 +117,7 @@
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "An approved list of redirect URLs that can be navigated to when authentication completes successfully."
+        "description": "A comma delimited list of approved redirect URLs that can be navigated to when authentication completes successfully."
       }
     }
   },

@@ -109,9 +109,10 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             }
 
             var redirectUrl = HttpUtility.UrlDecode(httpRequest.Query[Constants.RedirectUrlQueryParameter]);
-            if (_authenticationConfiguration.ApprovedRedirectUrls.All(url => url != redirectUrl))
+            if (!_authenticationConfiguration.ApprovedRedirectUrls.Any(url => string.Equals(url, redirectUrl, StringComparison.OrdinalIgnoreCase)) ||
+                redirectUrl == null)
             {
-                string errorMessage = $"{redirectUrl} was not found in the list of approved redirect URLs.";
+                string errorMessage = "The redirect URL was not found in the list of approved redirect URLs.";
                 _logger.LogError(errorMessage);
                 throw new RedirectUrlException(errorMessage);
             }
@@ -137,10 +138,10 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 BlobClient blobClient = _blobContainerClient.GetBlobClient(blobName);
 
                 // Get the AuthState
-                var response = await blobClient.DownloadAsync(cancellationToken);
+                var response = await blobClient.DownloadContentAsync(cancellationToken);
 
                 // deserialize the AuthState
-                StreamReader reader = new StreamReader(response.Value.Content);
+                StreamReader reader = new StreamReader(response.Value.Content.ToStream());
                 string json = reader.ReadToEnd();
                 return AuthState.Parse(json);
             }
