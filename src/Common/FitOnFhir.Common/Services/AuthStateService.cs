@@ -109,8 +109,15 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             }
 
             var redirectUrl = HttpUtility.UrlDecode(httpRequest.Query[Constants.RedirectUrlQueryParameter]);
-            if (!_authenticationConfiguration.ApprovedRedirectUrls.Any(url => string.Equals(url, redirectUrl, StringComparison.OrdinalIgnoreCase)) ||
-                redirectUrl == null)
+
+            if (string.IsNullOrEmpty(redirectUrl))
+            {
+                string errorMessage = $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request";
+                _logger.LogError(errorMessage);
+                throw new RedirectUrlException(errorMessage);
+            }
+
+            if (!_authenticationConfiguration.ApprovedRedirectUrls.Any(url => string.Equals(url, redirectUrl, StringComparison.OrdinalIgnoreCase)))
             {
                 string errorMessage = "The redirect URL was not found in the list of approved redirect URLs.";
                 _logger.LogError(errorMessage);

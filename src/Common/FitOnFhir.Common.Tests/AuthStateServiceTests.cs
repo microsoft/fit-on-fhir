@@ -142,6 +142,29 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
                 Arg.Is<string>(msg =>
                     msg == "The redirect URL was not found in the list of approved redirect URLs."));
+
+            _logger.DidNotReceive().Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg =>
+                    msg == $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request"));
+        }
+
+        [Fact]
+        public void GivenRedirectUrlNotInRequest_WhenCreateAuthStateCalled_ThrowsRedirectUrlExceptionAndErrorIsLogged()
+        {
+            SetupHttpRequest(ExpectedToken, includeRedirectUrl: false);
+
+            Assert.Throws<RedirectUrlException>(() => _authStateService.CreateAuthState(Request));
+
+            _logger.Received(1).Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg =>
+                    msg == $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request"));
+
+            _logger.DidNotReceive().Log(
+                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
+                Arg.Is<string>(msg =>
+                    msg == "The redirect URL was not found in the list of approved redirect URLs."));
         }
 
         [Fact]

@@ -121,7 +121,9 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
 
             // Return the provided authorization URL
-            return QueryHelpers.AddQueryString(authState.RedirectUrl, Constants.StateQueryParameter, authState.State);
+            var redirectUrl = string.IsNullOrEmpty(authState.State) ? authState.RedirectUrl :
+                QueryHelpers.AddQueryString(authState.RedirectUrl, Constants.StateQueryParameter, authState.State);
+            return redirectUrl;
         }
 
         /// <inheritdoc/>
