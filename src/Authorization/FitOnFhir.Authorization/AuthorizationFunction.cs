@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.FitOnFhir.Authorization.Services;
+using Microsoft.Health.FitOnFhir.Common.Services;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace Microsoft.Health.FitOnFhir.Authorization
@@ -36,9 +36,7 @@ namespace Microsoft.Health.FitOnFhir.Authorization
             CancellationToken cancellationToken)
         {
             _logger.LogInformation("incoming request from: {0}", req.Host + req.Path);
-            using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, req.HttpContext.RequestAborted);
-
-            return await _routingService.RouteTo(req, context, cancellationSource.Token);
+            return await _routingService.RouteTo(req, context, cancellationToken);
         }
     }
 }

@@ -13,7 +13,6 @@ using Microsoft.Health.Common.DependencyInjection;
 using Microsoft.Health.Extensions.Fhir;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.FitOnFhir.Authorization;
-using Microsoft.Health.FitOnFhir.Authorization.Services;
 using Microsoft.Health.FitOnFhir.Common;
 using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
@@ -37,7 +36,6 @@ namespace Microsoft.Health.FitOnFhir.Authorization
     {
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
-            builder.Services.AddLogging();
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
             builder.Services.AddConfiguration<AuthenticationConfiguration>(configuration);
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();

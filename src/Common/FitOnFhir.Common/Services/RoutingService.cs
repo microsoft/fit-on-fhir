@@ -3,9 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +11,7 @@ using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common.Requests;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
-namespace Microsoft.Health.FitOnFhir.Authorization.Services
+namespace Microsoft.Health.FitOnFhir.Common.Services
 {
     public class RoutingService : IRoutingService
     {
@@ -30,9 +27,11 @@ namespace Microsoft.Health.FitOnFhir.Authorization.Services
         /// <inheritdoc/>
         public Task<IActionResult> RouteTo(HttpRequest req, ExecutionContext context, CancellationToken cancellationToken)
         {
+            using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, req.HttpContext.RequestAborted);
+
             try
             {
-                var routingRequest = new RoutingRequest(req, context, cancellationToken);
+                var routingRequest = new RoutingRequest(req, context, cancellationSource.Token);
                 return _handler.Evaluate(routingRequest);
             }
             catch (Exception ex)

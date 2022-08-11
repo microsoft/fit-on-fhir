@@ -26,6 +26,7 @@ namespace Microsoft.Health.FitOnFhir.Common
                 .AddEnvironmentVariables()
                 .Build();
 
+            builder.Services.AddLogging();
             builder.Services.AddConfiguration<AzureConfiguration>(config);
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
 

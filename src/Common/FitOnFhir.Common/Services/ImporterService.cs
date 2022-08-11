@@ -3,16 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Requests;
+using Newtonsoft.Json;
 
-namespace Microsoft.Health.FitOnFhir.Import.Services
+namespace Microsoft.Health.FitOnFhir.Common.Services
 {
     public class ImporterService : IImporterService
     {
@@ -26,11 +24,12 @@ namespace Microsoft.Health.FitOnFhir.Import.Services
         }
 
         /// <inheritdoc/>
-        public Task Import(QueueMessage message, CancellationToken cancellationToken)
+        public Task Import(string message, CancellationToken cancellationToken)
         {
             try
             {
-                var importRequest = new ImportRequest(message, cancellationToken);
+                QueueMessage queueMessage = JsonConvert.DeserializeObject<QueueMessage>(message);
+                var importRequest = new ImportRequest(queueMessage, cancellationToken);
                 return _handler.Evaluate(importRequest);
             }
             catch (Exception ex)
