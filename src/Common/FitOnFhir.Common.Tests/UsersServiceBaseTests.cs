@@ -46,10 +46,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected IAuthStateService AuthStateService { get; }
 
-        protected HttpClient HttpClient { get; set; }
-
-        protected MockHttpMessageHandler HttpMessageHandler { get; set; }
-
         protected string AuthorizationNonce => "ABCDEFGHIJKLMNOPQRSTUVWX";
 
         protected abstract Func<AuthState> RetrieveAuthStateReturnFunc { get; }
@@ -230,12 +226,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
                         string.Equals(ExpectedPlatformUserId, x.UserId, StringComparison.OrdinalIgnoreCase) &&
                         expectedImportState == x.ImportState;
                 });
-        }
-
-        protected void SetupHttpClient(string response, HttpStatusCode httpStatusCode)
-        {
-            HttpMessageHandler = new MockHttpMessageHandler(response, httpStatusCode);
-            HttpClient = new HttpClient(HttpMessageHandler);
         }
     }
 }

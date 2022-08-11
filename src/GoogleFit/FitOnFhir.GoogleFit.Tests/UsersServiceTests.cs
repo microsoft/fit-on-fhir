@@ -52,7 +52,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             // Default responses.
             _authService.AuthTokensRequest(Arg.Any<string>(), Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult(Data.GetAuthTokensResponse()));
-            SetupHttpClient("Redirect successful", HttpStatusCode.OK);
 
             _usersService = new UsersService(
                 ResourceService,
@@ -63,7 +62,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
                 QueueService,
                 _googleFitTokensService,
                 AuthStateService,
-                HttpClient,
                 _utcNowFunc,
                 _logger);
         }
@@ -165,15 +163,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             await ExecuteAuthorizationCallback();
 
             await _usersKeyVaultRepository.Received(1).Upsert(Data.GoogleUserId, Data.RefreshToken, Arg.Any<CancellationToken>());
-        }
-
-        [Fact]
-        public async Task GivenAllConditionsMet_WhenProcessAuthorizationCallbackCalled_UserIsRedirectedToRedirectUrl()
-        {
-            await ExecuteAuthorizationCallback();
-
-            Assert.Equal(1, HttpMessageHandler.CallCount);
-            Assert.Equal(ExpectedAbsoluteUri, HttpMessageHandler.RequestUri.AbsoluteUri);
         }
 
         [Fact]

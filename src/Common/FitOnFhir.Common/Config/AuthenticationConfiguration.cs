@@ -23,7 +23,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
         /// <summary>
         /// The list of user allowed identity providers.
         /// </summary>
-        public virtual IEnumerable<string> TokenAuthorities => _providerMetadataEndpoints.Any() ? _providerMetadataEndpoints : Enumerable.Empty<string>();
+        public virtual IEnumerable<string> TokenAuthorities => _providerMetadataEndpoints;
 
         /// <summary>
         /// A comma delimited list of the identity providers for auth token verification.
@@ -54,7 +54,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
         /// <summary>
         /// The list of user allowed identity providers.
         /// </summary>
-        public virtual IEnumerable<string> ApprovedRedirectUrls => _approvedRedirectUrls.Any() ? _approvedRedirectUrls : Enumerable.Empty<string>();
+        public virtual IEnumerable<string> ApprovedRedirectUrls => _approvedRedirectUrls;
 
         /// <summary>
         /// A comma delimited list of user approved redirect URLs.

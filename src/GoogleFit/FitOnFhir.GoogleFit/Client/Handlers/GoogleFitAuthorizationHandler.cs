@@ -103,12 +103,12 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
         {
             try
             {
-                await _usersService.ProcessAuthorizationCallback(
+                var url = await _usersService.ProcessAuthorizationCallback(
                     request?.HttpRequest?.Query?["code"],
                     request?.HttpRequest?.Query?["state"],
                     request.Token);
 
-                return new OkObjectResult("Authorization completed successfully.");
+                return new RedirectResult(url);
             }
             catch (Exception ex)
             {

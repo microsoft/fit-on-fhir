@@ -129,17 +129,18 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenRequestHandledAndUserExists_WhenRequestIsCallback_ReturnsOkResult()
+        public async Task GivenRequestHandledAndUserExists_WhenRequestIsCallback_ReturnsRedirectResultWithExpectedUrl()
         {
-            _usersService.ProcessAuthorizationCallback(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+            string redirectUrl = "http://localhost";
+            _usersService.ProcessAuthorizationCallback(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult<string>(redirectUrl));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
-            Assert.IsType<OkObjectResult>(result);
+            Assert.IsType<RedirectResult>(result);
 
-            var actualResult = result as OkObjectResult;
-            var expectedResult = new OkObjectResult("Authorization completed successfully.");
-            Assert.Equal(expectedResult.Value, actualResult?.Value);
+            var actualResult = result as RedirectResult;
+            var expectedResult = new RedirectResult(redirectUrl);
+            Assert.Equal(expectedResult.Url, actualResult?.Url);
         }
 
         [Fact]

@@ -30,7 +30,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         private readonly IQueueService _queueService;
         private readonly IGoogleFitTokensService _googleFitTokensService;
         private readonly IAuthStateService _authStateService;
-        private readonly HttpClient _httpClient;
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly ILogger<UsersService> _logger;
 
@@ -43,7 +42,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             IQueueService queueService,
             IGoogleFitTokensService googleFitTokensService,
             IAuthStateService authStateService,
-            HttpClient httpClient,
             Func<DateTimeOffset> utcNowFunc,
             ILogger<UsersService> logger)
             : base(resourceManagementService, usersTableRepository)
@@ -54,7 +52,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             _queueService = EnsureArg.IsNotNull(queueService, nameof(queueService));
             _googleFitTokensService = EnsureArg.IsNotNull(googleFitTokensService, nameof(googleFitTokensService));
             _authStateService = EnsureArg.IsNotNull(authStateService, nameof(authStateService));
-            _httpClient = EnsureArg.IsNotNull(httpClient, nameof(httpClient));
             _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = logger;
         }
@@ -62,7 +59,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         public override string PlatformName => GoogleFitConstants.GoogleFitPlatformName;
 
         /// <inheritdoc/>
-        public async Task ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken)
+        public async Task<string> ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(authCode))
             {
@@ -123,8 +120,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             // Insert refresh token into users KV by userId
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
 
-            // Redirect back to the provided authorization URL
-            await RedirectAuthorization(authState, cancellationToken);
+            // Return the provided authorization URL
+            return QueryHelpers.AddQueryString(authState.RedirectUrl, Constants.StateQueryParameter, authState.State);
         }
 
         /// <inheritdoc/>
@@ -150,21 +147,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
                 platformUserInfo.RevokedAccessReason = RevokeReason.UserInitiated;
                 platformUserInfo.RevokedTimeStamp = _utcNowFunc();
                 platformUserInfo.ImportState = DataImportState.Unauthorized;
-            }
-        }
-
-        private async Task RedirectAuthorization(AuthState state, CancellationToken cancellationToken)
-        {
-            var query = new Dictionary<string, string>()
-            {
-                [Constants.StateQueryParameter] = state.State,
-            };
-            var uri = QueryHelpers.AddQueryString(state.RedirectUrl, query);
-            var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, uri), cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"Redirect attempt unsuccessful.  Status:{response.StatusCode} Reason:{response.ReasonPhrase}");
             }
         }
     }
