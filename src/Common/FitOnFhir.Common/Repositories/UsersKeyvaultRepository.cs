@@ -36,31 +36,16 @@ namespace Microsoft.Health.FitOnFhir.Common.Repositories
                 await operation.WaitForCompletionAsync(cancellationToken);
             }
 
-            try
-            {
-                var secret = new KeyVaultSecret(secretName, value);
-                KeyVaultSecret createdSecret = await _secretClient.SetSecretAsync(secret, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to set secret: {credentialBundleName}.", secretName);
-            }
+            var secret = new KeyVaultSecret(secretName, value);
+            KeyVaultSecret createdSecret = await _secretClient.SetSecretAsync(secret, cancellationToken);
         }
 
         public async Task<string> GetByName(string secretName, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(secretName, nameof(secretName));
 
-            try
-            {
-                KeyVaultSecret keyVaultSecret = await _secretClient.GetSecretAsync(secretName, cancellationToken: cancellationToken);
-                return keyVaultSecret.Value;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                throw;
-            }
+            KeyVaultSecret keyVaultSecret = await _secretClient.GetSecretAsync(secretName, cancellationToken: cancellationToken);
+            return keyVaultSecret.Value;
         }
 
         private async Task<bool> IsInDeletedStateAsync(string secretName, CancellationToken cancellationToken = default)
