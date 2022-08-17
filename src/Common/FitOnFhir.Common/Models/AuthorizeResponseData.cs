@@ -21,12 +21,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
             ExpiresAt = expiresAt;
         }
 
-        [JsonProperty(nameof(AuthUrl))]
-        [JsonConverter(typeof(UrlSafeJsonConverter))]
         [JsonRequired]
         public string AuthUrl { get; set; }
 
-        [JsonProperty(nameof(ExpiresAt))]
         [JsonRequired]
         public DateTimeOffset ExpiresAt { get; set; }
     }
