@@ -3,11 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 
 namespace Microsoft.Health.FitOnFhir.Common.Repositories
 {
@@ -17,10 +16,10 @@ namespace Microsoft.Health.FitOnFhir.Common.Repositories
         private readonly ILogger<UsersKeyVaultRepository> _logger;
 
         public UsersKeyVaultRepository(
-            AzureConfiguration azureConfiguration,
+            ISecretClientProvider secretClientProvider,
             ILogger<UsersKeyVaultRepository> logger)
         {
-            _secretClient = new SecretClient(new Uri(azureConfiguration.UsersKeyVaultUri), new DefaultAzureCredential());
+            _secretClient = secretClientProvider.GetSecretClient();
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
@@ -36,31 +35,16 @@ namespace Microsoft.Health.FitOnFhir.Common.Repositories
                 await operation.WaitForCompletionAsync(cancellationToken);
             }
 
-            try
-            {
-                var secret = new KeyVaultSecret(secretName, value);
-                KeyVaultSecret createdSecret = await _secretClient.SetSecretAsync(secret, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to set secret: {credentialBundleName}.", secretName);
-            }
+            var secret = new KeyVaultSecret(secretName, value);
+            KeyVaultSecret createdSecret = await _secretClient.SetSecretAsync(secret, cancellationToken);
         }
 
         public async Task<string> GetByName(string secretName, CancellationToken cancellationToken)
         {
             EnsureArg.IsNotNullOrWhiteSpace(secretName, nameof(secretName));
 
-            try
-            {
-                KeyVaultSecret keyVaultSecret = await _secretClient.GetSecretAsync(secretName, cancellationToken: cancellationToken);
-                return keyVaultSecret.Value;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                throw;
-            }
+            KeyVaultSecret keyVaultSecret = await _secretClient.GetSecretAsync(secretName, cancellationToken: cancellationToken);
+            return keyVaultSecret.Value;
         }
 
         private async Task<bool> IsInDeletedStateAsync(string secretName, CancellationToken cancellationToken = default)
