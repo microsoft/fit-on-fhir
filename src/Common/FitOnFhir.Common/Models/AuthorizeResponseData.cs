@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.FitOnFhir.Common.Serialization;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.Common.Models
@@ -21,9 +20,11 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
             ExpiresAt = expiresAt;
         }
 
+        [JsonProperty("authUrl")]
         [JsonRequired]
         public string AuthUrl { get; set; }
 
+        [JsonProperty("expiresAt")]
         [JsonRequired]
         public DateTimeOffset ExpiresAt { get; set; }
     }
