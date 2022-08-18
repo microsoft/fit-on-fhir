@@ -147,7 +147,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             await _googleFitDataImporter.Import(_userId, _googleUserId, _cancellationToken);
 
             await _googleFitClient.DidNotReceive().DataSourcesListRequest(Arg.Any<string>(), Arg.Any<CancellationToken>());
-            await _googleFitImportService.ProcessDatasetRequests(Arg.Any<GoogleFitUser>(), Arg.Any<IEnumerable<DataSource>>(), Arg.Any<AuthTokensResponse>(), Arg.Any<CancellationToken>());
+            await _googleFitImportService.DidNotReceive().ProcessDatasetRequests(Arg.Any<GoogleFitUser>(), Arg.Any<IEnumerable<DataSource>>(), Arg.Any<AuthTokensResponse>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
