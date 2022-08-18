@@ -11,6 +11,7 @@ Your authorization endpoint is hosted by the Authorization Function. The endpoin
 ## Authorization Function Response Data
 
 To allow for users to be redirected to a Google sign-in page, the Authorization function returns a JSON object that contains two values: 
+
 1. **AuthUrl** - This is the URL that should be used to navigate the user to the sign-in page.
 1. **ExpiresAt** - This is a timestamp that indicates when authorized access will expire, for the user that is trying to complete the authorization process.  Attempting to complete the process after this time will result in a 401 unauthorized response.
 
