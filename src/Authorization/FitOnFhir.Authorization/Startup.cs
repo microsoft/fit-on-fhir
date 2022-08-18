@@ -18,6 +18,7 @@ using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
 using Microsoft.Health.FitOnFhir.Common.Handlers;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
 using Microsoft.Health.FitOnFhir.Common.Requests;
 using Microsoft.Health.FitOnFhir.Common.Services;
@@ -40,6 +41,7 @@ namespace Microsoft.Health.FitOnFhir.Authorization
             builder.Services.AddConfiguration<AuthenticationConfiguration>(configuration);
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
+            builder.Services.AddSingleton<ISecretClientProvider, SecretClientProvider>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();
