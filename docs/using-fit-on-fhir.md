@@ -43,5 +43,3 @@ a Bad Request (400) response.
 
 When using login with authentication, an optional *state* query parameter can be provided.  *state* can be used to enter any info that should be passed along in
 the request made to the *redirect-url* when authorization with Google is complete.
-
- 
