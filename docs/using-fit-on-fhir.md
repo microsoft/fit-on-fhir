@@ -30,6 +30,7 @@ Access to the Authorization function can be configured to either allow for anony
 ![Anonymous Login Setting](../media/anonymous-login-setting.png)
 
 It can also be set here in the azuredeploy.parameters.json file, by changing the defaultValue between false and true
+
 ```sh
 "authentication_anonymous_login_enabled": {
       "type": "bool",
@@ -45,6 +46,7 @@ It can be found here
 ![Audience Setting](../media/audience-setting.png)
 
 It can also be set here in the azuredeploy.parameters.json file
+
 ```sh
 "authentication_audience": {
       "type": "string",
@@ -60,6 +62,7 @@ This can be a list of URLs, with each entry separated by a comma.  It can be fou
 ![Identity Providers Setting](../media/identity-providers-setting.png)
 
 It can also be set here in the azuredeploy.parameters.json file
+
 ```sh
 "authentication_identity_providers": {
       "type": "string",
@@ -76,6 +79,7 @@ It can be found here
 ![Redirect URL Setting](../media/redirect-urls-setting.png)
 
 It can also be set here in the azuredeploy.parameters.json file
+
 ```sh
 "authentication_redirect_urls": {
       "type": "string",
