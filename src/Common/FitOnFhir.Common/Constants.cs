@@ -27,12 +27,12 @@ namespace Microsoft.Health.FitOnFhir.Common
         /// <summary>
         /// Query parameter name for patient identifier in an external system.
         /// </summary>
-        public const string ExternalIdQueryParameter = "externalId";
+        public const string ExternalIdQueryParameter = "external_id";
 
         /// <summary>
         /// Query parameter name for the system in which the patient identifier exists.
         /// </summary>
-        public const string ExternalSystemQueryParameter = "externalSystem";
+        public const string ExternalSystemQueryParameter = "external_system";
 
         /// <summary>
         /// Query parameter name for the URL that will be redirected to once
