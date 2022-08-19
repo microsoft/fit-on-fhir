@@ -13,7 +13,7 @@ Your authorization endpoint is hosted by the Authorization Function. The endpoin
 To allow for users to be redirected to a Google sign-in page, the Authorization function returns a JSON object that contains two values:
 
 1. **AuthUrl** - This is the URL that should be used to navigate the user to the sign-in page.
-1. **ExpiresAt** - This is a timestamp that indicates when authorized access will expire, for the user that is trying to complete the authorization process.  Attempting to complete the process after this time will result in a 401 unauthorized response.
+1. **ExpiresAt** - This is a timestamp that indicates when authorized access will expire, for the user that is trying to complete the authorization process.
 
 ## Finding your Authorization Function Base URL
 
@@ -30,16 +30,26 @@ Access to the Authorization function can be configured to either allow for anony
 
 **Required Query Parameters**:
 
-Anonymous login requests require two query parameters, *external-id* and *external-system*.  *external-system* represents the name of the medical record system in which the user's current health record
-resides.  *external-id* represents the identifier for the user's health record in *external-system*.
+Anonymous login requests require two query parameters, *external_id* and *external_system*.  The *external_id* and *external_system* are used to create a FHIR [Identifier](http://hl7.org/fhir/datatypes.html#Identifier) that is stored in the [Patient Resource](http://hl7.org/fhir/patient.html). This Identifier can be used to link the Patient Resource to a user (or patient) in a different system.
 
-Login with authentication requests require passing a valid OAuth2 access token, and one query parameter *redirect-url*.  *redirect-url* represents the URL that
-the Authorization function will redirect to, once authorization with Google is complete.  The URL contained in *redirect-url* must match a URL that is on the
+_An example anonymous login request might look like: https://authorize-fitonfhir.azurewebsites.net/api/googlefit/authorize?external_id=externalPatientA&external_system=externalSystem&redirect_url=https://www.microsoft.com/_
+
+Login with authentication requests require passing a valid OAuth2 access token, and one query parameter *redirect_url*.  *redirect_url* represents the URL that
+the Authorization function will redirect to, once authorization with Google is complete.  The URL contained in *redirect_url* must match a URL that is on the
 approved list for the Authorization function.  The approved list of redirect URLs can be found in Settings->Configuration and is labeled *AuthenticationConfiguration__RedirectUrls*.
-*external-id* and *external-system* query parameters are not allowed when login with authentication is enabled.  Including either of these in a request will result in
+*external_id* and *external_system* query parameters are not allowed when login with authentication is enabled.  Including either of these in a request will result in
 a Bad Request (400) response.
+
+In addition to declaring the approved list of redirect URLs, it is also necessary to configure the *Audience* and *Identity Providers* that will be used during the authentication process.
+The *Audience*, which is equivalent to the aud claim in the OAuth2 access token, can be declared by setting the value for *AuthenticationConfiguration__Audience* in Settings->Configuration.
+The *Identity Providers*, which are the equivalent to the iss claim in the OAuth2 access token, can be declared by setting the value for *AuthenticationConfiguration__IdentityProviders* in Settings->Configuration.
+*AuthenticationConfiguration__IdentityProviders* is a list, so it is possible to declare multiple providers if necessary, separating each provider by a comma.
+
+_An example authenticated login request might look like: https://authorize-fitonfhir.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/ with the Bearer header set to a valid OAuth2 access token_
 
 **Optional Query Parameters**:
 
 When using login with authentication, an optional *state* query parameter can be provided.  *state* can be used to enter any info that should be passed along in
 the request made to the *redirect-url* when authorization with Google is complete.
+
+_An example authenticated login request with this optional parameter might look like: https://authorize-fitonfhir.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/&state=yourStateValue again with the Bearer header set to a valid OAuth2 access token_
