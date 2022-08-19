@@ -102,11 +102,11 @@ Listed below are the required and optional query parameters that make up a reque
 |Anonymous & Authenticated|redirect_url|the URL that the Authorization function will redirect to, once authorization with Google is complete.  The URL contained in *redirect_url* must match a URL that is on the approved list for the Authorization function.|true
 |Anonymous & Authenticated|state|Can be used to enter any info that should be passed along in the request made to the *redirect-url* when authorization with Google is complete|false
 
-**Anonymous logins**
+**Anonymous logins**:
 
 _An example anonymous login request might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?external_id=externalPatient&external_system=externalSystem&redirect_url=https://www.microsoft.com/](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md)_
 
-**Authenticated logins**
+**Authenticated logins**:
 
 _An example authenticated login request might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md) with the Bearer header set to a valid OAuth2 access token_
 
