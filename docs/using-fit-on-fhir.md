@@ -93,7 +93,7 @@ Listed below are the required and optional query parameters that make up a reque
 **Query Parameters**:
 
 |Login Method|Query Parameter|Use|Required
-|---|---|---
+|---|---|---|---
 |Anonymous|external_id, external_system|Combined these are used to create a FHIR [Identifier](http://hl7.org/fhir/datatypes.html#Identifier) that is stored in the [Patient Resource](http://hl7.org/fhir/patient.html). This Identifier can be used to link the Patient Resource to a user (or patient) in a different system.|true
 |Anonymous & Authenticated|redirect_url|the URL that the Authorization function will redirect to, once authorization with Google is complete.  The URL contained in *redirect_url* must match a URL that is on the approved list for the Authorization function.|true
 |Anonymous & Authenticated|state|Can be used to enter any info that should be passed along in the request made to the *redirect-url* when authorization with Google is complete|false
