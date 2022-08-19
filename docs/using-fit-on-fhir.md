@@ -104,12 +104,12 @@ Listed below are the required and optional query parameters that make up a reque
 
 **Anonymous logins**:
 
-_An example anonymous login request might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?external_id=externalPatient&external_system=externalSystem&redirect_url=https://www.microsoft.com/](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md)_
+An example anonymous login request might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?external_id=externalPatient&external_system=externalSystem&redirect_url=https://www.microsoft.com/](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md)
 
 **Authenticated logins**:
 
-_An example authenticated login request might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md) with the Bearer header set to a valid OAuth2 access token_
+An example authenticated login request might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md) with the Bearer header set to a valid OAuth2 access token
 
 **Optional State Query Parameter**:
 
-_An example authenticated login request with this optional parameter might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/&state=yourStateValue](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md)  again with the Bearer header set to a valid OAuth2 access token_
+An example authenticated login request with this optional parameter might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/&state=yourStateValue](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md)  again with the Bearer header set to a valid OAuth2 access token
