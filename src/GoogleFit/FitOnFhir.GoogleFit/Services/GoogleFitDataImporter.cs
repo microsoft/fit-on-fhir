@@ -66,29 +66,32 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
                 return;
             }
 
-            // Get DataSources list for this user
-            _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest for user: {0}, platformId: {1}", userId, googleFitId);
-            var dataSourcesList = await _googleFitClient.DataSourcesListRequest(tokensResponse.AccessToken, cancellationToken);
-
-            // Get user sync times
-            _logger.LogInformation("Query userInfo for user: {0}, platformId: {1}", userId, googleFitId);
-            var googleUser = await _googleFitUserTableRepository.GetById(googleFitId, cancellationToken);
-
-            // Request the datasets from each datasource, based on the datasetId
-            try
+            if (tokensResponse?.AccessToken != default)
             {
-                await _googleFitImportService.ProcessDatasetRequests(googleUser, dataSourcesList.DataSources, tokensResponse, cancellationToken);
+                // Get DataSources list for this user
+                _logger.LogInformation("Execute GoogleFitClient.DataSourcesListRequest for user: {0}, platformId: {1}", userId, googleFitId);
+                var dataSourcesList = await _googleFitClient.DataSourcesListRequest(tokensResponse.AccessToken, cancellationToken);
 
-                // Persist the last sync times if no exceptions occur in the import service.
-                // This ensures if an error happens during processing, the dataset will be tried again the next import.
-                await _googleFitUserTableRepository.Update(
-                    googleUser,
-                    GoogleFitUserConflictResolvers.ResolveConflictLastSyncTimes,
-                    cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
+                // Get user sync times
+                _logger.LogInformation("Query userInfo for user: {0}, platformId: {1}", userId, googleFitId);
+                var googleUser = await _googleFitUserTableRepository.GetById(googleFitId, cancellationToken);
+
+                // Request the datasets from each datasource, based on the datasetId
+                try
+                {
+                    await _googleFitImportService.ProcessDatasetRequests(googleUser, dataSourcesList.DataSources, tokensResponse, cancellationToken);
+
+                    // Persist the last sync times if no exceptions occur in the import service.
+                    // This ensures if an error happens during processing, the dataset will be tried again the next import.
+                    await _googleFitUserTableRepository.Update(
+                        googleUser,
+                        GoogleFitUserConflictResolvers.ResolveConflictLastSyncTimes,
+                        cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, ex.Message);
+                }
             }
 
             // Update the user as ready to import for GoogleFit

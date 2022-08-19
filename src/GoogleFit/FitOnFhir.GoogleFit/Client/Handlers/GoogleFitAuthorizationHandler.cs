@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Net;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ using Microsoft.Health.FitOnFhir.Common.Requests;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Microsoft.Health.FitOnFhir.GoogleFit.Services;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 {
@@ -123,7 +125,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
             {
                 var nonce = await _authStateService.StoreAuthState(state, request.Token);
                 AuthUriResponse response = await _authService.AuthUriRequest(nonce, request.Token);
-                return new RedirectResult(response.Uri);
+                return new JsonResult(JsonConvert.SerializeObject(new AuthorizeResponseData(response.Uri, state.ExpirationTimeStamp)))
+                    { StatusCode = (int?)HttpStatusCode.OK };
             }
             catch (Exception ex)
             {

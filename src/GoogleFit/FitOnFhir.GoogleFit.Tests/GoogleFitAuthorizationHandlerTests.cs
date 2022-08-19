@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,7 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Microsoft.Health.FitOnFhir.GoogleFit.Services;
+using Newtonsoft.Json;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -103,18 +105,31 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenRequestCanBeHandled_WhenRequestIsForAuthorization_RedirectsUser()
+        public async Task GivenRequestCanBeHandled_WhenRequestIsForAuthorization_ReturnsCorrectAuthorizeResponseData()
         {
+            DateTimeOffset now = DateTimeOffset.Now;
+            AuthState authState = new AuthState("externalId", "externalSystem", now, "http://localhost");
+            _authStateService.CreateAuthState(Arg.Any<HttpRequest>()).Returns(authState);
+
             _authService.AuthUriRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
 
+            // send the routing request
             var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
-            Assert.IsType<RedirectResult>(result);
 
-            var actualResult = result as RedirectResult;
-            AuthUriResponse authUriResponse = new AuthUriResponse { Uri = _fakeRedirectUri };
-            var expectedRedirect = new RedirectResult(authUriResponse.Uri);
-            Assert.Equal(expectedRedirect.Url, actualResult?.Url);
+            Assert.IsType<JsonResult>(result);
+            var actualJsonResult = result as JsonResult;
+
+            AuthorizeResponseData expectedAuthResponseData = new AuthorizeResponseData(_fakeRedirectUri, now);
+            var expectedJsonResult = new JsonResult(JsonConvert.SerializeObject(expectedAuthResponseData)) { StatusCode = (int?)HttpStatusCode.OK };
+
+            // verify 200 OK response
+            Assert.Equal(expectedJsonResult.StatusCode, actualJsonResult?.StatusCode);
+
+            // verify the URL and ExpiresAt timestamp
+            var actualAuthResponseDataResult = JsonConvert.DeserializeObject<AuthorizeResponseData>(actualJsonResult.Value.ToString());
+            Assert.Equal(expectedAuthResponseData.AuthUrl, actualAuthResponseDataResult.AuthUrl);
+            Assert.Equal(expectedAuthResponseData.ExpiresAt, actualAuthResponseDataResult.ExpiresAt);
         }
 
         [Fact]
