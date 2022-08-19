@@ -26,30 +26,86 @@ In the overview section of the Function copy the base URL. Append the base URL w
 ## Configuring Access to your Authorization Function
 
 Access to the Authorization function can be configured to either allow for anonymous login, or login with authentication.  This setting is configured by setting
-*AuthenticationConfiguration__IsAnonymousLoginEnabled* to true for anonymous logins, and false for login with authentication.  This can be found in can be found in Settings->Configuration.
+*AuthenticationConfiguration__IsAnonymousLoginEnabled* to true for anonymous logins, and false for login with authentication.  This can be found in can be found in the Settings for the Authorization fuction
+![Anonymous Login Setting](../media/anonymous-login-setting.png)
 
-**Required Query Parameters**:
+It can also be set here in the azuredeploy.parameters.json file, by changing the defaultValue between false and true
+```sh
+"authentication_anonymous_login_enabled": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enables anonymous logins (true) or requires authentication (false)."
+      }
+    }
+```
 
-Anonymous login requests require two query parameters, *external_id* and *external_system*.  The *external_id* and *external_system* are used to create a FHIR [Identifier](http://hl7.org/fhir/datatypes.html#Identifier) that is stored in the [Patient Resource](http://hl7.org/fhir/patient.html). This Identifier can be used to link the Patient Resource to a user (or patient) in a different system.
+When login with authentication is enabled, other settings must be set appropriately.  The *AuthenticationConfiguration__Audience* must be declared, which is used to match against the *aud* claim in the OAuth2 access token passed along in the request to your endpoint.
+It can be found here
+![Audience Setting](../media/audience-setting.png)
 
-_An example anonymous login request might look like: https://authorize-fitonfhir.azurewebsites.net/api/googlefit/authorize?external_id=externalPatientA&external_system=externalSystem&redirect_url=https://www.microsoft.com/_
+It can also be set here in the azuredeploy.parameters.json file
+```sh
+"authentication_audience": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The URL that any access tokens are granted for."
+      }
+    }
+```
 
-Login with authentication requests require passing a valid OAuth2 access token, and one query parameter *redirect_url*.  *redirect_url* represents the URL that
-the Authorization function will redirect to, once authorization with Google is complete.  The URL contained in *redirect_url* must match a URL that is on the
-approved list for the Authorization function.  The approved list of redirect URLs can be found in Settings->Configuration and is labeled *AuthenticationConfiguration__RedirectUrls*.
-*external_id* and *external_system* query parameters are not allowed when login with authentication is enabled.  Including either of these in a request will result in
-a Bad Request (400) response.
+In addition to the *AuthenticationConfiguration__Audience* setting, the *AuthenticationConfiguration__IdentityProviders* must also be set appropriately.  The *AuthenticationConfiguration__IdentityProviders* is used to match against the *iss* claim in the OAuth2 access token passed along in the request to your endpoint.
+This can be a list of URLs, with each entry separated by a comma.  It can be found here
+![Identity Providers Setting](../media/identity-providers-setting.png)
 
-In addition to declaring the approved list of redirect URLs, it is also necessary to configure the *Audience* and *Identity Providers* that will be used during the authentication process.
-The *Audience*, which is equivalent to the aud claim in the OAuth2 access token, can be declared by setting the value for *AuthenticationConfiguration__Audience* in Settings->Configuration.
-The *Identity Providers*, which are the equivalent to the iss claim in the OAuth2 access token, can be declared by setting the value for *AuthenticationConfiguration__IdentityProviders* in Settings->Configuration.
-*AuthenticationConfiguration__IdentityProviders* is a list, so it is possible to declare multiple providers if necessary, separating each provider by a comma.
+It can also be set here in the azuredeploy.parameters.json file
+```sh
+"authentication_identity_providers": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "A list of identity provider URLs used when authentication is required."
+      }
+    }
+```
 
-_An example authenticated login request might look like: https://authorize-fitonfhir.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/ with the Bearer header set to a valid OAuth2 access token_
+Lastly, for either anonymous or authenticated logins, *AuthenticationConfiguration__RedirectUrls* must be set.  This is a comma separated list of approved URLs that can be matched against in an authorize request.
+When an authorize request is made with an approved redirect URL that matches an entry in this list, then when authorization is complete with Google, the browser will redirect to that site.
+It can be found here
+![Redirect URL Setting](../media/redirect-urls-setting.png)
 
-**Optional Query Parameters**:
+It can also be set here in the azuredeploy.parameters.json file
+```sh
+"authentication_redirect_urls": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "A comma delimited list of approved redirect URLs that can be navigated to when authentication completes successfully."
+      }
+    }
+```
 
-When using login with authentication, an optional *state* query parameter can be provided.  *state* can be used to enter any info that should be passed along in
-the request made to the *redirect-url* when authorization with Google is complete.
+## Making Requests to your Authorization Function
 
-_An example authenticated login request with this optional parameter might look like: https://authorize-fitonfhir.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/&state=yourStateValue again with the Bearer header set to a valid OAuth2 access token_
+Listed below are the required and optional query parameters that make up a request to your Authorization endpoint.
+
+**Query Parameters**:
+
+|Login Method|Query Parameter|Use|Required
+|---|---|---
+|Anonymous|external_id, external_system|Combined these are used to create a FHIR [Identifier](http://hl7.org/fhir/datatypes.html#Identifier) that is stored in the [Patient Resource](http://hl7.org/fhir/patient.html). This Identifier can be used to link the Patient Resource to a user (or patient) in a different system.|true
+|Anonymous & Authenticated|redirect_url|the URL that the Authorization function will redirect to, once authorization with Google is complete.  The URL contained in *redirect_url* must match a URL that is on the approved list for the Authorization function.|true
+|Anonymous & Authenticated|state|Can be used to enter any info that should be passed along in the request made to the *redirect-url* when authorization with Google is complete|false
+
+**Anonymous logins**
+
+_An example anonymous login request might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?external_id=externalPatient&external_system=externalSystem&redirect_url=https://www.microsoft.com/](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md)_
+
+**Authenticated logins**
+
+_An example authenticated login request might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md) with the Bearer header set to a valid OAuth2 access token_
+
+**Optional State Query Parameter**:
+
+_An example authenticated login request with this optional parameter might look like: [https://authorize-YOUR_BASE_NAME.azurewebsites.net/api/googlefit/authorize?redirect_url=https://www.microsoft.com/&state=yourStateValue](https://github.com/microsoft/fit-on-fhir/blob/main/docs/using-fit-on-fhir.md)  again with the Bearer header set to a valid OAuth2 access token_
