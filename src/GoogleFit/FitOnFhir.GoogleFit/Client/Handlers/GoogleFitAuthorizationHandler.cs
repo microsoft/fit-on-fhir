@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common;
 using Microsoft.Health.FitOnFhir.Common.Exceptions;
+using Microsoft.Health.FitOnFhir.Common.Handlers;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Requests;
@@ -21,13 +22,14 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 {
-    public class GoogleFitAuthorizationHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
+    public class GoogleFitAuthorizationHandler : OperationHandlerBase<RoutingRequest, Task<IActionResult>>
     {
         private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
         private readonly ITokenValidationService _tokenValidationService;
         private readonly IAuthStateService _authStateService;
         private readonly ILogger<GoogleFitAuthorizationHandler> _logger;
+        private List<string> _handledRoutes;
 
         private GoogleFitAuthorizationHandler()
         {
@@ -45,17 +47,30 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
             _tokenValidationService = EnsureArg.IsNotNull(tokenValidationService, nameof(tokenValidationService));
             _authStateService = EnsureArg.IsNotNull(authStateService, nameof(authStateService));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+            InitHandledRoutes();
         }
 
         public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitAuthorizationHandler();
 
-        public async Task<IActionResult> Evaluate(RoutingRequest request)
+        public override IEnumerable<string> HandledRoutes => _handledRoutes;
+
+        protected Func<string, bool> IsRouteHandled => new Func<string, bool>((x) =>
+        {
+            return HandledRoutes.Any(str => str == x);
+        });
+
+        public override async Task<IActionResult> Evaluate(RoutingRequest request)
         {
             try
             {
-                var path = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Path.Value?[1..]);
+                var route = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Path.Value?[1..]);
 
-                if (path.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest))
+                if (!IsRouteHandled(route))
+                {
+                    return await Task.FromResult<IActionResult>(null);
+                }
+
+                if (route.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest))
                 {
                     return await Callback(request);
                 }
@@ -82,22 +97,22 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
                     return new UnauthorizedResult();
                 }
 
-                if (path.StartsWith(GoogleFitConstants.GoogleFitAuthorizeRequest))
+                if (route.StartsWith(GoogleFitConstants.GoogleFitAuthorizeRequest))
                 {
                     return await Authorize(request, state);
                 }
 
-                if (path.StartsWith(GoogleFitConstants.GoogleFitRevokeAccessRequest))
+                if (route.StartsWith(GoogleFitConstants.GoogleFitRevokeAccessRequest))
                 {
                     return await Revoke(request, state);
                 }
 
-                return null;
+                return await Task.FromResult<IActionResult>(null);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return null;
+                return await Task.FromResult<IActionResult>(null);
             }
         }
 
@@ -147,6 +162,14 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
                 _logger.LogError(ex, ex.Message);
                 return new ObjectResult("An unexpected error occurred while attempting to revoke data access.") { StatusCode = StatusCodes.Status500InternalServerError };
             }
+        }
+
+        private void InitHandledRoutes()
+        {
+            _handledRoutes = new List<string>();
+            _handledRoutes.Add(GoogleFitConstants.GoogleFitAuthorizeRequest);
+            _handledRoutes.Add(GoogleFitConstants.GoogleFitRevokeAccessRequest);
+            _handledRoutes.Add(GoogleFitConstants.GoogleFitCallbackRequest);
         }
     }
 }

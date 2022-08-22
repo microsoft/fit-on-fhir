@@ -8,8 +8,10 @@ using Microsoft.Health.FitOnFhir.Common.Requests;
 
 namespace Microsoft.Health.FitOnFhir.Common.Handlers
 {
-    public class UnknownAuthorizationHandler : UnknownOperationHandlerBase<RoutingRequest, Task<IActionResult>>
+    public class UnknownAuthorizationHandler : OperationHandlerBase<RoutingRequest, Task<IActionResult>>
     {
+        public override IEnumerable<string> HandledRoutes { get; }
+
         public override Task<IActionResult> Evaluate(RoutingRequest request)
         {
             return Task.Run<IActionResult>(() => new NotFoundResult());

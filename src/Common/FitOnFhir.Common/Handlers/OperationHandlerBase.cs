@@ -7,9 +7,11 @@ using Microsoft.Health.Common.Handler;
 
 namespace Microsoft.Health.FitOnFhir.Common.Handlers
 {
-    public class UnknownOperationHandlerBase<TRequest, TResult> : IResponsibilityHandler<TRequest, TResult>
+    public abstract class OperationHandlerBase<TRequest, TResult> : IResponsibilityHandler<TRequest, TResult>
     where TResult : class
     {
+        public abstract IEnumerable<string> HandledRoutes { get; }
+
         public virtual TResult Evaluate(TRequest request)
         {
             throw new NotImplementedException();

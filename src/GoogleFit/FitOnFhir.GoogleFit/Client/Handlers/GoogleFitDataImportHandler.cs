@@ -6,6 +6,7 @@
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
+using Microsoft.Health.FitOnFhir.Common.Handlers;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Requests;
 using Microsoft.Health.FitOnFhir.GoogleFit.Common;
@@ -13,11 +14,12 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Services;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 {
-    public class GoogleFitDataImportHandler : IResponsibilityHandler<ImportRequest, Task<bool?>>
+    public class GoogleFitDataImportHandler : OperationHandlerBase<ImportRequest, Task<bool?>>
     {
         private readonly IGoogleFitDataImporter _googleFitDataImporter;
         private readonly IErrorHandler _errorHandler;
         private readonly ILogger<GoogleFitDataImportHandler> _logger;
+        private readonly List<string> _handledRoutes = new List<string>();
 
         private GoogleFitDataImportHandler()
         {
@@ -35,7 +37,9 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
         public static IResponsibilityHandler<ImportRequest, Task> Instance { get; } = new GoogleFitDataImportHandler();
 
-        public async Task<bool?> Evaluate(ImportRequest request)
+        public override IEnumerable<string> HandledRoutes => _handledRoutes;
+
+        public override async Task<bool?> Evaluate(ImportRequest request)
         {
             try
             {

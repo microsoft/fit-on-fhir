@@ -7,8 +7,10 @@ using Microsoft.Health.FitOnFhir.Common.Requests;
 
 namespace Microsoft.Health.FitOnFhir.Common.Handlers
 {
-    public class UnknownDataImportHandler : UnknownOperationHandlerBase<ImportRequest, Task<bool?>>
+    public class UnknownDataImportHandler : OperationHandlerBase<ImportRequest, Task<bool?>>
     {
+        public override IEnumerable<string> HandledRoutes { get; }
+
         public override Task<bool?> Evaluate(ImportRequest request)
         {
             return Task.FromResult<bool?>(true);
