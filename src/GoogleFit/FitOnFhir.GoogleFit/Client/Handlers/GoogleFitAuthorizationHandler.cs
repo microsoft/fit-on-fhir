@@ -54,12 +54,9 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
         public override IEnumerable<string> HandledRoutes => _handledRoutes;
 
-        protected Func<string, bool> IsRouteHandled => new Func<string, bool>((x) =>
-        {
-            return HandledRoutes.Any(str => str == x);
-        });
+        protected Func<string, bool> IsRouteHandled => (x) => { return HandledRoutes.Any(str => str == x); };
 
-        public override async Task<IActionResult> Evaluate(RoutingRequest request)
+        public override Task<IActionResult> Evaluate(RoutingRequest request)
         {
             try
             {
@@ -67,53 +64,59 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
                 if (!IsRouteHandled(route))
                 {
-                    return await Task.FromResult<IActionResult>(null);
+                    return null;
                 }
 
                 if (route.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest))
                 {
-                    return await Callback(request);
+                    return Callback(request);
                 }
 
-                AuthState state;
-                var isValidated = await _tokenValidationService.ValidateToken(request.HttpRequest, request.Token);
-                if (isValidated)
-                {
-                    try
-                    {
-                        state = _authStateService.CreateAuthState(request.HttpRequest);
-                    }
-                    catch (ArgumentException)
-                    {
-                        return new BadRequestObjectResult($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are required query parameters.");
-                    }
-                    catch (RedirectUrlException ex)
-                    {
-                        return new BadRequestObjectResult(ex.Message);
-                    }
-                }
-                else
-                {
-                    return new UnauthorizedResult();
-                }
-
-                if (route.StartsWith(GoogleFitConstants.GoogleFitAuthorizeRequest))
-                {
-                    return await Authorize(request, state);
-                }
-
-                if (route.StartsWith(GoogleFitConstants.GoogleFitRevokeAccessRequest))
-                {
-                    return await Revoke(request, state);
-                }
-
-                return await Task.FromResult<IActionResult>(null);
+                return HandleAuthorizeRequest(request, route);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return await Task.FromResult<IActionResult>(null);
+                return Task.FromResult<IActionResult>(new ObjectResult("An unexpected error occurred while attempting to authorize access.") { StatusCode = StatusCodes.Status500InternalServerError });
             }
+        }
+
+        protected async Task<IActionResult> HandleAuthorizeRequest(RoutingRequest request, string route)
+        {
+            AuthState state;
+            var isValidated = await _tokenValidationService.ValidateToken(request.HttpRequest, request.Token);
+            if (isValidated)
+            {
+                try
+                {
+                    state = _authStateService.CreateAuthState(request.HttpRequest);
+                }
+                catch (ArgumentException)
+                {
+                    return new BadRequestObjectResult($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are required query parameters.");
+                }
+                catch (RedirectUrlException ex)
+                {
+                    return new BadRequestObjectResult(ex.Message);
+                }
+            }
+            else
+            {
+                return new UnauthorizedResult();
+            }
+
+            if (route.StartsWith(GoogleFitConstants.GoogleFitAuthorizeRequest))
+            {
+                return await Authorize(request, state);
+            }
+
+            if (route.StartsWith(GoogleFitConstants.GoogleFitRevokeAccessRequest))
+            {
+                return await Revoke(request, state);
+            }
+
+            _logger.LogError($"Route '{route}' among stored routes, but was not handled.");
+            return await Task.FromResult<IActionResult>(null);
         }
 
         private async Task<IActionResult> Callback(RoutingRequest request)
