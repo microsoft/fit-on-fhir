@@ -58,27 +58,19 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
         public override Task<IActionResult> Evaluate(RoutingRequest request)
         {
-            try
+            var route = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Path.Value?[1..]);
+
+            if (!IsRouteHandled(route))
             {
-                var route = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Path.Value?[1..]);
-
-                if (!IsRouteHandled(route))
-                {
-                    return null;
-                }
-
-                if (route.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest))
-                {
-                    return Callback(request);
-                }
-
-                return HandleAuthorizeRequest(request, route);
+                return null;
             }
-            catch (Exception ex)
+
+            if (route.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest))
             {
-                _logger.LogError(ex, ex.Message);
-                return Task.FromResult<IActionResult>(new ObjectResult("An unexpected error occurred while attempting to authorize access.") { StatusCode = StatusCodes.Status500InternalServerError });
+                return Callback(request);
             }
+
+            return HandleAuthorizeRequest(request, route);
         }
 
         protected async Task<IActionResult> HandleAuthorizeRequest(RoutingRequest request, string route)

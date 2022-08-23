@@ -46,15 +46,21 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public async Task GivenRequestHandledAndExceptionIsThrown_WhenRouteToIsCalled_ReturnsNotFoundObjectResult()
+        public async Task GivenRequestHandledAndExceptionIsThrown_WhenRouteToIsCalled_ReturnsInternalServerErrorResponse()
         {
-            _handler.Evaluate(Arg.Any<RoutingRequest>()).Throws(new Exception("exception"));
+            string exceptionMessage = "failed to route request";
+            var exception = new Exception(exceptionMessage);
+            _handler.Evaluate(Arg.Any<RoutingRequest>()).Throws(exception);
 
             var routingRequest = CreateRoutingRequest(_anyRequest);
-            var result = await _routingService.RouteTo(routingRequest.HttpRequest, routingRequest.Context, routingRequest.Token) as NotFoundObjectResult;
+            var result = await _routingService.RouteTo(routingRequest.HttpRequest, routingRequest.Context, routingRequest.Token);
 
-            var expectedResult = new NotFoundObjectResult("exception");
-            Assert.Equal(expectedResult.Value, result?.Value);
+            Assert.IsType<ObjectResult>(result);
+
+            var actualResult = result as ObjectResult;
+            var expectedResult = new ObjectResult("An unexpected internal error occurred.");
+            Assert.Equal(expectedResult.Value, actualResult?.Value);
+            Assert.Equal(StatusCodes.Status500InternalServerError, actualResult.StatusCode);
         }
 
         [Fact]

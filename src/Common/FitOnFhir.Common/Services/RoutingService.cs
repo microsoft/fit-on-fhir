@@ -37,7 +37,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Task.FromResult<IActionResult>(new NotFoundObjectResult(ex.Message));
+                return Task.FromResult<IActionResult>(new ObjectResult("An unexpected internal error occurred.") { StatusCode = StatusCodes.Status500InternalServerError });
             }
         }
     }

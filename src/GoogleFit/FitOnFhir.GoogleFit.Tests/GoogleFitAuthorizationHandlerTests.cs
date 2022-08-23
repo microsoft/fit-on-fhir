@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Net;
+using Azure.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -103,6 +104,18 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             Assert.IsType<BadRequestObjectResult>(result);
             Assert.IsType<string>(((BadRequestObjectResult)result).Value);
             Assert.Equal(exceptionMessage, ((BadRequestObjectResult)result).Value);
+        }
+
+        [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
+        [InlineData("/" + GoogleFitConstants.GoogleFitRevokeAccessRequest)]
+        [Theory]
+        public async Task GivenCreateAuthStateThrowsException_WhenRequestIsNotCallback_ThrowsException(string request)
+        {
+            _authStateService.CreateAuthState(Arg.Any<HttpRequest>()).Throws(new Exception("failed to create auth state"));
+
+            PathString requestPath = new PathString(request);
+            var routingRequest = CreateRoutingRequest(requestPath, false, false);
+            await Assert.ThrowsAsync<Exception>(() => _googleFitAuthorizationHandler.Evaluate(routingRequest));
         }
 
         [Fact]
