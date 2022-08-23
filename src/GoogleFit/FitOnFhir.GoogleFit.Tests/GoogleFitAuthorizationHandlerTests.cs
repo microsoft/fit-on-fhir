@@ -63,10 +63,11 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenRequestCannotBeHandled_WhenEvaluateIsCalled_NullIsReturned()
+        public void GivenRequestCannotBeHandled_WhenEvaluateIsCalled_NullIsReturned()
         {
             var routingRequest = CreateRoutingRequest(emptyGoogleFitRequest);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+
+            var result = _googleFitAuthorizationHandler.Evaluate(routingRequest);
 
             Assert.Null(result);
         }

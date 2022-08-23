@@ -5,6 +5,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
 using Microsoft.Health.FitOnFhir.Common.Handlers;
 using Microsoft.Health.FitOnFhir.Common.Requests;
@@ -30,7 +31,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         public void GivenHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_BaseHandlerIsReturned()
         {
             var service = _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockBaseResponsibilityHandler), typeof(UnknownAuthorizationHandler));
-            Assert.IsType<MockBaseResponsibilityHandler>(service);
+            Assert.IsAssignableFrom<IResponsibilityHandler<RoutingRequest, Task<IActionResult>>>(service);
         }
 
         [Fact]
