@@ -5,6 +5,7 @@
 
 using System.Text;
 using System.Web;
+using Azure.Core;
 using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -69,23 +70,27 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         public AuthState CreateAuthState(HttpRequest httpRequest)
         {
             var externalId = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalIdQueryParameter]);
-
             var externalSystem = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalSystemQueryParameter]);
 
             // is this for anonymous logins?
             if (_authenticationConfiguration.IsAnonymousLoginEnabled)
             {
-                ExternalIdentifier = EnsureArg.IsNotNullOrWhiteSpace(externalId, nameof(externalId));
-                ExternalSystem = EnsureArg.IsNotNullOrWhiteSpace(externalSystem, nameof(externalSystem));
+                if (string.IsNullOrWhiteSpace(externalId) || string.IsNullOrWhiteSpace(externalSystem))
+                {
+                    throw new AuthStateException($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' " +
+                                                 $"are required query parameters with anonymous authorization.");
+                }
+
+                ExternalIdentifier = externalId;
+                ExternalSystem = externalSystem;
             }
             else
             {
                 // do not allow the ExternalId or ExternalSystem query params when authentication is enabled
                 if (!string.IsNullOrEmpty(externalId) || !string.IsNullOrEmpty(externalSystem))
                 {
-                    string errorMessage = $"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are forbidden query parameters with non-anonymous authorization.";
-                    _logger.LogError(errorMessage);
-                    throw new ArgumentException(errorMessage);
+                    throw new AuthStateException($"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are " +
+                                                 $"forbidden query parameters with non-anonymous authorization.");
                 }
 
                 // extract the token from the header.
@@ -109,19 +114,14 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             }
 
             var redirectUrl = HttpUtility.UrlDecode(httpRequest.Query[Constants.RedirectUrlQueryParameter]);
-
             if (string.IsNullOrEmpty(redirectUrl))
             {
-                string errorMessage = $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request";
-                _logger.LogError(errorMessage);
-                throw new RedirectUrlException(errorMessage);
+                throw new AuthStateException($"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in the request.");
             }
 
             if (!_authenticationConfiguration.ApprovedRedirectUrls.Any(url => string.Equals(url, redirectUrl, StringComparison.OrdinalIgnoreCase)))
             {
-                string errorMessage = "The redirect URL was not found in the list of approved redirect URLs.";
-                _logger.LogError(errorMessage);
-                throw new RedirectUrlException(errorMessage);
+                throw new AuthStateException("The redirect URL was not found in the list of approved redirect URLs.");
             }
 
             RedirectUrl = redirectUrl;

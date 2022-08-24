@@ -3,10 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.Exceptions;
@@ -122,12 +124,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         {
             SetupHttpRequest(ExpectedToken, true);
 
-            Assert.Throws<ArgumentException>(() => _authStateService.CreateAuthState(Request));
-
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg =>
-                    msg == $"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are forbidden query parameters with non-anonymous authorization."));
+            Assert.Throws<AuthStateException>(() => _authStateService.CreateAuthState(Request));
         }
 
         [Fact]
@@ -136,17 +133,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             SetupHttpRequest(ExpectedToken);
             AuthConfiguration.ApprovedRedirectUrls.Returns(new List<string>());
 
-            Assert.Throws<RedirectUrlException>(() => _authStateService.CreateAuthState(Request));
-
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg =>
-                    msg == "The redirect URL was not found in the list of approved redirect URLs."));
-
-            _logger.DidNotReceive().Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg =>
-                    msg == $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request"));
+            Assert.Throws<AuthStateException>(() => _authStateService.CreateAuthState(Request));
         }
 
         [Fact]
@@ -154,17 +141,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         {
             SetupHttpRequest(ExpectedToken, includeRedirectUrl: false);
 
-            Assert.Throws<RedirectUrlException>(() => _authStateService.CreateAuthState(Request));
-
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg =>
-                    msg == $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request"));
-
-            _logger.DidNotReceive().Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg =>
-                    msg == "The redirect URL was not found in the list of approved redirect URLs."));
+            Assert.Throws<AuthStateException>(() => _authStateService.CreateAuthState(Request));
         }
 
         [Fact]

@@ -39,10 +39,10 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenPublishRequestForInvalidPlatform_WhenPublishToIsCalled_NullIsReturned()
+        public void GivenPublishRequestForInvalidPlatform_WhenPublishToIsCalled_NullIsReturned()
         {
             var importRequest = CreateImportRequest(_testUser, _fakePlatformUser, _fakePlatform);
-            var result = await _googleFitDataImportHandler.Evaluate(importRequest);
+            var result = _googleFitDataImportHandler.Evaluate(importRequest);
 
             Assert.Null(result);
         }

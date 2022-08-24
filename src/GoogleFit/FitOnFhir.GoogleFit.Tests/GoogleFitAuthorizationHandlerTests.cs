@@ -76,9 +76,10 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
         [InlineData("/" + GoogleFitConstants.GoogleFitRevokeAccessRequest)]
         [Theory]
-        public async Task GivenCreateAuthStateThrowsArgumentException_WhenRequestIsNotCallback_ReturnsBadRequestObjectResult(string request)
+        public async Task GivenCreateAuthStateThrowsAuthStateException_WhenRequestIsNotCallback_ReturnsBadRequestObjectResult(string request)
         {
-            _authStateService.CreateAuthState(Arg.Any<HttpRequest>()).Throws(new ArgumentException("exception"));
+            string exceptionMsg = "AuthStateException occurred.";
+            _authStateService.CreateAuthState(Arg.Any<HttpRequest>()).Throws(new AuthStateException(exceptionMsg));
 
             PathString requestPath = new PathString(request);
             var routingRequest = CreateRoutingRequest(requestPath, false, false);
@@ -86,24 +87,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             Assert.IsType<BadRequestObjectResult>(result);
             Assert.IsType<string>(((BadRequestObjectResult)result).Value);
-            Assert.Equal($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are required query parameters.", ((BadRequestObjectResult)result).Value);
-        }
-
-        [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
-        [InlineData("/" + GoogleFitConstants.GoogleFitRevokeAccessRequest)]
-        [Theory]
-        public async Task GivenCreateAuthStateThrowsRedirectUrlException_WhenRequestIsNotCallback_ReturnsBadRequestObjectResult(string request)
-        {
-            string exceptionMessage = "failed to redirect";
-            _authStateService.CreateAuthState(Arg.Any<HttpRequest>()).Throws(new RedirectUrlException(exceptionMessage));
-
-            PathString requestPath = new PathString(request);
-            var routingRequest = CreateRoutingRequest(requestPath, false, false);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
-
-            Assert.IsType<BadRequestObjectResult>(result);
-            Assert.IsType<string>(((BadRequestObjectResult)result).Value);
-            Assert.Equal(exceptionMessage, ((BadRequestObjectResult)result).Value);
+            Assert.Equal(exceptionMsg, ((BadRequestObjectResult)result).Value);
         }
 
         [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
@@ -116,6 +100,23 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             PathString requestPath = new PathString(request);
             var routingRequest = CreateRoutingRequest(requestPath, false, false);
             await Assert.ThrowsAsync<Exception>(() => _googleFitAuthorizationHandler.Evaluate(routingRequest));
+        }
+
+        [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
+        [InlineData("/" + GoogleFitConstants.GoogleFitRevokeAccessRequest)]
+        [Theory]
+        public async Task GivenRequestTokenIsNotValidated_WhenRequestIsNotCallbaack_ReturnsUnauthorizedResult(string request)
+        {
+            if (request == googleFitAuthorizeRequest)
+            {
+                _authService.AuthUriRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
+            }
+
+            _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(false);
+
+            var routingRequest = CreateRoutingRequest(request);
+            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+            Assert.IsType<UnauthorizedResult>(result);
         }
 
         [Fact]
@@ -144,17 +145,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             var actualAuthResponseDataResult = JsonConvert.DeserializeObject<AuthorizeResponseData>(actualJsonResult.Value.ToString());
             Assert.Equal(expectedAuthResponseData.AuthUrl, actualAuthResponseDataResult.AuthUrl);
             Assert.Equal(expectedAuthResponseData.ExpiresAt, actualAuthResponseDataResult.ExpiresAt);
-        }
-
-        [Fact]
-        public async Task GivenRequestTokenIsNotValidated_WhenRequestIsForAuthorization_ReturnsUnauthorizedResult()
-        {
-            _authService.AuthUriRequest(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(new AuthUriResponse { Uri = _fakeRedirectUri });
-            _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(false);
-
-            var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
-            Assert.IsType<UnauthorizedResult>(result);
         }
 
         [Fact]
@@ -187,25 +177,14 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         }
 
         [Fact]
-        public async Task GivenRequestHandledAndExceptionIsThrown_WhenRequestIsRevoke_ReturnsInternalServerError()
+        public async Task GivenRequestHandledAndExceptionIsThrown_WhenRequestIsRevoke_ThrowsException()
         {
             string exceptionMessage = "process dataset exception";
             var exception = new Exception(exceptionMessage);
             _usersService.RevokeAccess(Arg.Any<AuthState>(), Arg.Any<CancellationToken>()).Throws(exception);
 
             var routingRequest = CreateRoutingRequest(googleFitRevokeRequest);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
-            Assert.IsType<ObjectResult>(result);
-
-            var actualResult = result as ObjectResult;
-            var expectedResult = new ObjectResult("An unexpected error occurred while attempting to revoke data access.");
-            Assert.Equal(expectedResult.Value, actualResult?.Value);
-            Assert.Equal(StatusCodes.Status500InternalServerError, actualResult.StatusCode);
-
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<Exception>(exc => exc == exception),
-                Arg.Is<string>(msg => msg == exceptionMessage));
+            await Assert.ThrowsAsync<Exception>(() => _googleFitAuthorizationHandler.Evaluate(routingRequest));
         }
 
         [Fact]
@@ -220,16 +199,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             var actualResult = result as OkObjectResult;
             var expectedResult = new OkObjectResult("Access revoked successfully.");
             Assert.Equal(expectedResult.Value, actualResult?.Value);
-        }
-
-        [Fact]
-        public async Task GivenRequestHandledAndTokenIsInvalid_WhenRequestIsRevoke_ReturnsUnauthorizedResult()
-        {
-            _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(false);
-
-            var routingRequest = CreateRoutingRequest(googleFitRevokeRequest);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
-            Assert.IsType<UnauthorizedResult>(result);
         }
 
         private RoutingRequest CreateRoutingRequest(PathString pathString, bool includePatientId = true, bool includeSystem = true)

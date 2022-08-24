@@ -3,16 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Common.Handler;
-using Microsoft.Health.FitOnFhir.Common.Requests;
-
-namespace Microsoft.Health.FitOnFhir.Common.Handlers
+namespace Microsoft.Health.FitOnFhir.Common.Exceptions
 {
-    public class UnknownDataImportHandler : IResponsibilityHandler<ImportRequest, Task<bool?>>
+    public class AuthStateException : Exception
     {
-        public Task<bool?> Evaluate(ImportRequest request)
+        public AuthStateException(string message)
+            : base(message)
         {
-            return Task.FromResult<bool?>(true);
         }
     }
 }

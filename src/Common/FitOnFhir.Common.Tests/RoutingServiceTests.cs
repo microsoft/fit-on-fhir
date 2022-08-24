@@ -58,7 +58,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             Assert.IsType<ObjectResult>(result);
 
             var actualResult = result as ObjectResult;
-            var expectedResult = new ObjectResult("An unexpected internal error occurred.");
+            var expectedResult = new ObjectResult("Internal Server Error.");
             Assert.Equal(expectedResult.Value, actualResult?.Value);
             Assert.Equal(StatusCodes.Status500InternalServerError, actualResult.StatusCode);
         }

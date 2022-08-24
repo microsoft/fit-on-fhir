@@ -5,11 +5,8 @@
 
 using System.Net;
 using EnsureThat;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Common.Handler;
-using Microsoft.Health.FitOnFhir.Common;
 using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.Handlers;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
@@ -22,14 +19,13 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 {
-    public class GoogleFitAuthorizationHandler : OperationHandlerBase<RoutingRequest, Task<IActionResult>>
+    public class GoogleFitAuthorizationHandler : RequestHandlerBase<RoutingRequest, Task<IActionResult>>
     {
         private readonly IGoogleFitAuthService _authService;
         private readonly IUsersService _usersService;
         private readonly ITokenValidationService _tokenValidationService;
         private readonly IAuthStateService _authStateService;
         private readonly ILogger<GoogleFitAuthorizationHandler> _logger;
-        private List<string> _handledRoutes;
 
         private GoogleFitAuthorizationHandler()
         {
@@ -47,33 +43,26 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
             _tokenValidationService = EnsureArg.IsNotNull(tokenValidationService, nameof(tokenValidationService));
             _authStateService = EnsureArg.IsNotNull(authStateService, nameof(authStateService));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-            InitHandledRoutes();
         }
 
-        public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new GoogleFitAuthorizationHandler();
-
-        public override IEnumerable<string> HandledRoutes => _handledRoutes;
-
-        protected Func<string, bool> IsRouteHandled => (x) => { return HandledRoutes.Any(str => str == x); };
-
-        public override Task<IActionResult> Evaluate(RoutingRequest request)
+        public override IEnumerable<string> HandledRoutes => new List<string>()
         {
-            var route = EnsureArg.IsNotNullOrWhiteSpace(request.HttpRequest.Path.Value?[1..]);
+            GoogleFitConstants.GoogleFitAuthorizeRequest,
+            GoogleFitConstants.GoogleFitRevokeAccessRequest,
+            GoogleFitConstants.GoogleFitCallbackRequest,
+        };
 
-            if (!IsRouteHandled(route))
-            {
-                return null;
-            }
-
-            if (route.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest))
+        public override Task<IActionResult> EvaluateRequest(RoutingRequest request)
+        {
+            if (request.Route.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest))
             {
                 return Callback(request);
             }
 
-            return HandleAuthorizeRequest(request, route);
+            return HandleAuthorizeRequest(request);
         }
 
-        protected async Task<IActionResult> HandleAuthorizeRequest(RoutingRequest request, string route)
+        protected async Task<IActionResult> HandleAuthorizeRequest(RoutingRequest request)
         {
             AuthState state;
             var isValidated = await _tokenValidationService.ValidateToken(request.HttpRequest, request.Token);
@@ -83,12 +72,9 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
                 {
                     state = _authStateService.CreateAuthState(request.HttpRequest);
                 }
-                catch (ArgumentException)
+                catch (AuthStateException ex)
                 {
-                    return new BadRequestObjectResult($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are required query parameters.");
-                }
-                catch (RedirectUrlException ex)
-                {
+                    _logger.LogError(ex, ex.Message);
                     return new BadRequestObjectResult(ex.Message);
                 }
             }
@@ -97,17 +83,17 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
                 return new UnauthorizedResult();
             }
 
-            if (route.StartsWith(GoogleFitConstants.GoogleFitAuthorizeRequest))
+            if (request.Route.StartsWith(GoogleFitConstants.GoogleFitAuthorizeRequest))
             {
                 return await Authorize(request, state);
             }
 
-            if (route.StartsWith(GoogleFitConstants.GoogleFitRevokeAccessRequest))
+            if (request.Route.StartsWith(GoogleFitConstants.GoogleFitRevokeAccessRequest))
             {
                 return await Revoke(request, state);
             }
 
-            _logger.LogError($"Route '{route}' among stored routes, but was not handled.");
+            _logger.LogError($"Route '{request.Route}' among stored routes, but was not handled.");
             return await Task.FromResult<IActionResult>(null);
         }
 
@@ -131,40 +117,16 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
         private async Task<IActionResult> Authorize(RoutingRequest request, AuthState state)
         {
-            try
-            {
-                var nonce = await _authStateService.StoreAuthState(state, request.Token);
-                AuthUriResponse response = await _authService.AuthUriRequest(nonce, request.Token);
-                return new JsonResult(JsonConvert.SerializeObject(new AuthorizeResponseData(response.Uri, state.ExpirationTimeStamp)))
-                    { StatusCode = (int?)HttpStatusCode.OK };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return new ObjectResult("An unexpected error occurred while attempting to authorize access.") { StatusCode = StatusCodes.Status500InternalServerError };
-            }
+            var nonce = await _authStateService.StoreAuthState(state, request.Token);
+            AuthUriResponse response = await _authService.AuthUriRequest(nonce, request.Token);
+            return new JsonResult(JsonConvert.SerializeObject(new AuthorizeResponseData(response.Uri, state.ExpirationTimeStamp)))
+                { StatusCode = (int?)HttpStatusCode.OK };
         }
 
         private async Task<IActionResult> Revoke(RoutingRequest request, AuthState state)
         {
-            try
-            {
-                await _usersService.RevokeAccess(state, request.Token);
-                return new OkObjectResult("Access revoked successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return new ObjectResult("An unexpected error occurred while attempting to revoke data access.") { StatusCode = StatusCodes.Status500InternalServerError };
-            }
-        }
-
-        private void InitHandledRoutes()
-        {
-            _handledRoutes = new List<string>();
-            _handledRoutes.Add(GoogleFitConstants.GoogleFitAuthorizeRequest);
-            _handledRoutes.Add(GoogleFitConstants.GoogleFitRevokeAccessRequest);
-            _handledRoutes.Add(GoogleFitConstants.GoogleFitCallbackRequest);
+            await _usersService.RevokeAccess(state, request.Token);
+            return new OkObjectResult("Access revoked successfully.");
         }
     }
 }

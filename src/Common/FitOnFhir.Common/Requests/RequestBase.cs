@@ -3,13 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.FitOnFhir.Common.Exceptions
+using Microsoft.AspNetCore.Http;
+
+namespace Microsoft.Health.FitOnFhir.Common.Requests
 {
-    public class RedirectUrlException : Exception
+    public abstract class RequestBase
     {
-        public RedirectUrlException(string message)
-            : base(message)
-        {
-        }
+        /// <summary>
+        /// The path component of an <see cref="HttpRequest"/> that this request is targeted for.
+        /// </summary>
+        public abstract string Route { get; }
     }
 }
