@@ -3,14 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
-using Microsoft.Health.FitOnFhir.Common.Handlers;
 using Microsoft.Health.FitOnFhir.Common.Requests;
 using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
+using NSubstitute;
 using Xunit;
+using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
@@ -21,17 +24,46 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         public DependencyInjectionExtensionsTests()
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<MockBaseResponsibilityHandler>();
+            serviceCollection.AddSingleton<MockFirstResponsibilityHandler>();
+            serviceCollection.AddSingleton<MockNextResponsibilityHandler>();
+            serviceCollection.AddSingleton<MockLastResponsibilityHandler>();
             serviceCollection.AddSingleton<MockMismatchedInterfaceResponsibilityHandler>();
-            serviceCollection.AddSingleton<UnknownAuthorizationHandler>();
             _serviceProvider = serviceCollection.BuildServiceProvider(true);
         }
 
-        [Fact]
-        public void GivenHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_BaseHandlerIsReturned()
+        [InlineData("/firstHandlerPlatform")]
+        [InlineData("/nextHandlerPlatform")]
+        [InlineData("/lastHandlerPlatform")]
+        [Theory]
+        public async Task GivenHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_HandlerIsAddedToChain(string route)
         {
-            var service = _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockBaseResponsibilityHandler), typeof(UnknownAuthorizationHandler));
+            Type expectedResult;
+
+            switch (route)
+            {
+                case "/firstHandlerPlatform":
+                    expectedResult = typeof(OkResult);
+                    break;
+                case "/nextHandlerPlatform":
+                    expectedResult = typeof(UnauthorizedResult);
+                    break;
+                case "/lastHandlerPlatform":
+                    expectedResult = typeof(BadRequestResult);
+                    break;
+                default: throw new ArgumentException("invalid route passed to test");
+            }
+
+            var service =
+                _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(
+                    typeof(MockFirstResponsibilityHandler),
+                    typeof(MockNextResponsibilityHandler),
+                    typeof(MockLastResponsibilityHandler));
+
             Assert.IsAssignableFrom<IResponsibilityHandler<RoutingRequest, Task<IActionResult>>>(service);
+
+            var routingRequest = CreateRoutingRequest(route);
+            var result = await service.Evaluate(routingRequest);
+            Assert.True(expectedResult == result.GetType());
         }
 
         [Fact]
@@ -43,7 +75,17 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         [Fact]
         public void GivenHandlerOfWrongTypeIsReferenced_WhenCreateOrderedHandlerChainIsCalled_ArgumentExceptionIsThrown()
         {
-            Assert.Throws<ArgumentException>(() => _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockMismatchedInterfaceResponsibilityHandler), typeof(UnknownAuthorizationHandler)));
+            Assert.Throws<ArgumentException>(() => _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockMismatchedInterfaceResponsibilityHandler), typeof(MockFirstResponsibilityHandler)));
+        }
+
+        private RoutingRequest CreateRoutingRequest(PathString pathString)
+        {
+            var httpRequest = Substitute.For<HttpRequest>();
+            httpRequest.Path = pathString;
+            httpRequest.Query["code"].Returns(new StringValues("access code"));
+            var context = new ExecutionContext();
+
+            return new RoutingRequest(httpRequest, context, CancellationToken.None);
         }
     }
 }

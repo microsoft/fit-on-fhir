@@ -4,20 +4,20 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Health.Common.Handler;
+using Microsoft.Health.FitOnFhir.Common.Handlers;
 using Microsoft.Health.FitOnFhir.Common.Requests;
 
 namespace Microsoft.Health.FitOnFhir.Common.Tests.Mocks
 {
-    internal class MockBaseResponsibilityHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
+    internal class MockFirstResponsibilityHandler : RequestHandlerBase<RoutingRequest, Task<IActionResult>>
     {
-        public MockBaseResponsibilityHandler()
+        public MockFirstResponsibilityHandler()
         {
         }
 
-        public static IResponsibilityHandler<RoutingRequest, Task<IActionResult>> Instance { get; } = new MockBaseResponsibilityHandler();
+        public override IEnumerable<string> HandledRoutes => new List<string>() { "firstHandlerPlatform" };
 
-        public Task<IActionResult> Evaluate(RoutingRequest request)
+        public override Task<IActionResult> EvaluateRequest(RoutingRequest request)
         {
             return Task.Run<IActionResult>(() => new OkResult());
         }
