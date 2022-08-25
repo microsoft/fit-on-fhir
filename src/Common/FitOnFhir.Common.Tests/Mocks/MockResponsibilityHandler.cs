@@ -9,17 +9,20 @@ using Microsoft.Health.FitOnFhir.Common.Requests;
 
 namespace Microsoft.Health.FitOnFhir.Common.Tests.Mocks
 {
-    internal class MockFirstResponsibilityHandler : RequestHandlerBase<RoutingRequest, Task<IActionResult>>
+    internal class MockResponsibilityHandler<TResult> : RequestHandlerBase<RoutingRequest, Task<IActionResult>>
     {
-        public MockFirstResponsibilityHandler()
+        private readonly string _route;
+
+        public MockResponsibilityHandler(string route)
         {
+            _route = route;
         }
 
-        public override IEnumerable<string> HandledRoutes => new List<string>() { "firstHandlerPlatform" };
+        public override IEnumerable<string> HandledRoutes => new List<string>() { _route };
 
         public override Task<IActionResult> EvaluateRequest(RoutingRequest request)
         {
-            return Task.Run<IActionResult>(() => new OkResult());
+            return Task.Run<IActionResult>(() => Task.FromResult<IActionResult>((IActionResult)Activator.CreateInstance(typeof(TResult))));
         }
     }
 }

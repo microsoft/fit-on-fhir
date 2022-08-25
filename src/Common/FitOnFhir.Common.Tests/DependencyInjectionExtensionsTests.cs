@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
+using Microsoft.Health.FitOnFhir.Common.Handlers;
 using Microsoft.Health.FitOnFhir.Common.Requests;
 using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
 using NSubstitute;
@@ -20,32 +21,43 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
     public class DependencyInjectionExtensionsTests
     {
         private readonly IServiceProvider _serviceProvider;
+        private const string _okResultHandlerRoute = "okResultHandler";
+        private const string _unauthorizedResultHandlerRoute = "unauthorizedResultHandler";
+        private const string _badRequestResultHandlerRoute = "badRequestResultHandler";
+        private const string _signOutResultHandlerRoute = "signOutResultHandler";
+        private const string _unhandledRoute = "unhandledRoute";
 
         public DependencyInjectionExtensionsTests()
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<MockFirstResponsibilityHandler>();
-            serviceCollection.AddSingleton<MockNextResponsibilityHandler>();
-            serviceCollection.AddSingleton<MockLastResponsibilityHandler>();
+            serviceCollection.AddSingleton(new MockResponsibilityHandler<OkResult>(_okResultHandlerRoute));
+            serviceCollection.AddSingleton(new MockResponsibilityHandler<UnauthorizedResult>(_unauthorizedResultHandlerRoute));
+            serviceCollection.AddSingleton(new MockResponsibilityHandler<BadRequestResult>(_badRequestResultHandlerRoute));
+            serviceCollection.AddSingleton(new MockResponsibilityHandler<SignOutResult>(_signOutResultHandlerRoute));
+            serviceCollection.AddSingleton<UnknownAuthorizationHandler>();
             serviceCollection.AddSingleton<MockMismatchedInterfaceResponsibilityHandler>();
             _serviceProvider = serviceCollection.BuildServiceProvider(true);
         }
 
-        [InlineData("/firstHandlerPlatform", typeof(OkResult))]
-        [InlineData("/nextHandlerPlatform", typeof(UnauthorizedResult))]
-        [InlineData("/lastHandlerPlatform", typeof(BadRequestResult))]
+        [InlineData(_okResultHandlerRoute, typeof(OkResult))]
+        [InlineData(_unauthorizedResultHandlerRoute, typeof(UnauthorizedResult))]
+        [InlineData(_badRequestResultHandlerRoute, typeof(BadRequestResult))]
+        [InlineData(_signOutResultHandlerRoute, typeof(SignOutResult))]
+        [InlineData(_unhandledRoute, typeof(NotFoundResult))]
         [Theory]
         public async Task GivenHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_HandlerIsAddedToChain(string route, Type expectedType)
         {
             var service =
                 _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(
-                    typeof(MockFirstResponsibilityHandler),
-                    typeof(MockNextResponsibilityHandler),
-                    typeof(MockLastResponsibilityHandler));
+                    typeof(MockResponsibilityHandler<OkResult>),
+                    typeof(MockResponsibilityHandler<UnauthorizedResult>),
+                    typeof(MockResponsibilityHandler<BadRequestResult>),
+                    typeof(MockResponsibilityHandler<SignOutResult>),
+                    typeof(UnknownAuthorizationHandler));
 
             Assert.IsAssignableFrom<IResponsibilityHandler<RoutingRequest, Task<IActionResult>>>(service);
 
-            var routingRequest = CreateRoutingRequest(route);
+            var routingRequest = CreateRoutingRequest("/" + route);
             var result = await service.Evaluate(routingRequest);
             Assert.True(expectedType == result.GetType());
         }
@@ -59,7 +71,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         [Fact]
         public void GivenHandlerOfWrongTypeIsReferenced_WhenCreateOrderedHandlerChainIsCalled_ArgumentExceptionIsThrown()
         {
-            Assert.Throws<ArgumentException>(() => _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockMismatchedInterfaceResponsibilityHandler), typeof(MockFirstResponsibilityHandler)));
+            Assert.Throws<ArgumentException>(() => _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(typeof(MockMismatchedInterfaceResponsibilityHandler), typeof(UnknownAuthorizationHandler)));
         }
 
         private RoutingRequest CreateRoutingRequest(PathString pathString)
