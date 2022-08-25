@@ -31,28 +31,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             _serviceProvider = serviceCollection.BuildServiceProvider(true);
         }
 
-        [InlineData("/firstHandlerPlatform")]
-        [InlineData("/nextHandlerPlatform")]
-        [InlineData("/lastHandlerPlatform")]
+        [InlineData("/firstHandlerPlatform", typeof(OkResult))]
+        [InlineData("/nextHandlerPlatform", typeof(UnauthorizedResult))]
+        [InlineData("/lastHandlerPlatform", typeof(BadRequestResult))]
         [Theory]
-        public async Task GivenHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_HandlerIsAddedToChain(string route)
+        public async Task GivenHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_HandlerIsAddedToChain(string route, Type expectedType)
         {
-            Type expectedResult;
-
-            switch (route)
-            {
-                case "/firstHandlerPlatform":
-                    expectedResult = typeof(OkResult);
-                    break;
-                case "/nextHandlerPlatform":
-                    expectedResult = typeof(UnauthorizedResult);
-                    break;
-                case "/lastHandlerPlatform":
-                    expectedResult = typeof(BadRequestResult);
-                    break;
-                default: throw new ArgumentException("invalid route passed to test");
-            }
-
             var service =
                 _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(
                     typeof(MockFirstResponsibilityHandler),
@@ -63,7 +47,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             var routingRequest = CreateRoutingRequest(route);
             var result = await service.Evaluate(routingRequest);
-            Assert.True(expectedResult == result.GetType());
+            Assert.True(expectedType == result.GetType());
         }
 
         [Fact]
