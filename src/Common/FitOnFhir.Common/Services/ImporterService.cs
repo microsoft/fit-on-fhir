@@ -6,6 +6,7 @@
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Handler;
+using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Requests;
 using Newtonsoft.Json;
@@ -15,11 +16,16 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
     public class ImporterService : IImporterService
     {
         private readonly IResponsibilityHandler<ImportRequest, Task<bool?>> _handler;
+        private readonly IErrorHandler _errorHandler;
         private readonly ILogger _logger;
 
-        public ImporterService(IResponsibilityHandler<ImportRequest, Task<bool?>> handler, ILogger<ImporterService> logger)
+        public ImporterService(
+            IResponsibilityHandler<ImportRequest, Task<bool?>> handler,
+            IErrorHandler errorHandler,
+            ILogger<ImporterService> logger)
         {
             _handler = EnsureArg.IsNotNull(handler);
+            _errorHandler = EnsureArg.IsNotNull(errorHandler);
             _logger = EnsureArg.IsNotNull(logger);
         }
 
@@ -35,6 +41,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
+                _errorHandler.HandleDataImportError(message, ex);
                 return Task.FromException(ex);
             }
         }

@@ -194,11 +194,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             var routingRequest = CreateRoutingRequest(googleFitRevokeRequest);
             var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
-            Assert.IsType<OkObjectResult>(result);
-
-            var actualResult = result as OkObjectResult;
-            var expectedResult = new OkObjectResult("Access revoked successfully.");
-            Assert.Equal(expectedResult.Value, actualResult?.Value);
+            Assert.IsType<OkResult>(result);
         }
 
         private RoutingRequest CreateRoutingRequest(PathString pathString, bool includePatientId = true, bool includeSystem = true)

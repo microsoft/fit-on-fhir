@@ -46,7 +46,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Handlers
         /// <returns>true if the Route matches one of the declared HandledRoutes. null if none match, which passes evaluation to the next request handler in the chain for evaluation.</returns>
         private bool CanHandle(TRequest request)
         {
-            if (!string.IsNullOrWhiteSpace(request.Route) && HandledRoutes.Any(x => string.Equals(x, request.Route, StringComparison.OrdinalIgnoreCase)))
+            if (!string.IsNullOrWhiteSpace(request?.Route) && HandledRoutes.Any(x => string.Equals(x, request.Route, StringComparison.OrdinalIgnoreCase)))
             {
                 return true;
             }

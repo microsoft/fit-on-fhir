@@ -96,6 +96,15 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             }
         }
 
+        [Fact]
+        public void GivenAnonymousLoginEnabledWithInvalidRequest_WhenCreateAuthStateCalled_ThrowsAuthStateException()
+        {
+            SetupConfiguration(true);
+            SetupHttpRequest(ExpectedToken, includePatientAndSystem: false, includeRedirectUrl: false);
+
+            Assert.Throws<AuthStateException>(() => _authStateService.CreateAuthState(Request));
+        }
+
         [InlineData(true)]
         [InlineData(false)]
         [Theory]
@@ -120,7 +129,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public void GivenAnonymousLoginDisabledWithExternalQueryParametersInRequest_WhenCreateAuthStateCalled_ThrowsArgumentException()
+        public void GivenAnonymousLoginDisabledWithExternalQueryParametersInRequest_WhenCreateAuthStateCalled_ThrowsAuthStateException()
         {
             SetupHttpRequest(ExpectedToken, true);
 
@@ -149,25 +158,18 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         {
             SetupHttpRequest(string.Empty);
 
-            var authState = _authStateService.CreateAuthState(Request);
-
-            Assert.Null(authState);
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg => msg == "The request Authorization header is invalid."));
+            Assert.Throws<AuthStateException>(() => _authStateService.CreateAuthState(Request));
         }
 
         [Fact]
-        public void GivenReadJwtTokenReturnsDefault_WhenValidateTokenIsCalled_ReturnsDefaultAndErrorIsLogged()
+        public void GivenReadJwtTokenReturnsDefault_WhenCreateAuthStateIsCalled_AuthStateExceptionIsThrown()
         {
             SetupHttpRequest(ExpectedToken);
 
             JwtSecurityToken jwtSecurityToken = default;
             SecurityTokenHandlerProvider.ReadJwtToken(Arg.Is<string>(str => str == ExpectedToken)).Returns(jwtSecurityToken);
 
-            var authState = _authStateService.CreateAuthState(Request);
-
-            Assert.Null(authState);
+            Assert.Throws<AuthStateException>(() => _authStateService.CreateAuthState(Request));
         }
 
         [Fact]

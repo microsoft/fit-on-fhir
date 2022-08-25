@@ -5,7 +5,6 @@
 
 using System.Text;
 using System.Web;
-using Azure.Core;
 using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -58,8 +57,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public string ExternalIdentifier { get; set; }
-
         public string ExternalSystem { get; set; }
 
         public string RedirectUrl { get; set; }
@@ -69,35 +66,75 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         /// <inheritdoc/>
         public AuthState CreateAuthState(HttpRequest httpRequest)
         {
+            List<string> missingParams = new List<string>();
+            string exceptionMsg = string.Empty;
+            string externalIdentifier, externalSys;
             var externalId = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalIdQueryParameter]);
             var externalSystem = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalSystemQueryParameter]);
+            var redirectUrl = HttpUtility.UrlDecode(httpRequest.Query[Constants.RedirectUrlQueryParameter]);
 
             // is this for anonymous logins?
             if (_authenticationConfiguration.IsAnonymousLoginEnabled)
             {
-                if (string.IsNullOrWhiteSpace(externalId) || string.IsNullOrWhiteSpace(externalSystem))
+                if (string.IsNullOrWhiteSpace(externalId))
                 {
-                    throw new AuthStateException($"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' " +
-                                                 $"are required query parameters with anonymous authorization.");
+                    missingParams.Add($"'{Constants.ExternalIdQueryParameter}'");
                 }
 
-                ExternalIdentifier = externalId;
-                ExternalSystem = externalSystem;
+                if (string.IsNullOrWhiteSpace(externalSystem))
+                {
+                    missingParams.Add($"'{Constants.ExternalSystemQueryParameter}'");
+                }
+
+                if (string.IsNullOrWhiteSpace(redirectUrl))
+                {
+                    missingParams.Add($"'{Constants.RedirectUrlQueryParameter}'");
+                }
+
+                if (missingParams.Any())
+                {
+                    foreach (var missingParam in missingParams)
+                    {
+                        exceptionMsg += missingParam + ", ";
+                    }
+
+                    exceptionMsg += missingParams.Count > 1 ? " are required query parameters with anonymous authorization." :
+                        " is a required query parameter with anonymous authorization.";
+                    throw new AuthStateException(exceptionMsg);
+                }
+
+                externalIdentifier = externalId;
+                externalSys = externalSystem;
             }
             else
             {
                 // do not allow the ExternalId or ExternalSystem query params when authentication is enabled
-                if (!string.IsNullOrEmpty(externalId) || !string.IsNullOrEmpty(externalSystem))
+                if (!string.IsNullOrWhiteSpace(externalId))
                 {
-                    throw new AuthStateException($"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are " +
-                                                 $"forbidden query parameters with non-anonymous authorization.");
+                    missingParams.Add($"'{Constants.ExternalIdQueryParameter}'");
+                }
+
+                if (!string.IsNullOrWhiteSpace(externalSystem))
+                {
+                    missingParams.Add($"'{Constants.ExternalSystemQueryParameter}'");
+                }
+
+                if (missingParams.Any())
+                {
+                    exceptionMsg = missingParams.Count > 1 ? $"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are forbidden query parameters with non-anonymous authorization." :
+                        $"'{missingParams[0]}' is a forbidden query parameter with non-anonymous authorization.";
+                    throw new AuthStateException(exceptionMsg);
+                }
+
+                if (string.IsNullOrEmpty(redirectUrl))
+                {
+                    throw new AuthStateException($"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in the request.");
                 }
 
                 // extract the token from the header.
                 if (!httpRequest.TryGetTokenStringFromAuthorizationHeader(JwtBearerDefaults.AuthenticationScheme, out string token))
                 {
-                    _logger.LogError("The request Authorization header is invalid.");
-                    return default;
+                    throw new AuthStateException("The request Authorization header is invalid.");
                 }
 
                 // Read the token
@@ -106,17 +143,11 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
                 if (jwtSecurityToken == default)
                 {
-                    return default;
+                    throw new AuthStateException("The security token is invalid.");
                 }
 
-                ExternalIdentifier = jwtSecurityToken.Subject;
-                ExternalSystem = jwtSecurityToken.Issuer;
-            }
-
-            var redirectUrl = HttpUtility.UrlDecode(httpRequest.Query[Constants.RedirectUrlQueryParameter]);
-            if (string.IsNullOrEmpty(redirectUrl))
-            {
-                throw new AuthStateException($"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in the request.");
+                externalIdentifier = jwtSecurityToken.Subject;
+                externalSys = jwtSecurityToken.Issuer;
             }
 
             if (!_authenticationConfiguration.ApprovedRedirectUrls.Any(url => string.Equals(url, redirectUrl, StringComparison.OrdinalIgnoreCase)))
@@ -124,15 +155,14 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 throw new AuthStateException("The redirect URL was not found in the list of approved redirect URLs.");
             }
 
-            RedirectUrl = redirectUrl;
-            State = HttpUtility.UrlDecode(httpRequest.Query[Constants.StateQueryParameter]);
+            var state = HttpUtility.UrlDecode(httpRequest.Query[Constants.StateQueryParameter]);
 
             return new AuthState(
-                ExternalIdentifier,
-                ExternalSystem,
+                externalIdentifier,
+                externalSys,
                 _utcNowFunc() + Constants.AuthStateExpiry,
-                RedirectUrl,
-                State);
+                redirectUrl,
+                state);
         }
 
         public async Task<AuthState> RetrieveAuthState(string nonce, CancellationToken cancellationToken)

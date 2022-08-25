@@ -12,8 +12,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Interfaces
         /// <summary>
         /// Method for logging and recovering gracefully from data import errors.
         /// </summary>
-        /// <param name="message">The <see cref="QueueMessage"/> which resulted in a data import error.</param>
+        /// <param name="message">The serialized <see cref="QueueMessage"/> which resulted in a data import error.</param>
         /// <param name="exception">The exception thrown when the error occurred.</param>
-        void HandleDataImportError(QueueMessage message, Exception exception);
+        void HandleDataImportError(string message, Exception exception);
     }
 }

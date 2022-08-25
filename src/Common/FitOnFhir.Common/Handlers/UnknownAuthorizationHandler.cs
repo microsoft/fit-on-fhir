@@ -13,7 +13,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Handlers
     {
         public Task<IActionResult> Evaluate(RoutingRequest request)
         {
-            return Task.Run<IActionResult>(() => new NotFoundResult());
+            return Task.FromResult(new NotFoundResult() as IActionResult);
         }
     }
 }

@@ -54,7 +54,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
         public override Task<IActionResult> EvaluateRequest(RoutingRequest request)
         {
-            if (request.Route.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest))
+            if (request.Route.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest, StringComparison.OrdinalIgnoreCase))
             {
                 return Callback(request);
             }
@@ -83,18 +83,18 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
                 return new UnauthorizedResult();
             }
 
-            if (request.Route.StartsWith(GoogleFitConstants.GoogleFitAuthorizeRequest))
+            if (request.Route.StartsWith(GoogleFitConstants.GoogleFitAuthorizeRequest, StringComparison.OrdinalIgnoreCase))
             {
                 return await Authorize(request, state);
             }
 
-            if (request.Route.StartsWith(GoogleFitConstants.GoogleFitRevokeAccessRequest))
+            if (request.Route.StartsWith(GoogleFitConstants.GoogleFitRevokeAccessRequest, StringComparison.OrdinalIgnoreCase))
             {
                 return await Revoke(request, state);
             }
 
             _logger.LogError($"Route '{request.Route}' among stored routes, but was not handled.");
-            return await Task.FromResult<IActionResult>(null);
+            return null;
         }
 
         private async Task<IActionResult> Callback(RoutingRequest request)
@@ -126,7 +126,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
         private async Task<IActionResult> Revoke(RoutingRequest request, AuthState state)
         {
             await _usersService.RevokeAccess(state, request.Token);
-            return new OkObjectResult("Access revoked successfully.");
+            return new OkResult();
         }
     }
 }
