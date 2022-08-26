@@ -57,17 +57,10 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public string ExternalSystem { get; set; }
-
-        public string RedirectUrl { get; set; }
-
-        public string State { get; set; }
-
         /// <inheritdoc/>
         public AuthState CreateAuthState(HttpRequest httpRequest)
         {
-            List<string> missingParams = new List<string>();
-            string exceptionMsg = string.Empty;
+            List<string> errorParams = new List<string>();
             string externalIdentifier, externalSys;
             var externalId = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalIdQueryParameter]);
             var externalSystem = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalSystemQueryParameter]);
@@ -78,29 +71,25 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             {
                 if (string.IsNullOrWhiteSpace(externalId))
                 {
-                    missingParams.Add($"'{Constants.ExternalIdQueryParameter}'");
+                    errorParams.Add($"{Constants.ExternalIdQueryParameter}");
                 }
 
                 if (string.IsNullOrWhiteSpace(externalSystem))
                 {
-                    missingParams.Add($"'{Constants.ExternalSystemQueryParameter}'");
+                    errorParams.Add($"{Constants.ExternalSystemQueryParameter}");
                 }
 
                 if (string.IsNullOrWhiteSpace(redirectUrl))
                 {
-                    missingParams.Add($"'{Constants.RedirectUrlQueryParameter}'");
+                    errorParams.Add($"{Constants.RedirectUrlQueryParameter}");
                 }
 
-                if (missingParams.Any())
+                if (errorParams.Any())
                 {
-                    foreach (var missingParam in missingParams)
-                    {
-                        exceptionMsg += missingParam + ", ";
-                    }
-
-                    exceptionMsg += missingParams.Count > 1 ? " are required query parameters with anonymous authorization." :
-                        " is a required query parameter with anonymous authorization.";
-                    throw new AuthStateException(exceptionMsg);
+                    string errorMessageFormat = "{0}, {1}, {2} are required query parameters with anonymous authorization. The request is missing {3}.";
+                    string missing = string.Join(", ", errorParams);
+                    string message = string.Format(errorMessageFormat, Constants.ExternalIdQueryParameter, Constants.ExternalSystemQueryParameter, Constants.RedirectUrlQueryParameter, missing);
+                    throw new AuthStateException(message);
                 }
 
                 externalIdentifier = externalId;
@@ -111,19 +100,21 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 // do not allow the ExternalId or ExternalSystem query params when authentication is enabled
                 if (!string.IsNullOrWhiteSpace(externalId))
                 {
-                    missingParams.Add($"'{Constants.ExternalIdQueryParameter}'");
+                    errorParams.Add($"{Constants.ExternalIdQueryParameter}");
                 }
 
                 if (!string.IsNullOrWhiteSpace(externalSystem))
                 {
-                    missingParams.Add($"'{Constants.ExternalSystemQueryParameter}'");
+                    errorParams.Add($"{Constants.ExternalSystemQueryParameter}");
                 }
 
-                if (missingParams.Any())
+                if (errorParams.Any())
                 {
-                    exceptionMsg = missingParams.Count > 1 ? $"'{Constants.ExternalIdQueryParameter}' and '{Constants.ExternalSystemQueryParameter}' are forbidden query parameters with non-anonymous authorization." :
-                        $"'{missingParams[0]}' is a forbidden query parameter with non-anonymous authorization.";
-                    throw new AuthStateException(exceptionMsg);
+                    string errorMessageFormat = "{0} and {1} are forbidden query parameters with authenticated authorization. The request contains {2}.";
+                    string present = string.Join(", ", errorParams);
+                    string message = string.Format(errorMessageFormat, Constants.ExternalIdQueryParameter, Constants.ExternalSystemQueryParameter, present);
+
+                    throw new AuthStateException(message);
                 }
 
                 if (string.IsNullOrEmpty(redirectUrl))

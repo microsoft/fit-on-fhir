@@ -22,7 +22,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests.Mocks
 
         public override Task<IActionResult> EvaluateRequest(RoutingRequest request)
         {
-            return Task.Run<IActionResult>(() => Task.FromResult<IActionResult>((IActionResult)Activator.CreateInstance(typeof(TResult))));
+            return Task.FromResult<IActionResult>((IActionResult)Activator.CreateInstance(typeof(TResult)));
         }
     }
 }

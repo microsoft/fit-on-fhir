@@ -39,27 +39,30 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             _serviceProvider = serviceCollection.BuildServiceProvider(true);
         }
 
-        [InlineData(_okResultHandlerRoute, typeof(OkResult))]
-        [InlineData(_unauthorizedResultHandlerRoute, typeof(UnauthorizedResult))]
-        [InlineData(_badRequestResultHandlerRoute, typeof(BadRequestResult))]
-        [InlineData(_signOutResultHandlerRoute, typeof(SignOutResult))]
-        [InlineData(_unhandledRoute, typeof(NotFoundResult))]
+        [InlineData(_okResultHandlerRoute, typeof(OkResult), 1)]
+        [InlineData(_unauthorizedResultHandlerRoute, typeof(UnauthorizedResult), 2)]
+        [InlineData(_badRequestResultHandlerRoute, typeof(BadRequestResult), 3)]
+        [InlineData(_signOutResultHandlerRoute, typeof(SignOutResult), 4)]
+        [InlineData(_unhandledRoute, typeof(NotFoundResult), 5)]
         [Theory]
-        public async Task GivenHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_HandlerIsAddedToChain(string route, Type expectedType)
+        public async Task GivenHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_HandlerIsAddedToChain(string route, Type expectedType, int numHandlers)
         {
-            var service =
-                _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(
-                    typeof(MockResponsibilityHandler<OkResult>),
-                    typeof(MockResponsibilityHandler<UnauthorizedResult>),
-                    typeof(MockResponsibilityHandler<BadRequestResult>),
-                    typeof(MockResponsibilityHandler<SignOutResult>),
-                    typeof(UnknownAuthorizationHandler));
+            var service = BuildHandlerChain(numHandlers);
 
             Assert.IsAssignableFrom<IResponsibilityHandler<RoutingRequest, Task<IActionResult>>>(service);
 
             var routingRequest = CreateRoutingRequest("/" + route);
             var result = await service.Evaluate(routingRequest);
             Assert.True(expectedType == result.GetType());
+        }
+
+        [Fact]
+        public void GivenNotAllHandlersAreRegistered_WhenCreateOrderedHandlerChainIsCalled_InvalidOperationExceptionIsThrown()
+        {
+            Assert.Throws<InvalidOperationException>(() => _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(
+                typeof(MockResponsibilityHandler<ViewResult>),
+                typeof(MockResponsibilityHandler<SignOutResult>),
+                typeof(UnknownAuthorizationHandler)));
         }
 
         [Fact]
@@ -82,6 +85,22 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             var context = new ExecutionContext();
 
             return new RoutingRequest(httpRequest, context, CancellationToken.None);
+        }
+
+        private IResponsibilityHandler<RoutingRequest, Task<IActionResult>> BuildHandlerChain(int numHandlersToChain)
+        {
+            Type[] registeredHandlerTypes =
+                {
+                    typeof(MockResponsibilityHandler<OkResult>),
+                    typeof(MockResponsibilityHandler<UnauthorizedResult>),
+                    typeof(MockResponsibilityHandler<BadRequestResult>),
+                    typeof(MockResponsibilityHandler<SignOutResult>),
+                    typeof(UnknownAuthorizationHandler),
+                };
+
+            Array.Resize(ref registeredHandlerTypes, numHandlersToChain);
+
+            return _serviceProvider.CreateOrderedHandlerChain<RoutingRequest, Task<IActionResult>>(registeredHandlerTypes);
         }
     }
 }
