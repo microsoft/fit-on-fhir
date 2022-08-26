@@ -61,7 +61,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         public AuthState CreateAuthState(HttpRequest httpRequest)
         {
             List<string> errorParams = new List<string>();
-            string externalIdentifier, externalSys;
             var externalId = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalIdQueryParameter]);
             var externalSystem = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalSystemQueryParameter]);
             var redirectUrl = HttpUtility.UrlDecode(httpRequest.Query[Constants.RedirectUrlQueryParameter]);
@@ -91,9 +90,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                     string message = string.Format(errorMessageFormat, Constants.ExternalIdQueryParameter, Constants.ExternalSystemQueryParameter, Constants.RedirectUrlQueryParameter, missing);
                     throw new AuthStateException(message);
                 }
-
-                externalIdentifier = externalId;
-                externalSys = externalSystem;
             }
             else
             {
@@ -137,8 +133,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                     throw new AuthStateException("The security token is invalid.");
                 }
 
-                externalIdentifier = jwtSecurityToken.Subject;
-                externalSys = jwtSecurityToken.Issuer;
+                externalId = jwtSecurityToken.Subject;
+                externalSystem = jwtSecurityToken.Issuer;
             }
 
             if (!_authenticationConfiguration.ApprovedRedirectUrls.Any(url => string.Equals(url, redirectUrl, StringComparison.OrdinalIgnoreCase)))
@@ -149,8 +145,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             var state = HttpUtility.UrlDecode(httpRequest.Query[Constants.StateQueryParameter]);
 
             return new AuthState(
-                externalIdentifier,
-                externalSys,
+                externalId,
+                externalSystem,
                 _utcNowFunc() + Constants.AuthStateExpiry,
                 redirectUrl,
                 state);
