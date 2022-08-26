@@ -4,10 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Net;
-using Azure.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common;
@@ -15,6 +13,7 @@ using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Requests;
+using Microsoft.Health.FitOnFhir.Common.Tests;
 using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
@@ -28,10 +27,8 @@ using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 {
-    public class GoogleFitAuthorizationHandlerTests
+    public class GoogleFitAuthorizationHandlerTests : RequestHandlerBaseTests<RoutingRequest, Task<IActionResult>>
     {
-        private readonly IResponsibilityHandler<RoutingRequest, Task<IActionResult>> _googleFitAuthorizationHandler;
-
         private readonly PathString googleFitAuthorizeRequest = "/" + GoogleFitConstants.GoogleFitAuthorizeRequest;
         private readonly PathString googleFitCallbackRequest = "/" + GoogleFitConstants.GoogleFitCallbackRequest;
         private readonly PathString googleFitRevokeRequest = "/" + GoogleFitConstants.GoogleFitRevokeAccessRequest;
@@ -53,7 +50,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _authStateService = Substitute.For<IAuthStateService>();
             _logger = Substitute.For<MockLogger<GoogleFitAuthorizationHandler>>();
 
-            _googleFitAuthorizationHandler = new GoogleFitAuthorizationHandler(
+            RequestHandler = new GoogleFitAuthorizationHandler(
                 _authService,
                 _usersService,
                 _tokenValidationService,
@@ -63,15 +60,13 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(true);
         }
 
-        [Fact]
-        public void GivenRequestCannotBeHandled_WhenEvaluateIsCalled_NullIsReturned()
-        {
-            var routingRequest = CreateRoutingRequest(emptyGoogleFitRequest);
-
-            var result = _googleFitAuthorizationHandler.Evaluate(routingRequest);
-
-            Assert.Null(result);
-        }
+        // [Fact]
+        // public void GivenRequestCannotBeHandled_WhenEvaluateIsCalled_NullIsReturned()
+        // {
+        //    var routingRequest = CreateRoutingRequest(emptyGoogleFitRequest);
+        //    var result = _googleFitAuthorizationHandler.Evaluate(routingRequest);
+        //    Assert.Null(result);
+        // }
 
         [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
         [InlineData("/" + GoogleFitConstants.GoogleFitRevokeAccessRequest)]
@@ -83,7 +78,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             PathString requestPath = new PathString(request);
             var routingRequest = CreateRoutingRequest(requestPath, false, false);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+            var result = await RequestHandler.Evaluate(routingRequest);
 
             Assert.IsType<BadRequestObjectResult>(result);
             Assert.IsType<string>(((BadRequestObjectResult)result).Value);
@@ -99,7 +94,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             PathString requestPath = new PathString(request);
             var routingRequest = CreateRoutingRequest(requestPath, false, false);
-            await Assert.ThrowsAsync<Exception>(() => _googleFitAuthorizationHandler.Evaluate(routingRequest));
+            await Assert.ThrowsAsync<Exception>(() => RequestHandler.Evaluate(routingRequest));
         }
 
         [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
@@ -115,7 +110,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(false);
 
             var routingRequest = CreateRoutingRequest(request);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+            var result = await RequestHandler.Evaluate(routingRequest);
             Assert.IsType<UnauthorizedResult>(result);
         }
 
@@ -130,7 +125,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             // send the routing request
             var routingRequest = CreateRoutingRequest(googleFitAuthorizeRequest);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+            var result = await RequestHandler.Evaluate(routingRequest);
 
             Assert.IsType<JsonResult>(result);
             var actualJsonResult = result as JsonResult;
@@ -154,7 +149,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _usersService.ProcessAuthorizationCallback(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult<string>(redirectUrl));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+            var result = await RequestHandler.Evaluate(routingRequest);
             Assert.IsType<RedirectResult>(result);
 
             var actualResult = result as RedirectResult;
@@ -168,7 +163,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _usersService.ProcessAuthorizationCallback(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new Exception("exception"));
 
             var routingRequest = CreateRoutingRequest(googleFitCallbackRequest);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+            var result = await RequestHandler.Evaluate(routingRequest);
             Assert.IsType<NotFoundObjectResult>(result);
 
             var actualResult = result as NotFoundObjectResult;
@@ -184,7 +179,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _usersService.RevokeAccess(Arg.Any<AuthState>(), Arg.Any<CancellationToken>()).Throws(exception);
 
             var routingRequest = CreateRoutingRequest(googleFitRevokeRequest);
-            await Assert.ThrowsAsync<Exception>(() => _googleFitAuthorizationHandler.Evaluate(routingRequest));
+            await Assert.ThrowsAsync<Exception>(() => RequestHandler.Evaluate(routingRequest));
         }
 
         [Fact]
@@ -193,7 +188,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _usersService.RevokeAccess(Arg.Any<AuthState>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
             var routingRequest = CreateRoutingRequest(googleFitRevokeRequest);
-            var result = await _googleFitAuthorizationHandler.Evaluate(routingRequest);
+            var result = await RequestHandler.Evaluate(routingRequest);
             Assert.IsType<OkResult>(result);
         }
 

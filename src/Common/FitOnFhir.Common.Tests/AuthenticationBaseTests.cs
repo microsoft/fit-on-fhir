@@ -103,7 +103,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             _jwtSecurityTokenHandlerProvider.ValidateTokenAsync(Arg.Any<string>(), Arg.Any<TokenValidationParameters>()).Returns(tvr);
         }
 
-        protected void SetupHttpRequest(string token, bool includePatientAndSystem = false, bool includeState = false, bool includeRedirectUrl = true)
+        protected void SetupHttpRequest(string token, bool includePatient = false, bool includeSystem = false, bool includeState = false, bool includeRedirectUrl = true)
         {
             _httpRequest.Headers.TryGetValue(
                     Arg.Is<string>(str => str == HeaderNames.Authorization),
@@ -114,9 +114,13 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
                     return token != string.Empty;
                 });
 
-            if (includePatientAndSystem)
+            if (includePatient)
             {
                 _httpRequest.Query[Constants.ExternalIdQueryParameter].Returns(new StringValues(ExpectedExternalIdentifier));
+            }
+
+            if (includeSystem)
+            {
                 _httpRequest.Query[Constants.ExternalSystemQueryParameter].Returns(new StringValues(ExpectedExternalSystem));
             }
 
