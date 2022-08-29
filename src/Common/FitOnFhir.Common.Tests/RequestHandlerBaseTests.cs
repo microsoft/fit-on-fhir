@@ -19,7 +19,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected IResponsibilityHandler<TRequest, TResult> RequestHandler { get; set; }
 
-        protected abstract TRequest Request { get; }
+        protected abstract TRequest NonHandledRequest { get; }
 
         [Fact]
         public void GivenRequestRouteIsNull_WhenEvaluateCalled_NullReturned()
@@ -31,7 +31,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         [Fact]
         public void GivenRequestRouteIsNotContainedInHanldedRoutes_WhenEvaluateCalled_NullReturned()
         {
-            var result = RequestHandler.Evaluate(Request);
+            var result = RequestHandler.Evaluate(NonHandledRequest);
             Assert.Null(result);
         }
     }

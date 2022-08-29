@@ -59,7 +59,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(true);
         }
 
-        protected override RoutingRequest Request => CreateRoutingRequest("/unhandled route", false, false);
+        protected override RoutingRequest NonHandledRequest => CreateRoutingRequest("/unhandled route", false, false);
 
         [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
         [InlineData("/" + GoogleFitConstants.GoogleFitRevokeAccessRequest)]
