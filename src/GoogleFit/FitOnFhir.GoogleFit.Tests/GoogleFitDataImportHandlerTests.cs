@@ -33,6 +33,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             RequestHandler = new GoogleFitDataImportHandler(_googleFitDataImporter, _logger);
         }
 
+        protected override ImportRequest Request => CreateImportRequest(_testUser, _platformUser, "unhandled platform");
+
         [Fact]
         public async Task GivenImportRequestForGoogleFit_WhenEvaluateCalled_TaskCompletes()
         {

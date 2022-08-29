@@ -7,7 +7,6 @@ using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common;
 using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
@@ -60,13 +59,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             _tokenValidationService.ValidateToken(Arg.Any<HttpRequest>(), Arg.Any<CancellationToken>()).Returns(true);
         }
 
-        // [Fact]
-        // public void GivenRequestCannotBeHandled_WhenEvaluateIsCalled_NullIsReturned()
-        // {
-        //    var routingRequest = CreateRoutingRequest(emptyGoogleFitRequest);
-        //    var result = _googleFitAuthorizationHandler.Evaluate(routingRequest);
-        //    Assert.Null(result);
-        // }
+        protected override RoutingRequest Request => CreateRoutingRequest("/unhandled route", false, false);
 
         [InlineData("/" + GoogleFitConstants.GoogleFitAuthorizeRequest)]
         [InlineData("/" + GoogleFitConstants.GoogleFitRevokeAccessRequest)]

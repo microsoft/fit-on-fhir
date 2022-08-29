@@ -61,9 +61,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         public AuthState CreateAuthState(HttpRequest httpRequest)
         {
             List<string> errorParams = new List<string>();
-            var externalId = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalIdQueryParameter]);
-            var externalSystem = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalSystemQueryParameter]);
-            var redirectUrl = HttpUtility.UrlDecode(httpRequest.Query[Constants.RedirectUrlQueryParameter]);
+
+            var request = EnsureArg.IsNotNull(httpRequest);
+
+            var externalId = HttpUtility.UrlDecode(request.Query[Constants.ExternalIdQueryParameter]);
+            var externalSystem = HttpUtility.UrlDecode(request.Query[Constants.ExternalSystemQueryParameter]);
+            var redirectUrl = HttpUtility.UrlDecode(request.Query[Constants.RedirectUrlQueryParameter]);
 
             // is this for anonymous logins?
             if (_authenticationConfiguration.IsAnonymousLoginEnabled)
@@ -119,7 +122,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 }
 
                 // extract the token from the header.
-                if (!httpRequest.TryGetTokenStringFromAuthorizationHeader(JwtBearerDefaults.AuthenticationScheme, out string token))
+                if (!request.TryGetTokenStringFromAuthorizationHeader(JwtBearerDefaults.AuthenticationScheme, out string token))
                 {
                     throw new AuthStateException("The request Authorization header is invalid.");
                 }
@@ -137,12 +140,17 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 externalSystem = jwtSecurityToken.Issuer;
             }
 
+            if (_authenticationConfiguration.ApprovedRedirectUrls == null)
+            {
+                throw new AuthStateException("The approved redirect URL list is empty.");
+            }
+
             if (!_authenticationConfiguration.ApprovedRedirectUrls.Any(url => string.Equals(url, redirectUrl, StringComparison.OrdinalIgnoreCase)))
             {
                 throw new AuthStateException("The redirect URL was not found in the list of approved redirect URLs.");
             }
 
-            var state = HttpUtility.UrlDecode(httpRequest.Query[Constants.StateQueryParameter]);
+            var state = HttpUtility.UrlDecode(request.Query[Constants.StateQueryParameter]);
 
             return new AuthState(
                 externalId,

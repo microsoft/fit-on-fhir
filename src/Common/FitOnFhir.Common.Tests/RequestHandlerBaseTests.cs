@@ -19,7 +19,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected IResponsibilityHandler<TRequest, TResult> RequestHandler { get; set; }
 
-        protected TRequest Request { get; set; }
+        protected abstract TRequest Request { get; }
 
         [Fact]
         public void GivenRequestRouteIsNull_WhenEvaluateCalled_NullReturned()

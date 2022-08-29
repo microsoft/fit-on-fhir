@@ -4,10 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
-using System.Reflection;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.Exceptions;
@@ -115,6 +115,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
@@ -158,6 +159,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
@@ -176,6 +178,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
@@ -191,11 +194,49 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
                 Assert.Equal($"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in the request.", ex.Message);
             }
+        }
+
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public void GivenApprovedRedirectUrlListReturnsNull_WhenCreateAuthStateCalled_ThrowsAuthStateExceptionWithCorrectMessage(bool anonymous)
+        {
+            SetupConfiguration(anonymous);
+            List<string> emptyRedirectList = null;
+            AuthConfiguration.ApprovedRedirectUrls.Returns(emptyRedirectList);
+
+            if (anonymous)
+            {
+                SetupHttpRequest(ExpectedToken, includePatient: true, includeSystem: true);
+            }
+            else
+            {
+                SetupHttpRequest(ExpectedToken);
+            }
+
+            try
+            {
+                var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+            }
+            catch (AuthStateException ex)
+            {
+                Assert.Equal("The approved redirect URL list is empty.", ex.Message);
+            }
+        }
+
+        [Fact]
+        public void GivenHttpRequestIsNull_WhenCreateAuthStateCalled_ThrowsArgumentNullException()
+        {
+            HttpRequest nullHttpRequest = null;
+
+            Assert.Throws<ArgumentNullException>(() => _authStateService.CreateAuthState(nullHttpRequest));
         }
 
         [Fact]
@@ -206,6 +247,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
@@ -224,6 +266,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
