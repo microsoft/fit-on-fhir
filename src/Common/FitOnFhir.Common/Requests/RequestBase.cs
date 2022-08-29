@@ -3,13 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.FitOnFhir.Common.Exceptions
+namespace Microsoft.Health.FitOnFhir.Common.Requests
 {
-    public class RedirectUrlException : Exception
+    public abstract class RequestBase
     {
-        public RedirectUrlException(string message)
-            : base(message)
-        {
-        }
+        /// <summary>
+        /// Used to determine whether a given handler can handle the request.
+        /// </summary>
+        public abstract string Route { get; }
     }
 }

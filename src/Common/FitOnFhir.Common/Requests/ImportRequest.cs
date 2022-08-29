@@ -8,7 +8,7 @@ using Microsoft.Health.FitOnFhir.Common.Models;
 
 namespace Microsoft.Health.FitOnFhir.Common.Requests
 {
-    public class ImportRequest
+    public class ImportRequest : RequestBase
     {
         public ImportRequest(QueueMessage message, CancellationToken token)
         {
@@ -19,5 +19,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Requests
         public QueueMessage Message { get; set; }
 
         public CancellationToken Token { get; set; }
+
+        public override string Route => Message.PlatformName;
     }
 }

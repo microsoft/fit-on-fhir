@@ -32,19 +32,21 @@ namespace Microsoft.Health.FitOnFhir.Common.ExtensionMethods
                 IResponsibilityHandler<TRequest, TResult> previousHandler = null;
 
                 // Loop through the handlerTypes retrieve the instance and chain them together.
-                foreach (Type handlerType in handlerTypes)
+                foreach (Type handlerType in handlerTypes.Reverse())
                 {
                     IResponsibilityHandler<TRequest, TResult> handler = serviceProvider.GetRequiredService(handlerType) as IResponsibilityHandler<TRequest, TResult>;
                     if (previousHandler != null)
                     {
-                        previousHandler.Chain(handler);
+                        previousHandler = handler.Chain(previousHandler);
                     }
-
-                    previousHandler = handler;
+                    else
+                    {
+                        previousHandler = handler;
+                    }
                 }
 
-                // Return the first handler. This will register the first handler in the chain with the Service Provider
-                return serviceProvider.GetRequiredService(handlerTypes[0]) as IResponsibilityHandler<TRequest, TResult>;
+                // Return the first handler. This will register it in the chain with the Service Provider
+                return previousHandler;
             }
             else
             {

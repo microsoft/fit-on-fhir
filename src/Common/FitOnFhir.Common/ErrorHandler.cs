@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
-using Microsoft.Health.FitOnFhir.Common.Models;
 
 namespace Microsoft.Health.FitOnFhir.Common
 {
@@ -15,7 +14,7 @@ namespace Microsoft.Health.FitOnFhir.Common
         }
 
         /// <inheritdoc/>
-        public void HandleDataImportError(QueueMessage message, Exception exception)
+        public void HandleDataImportError(string message, Exception exception)
         {
         }
     }

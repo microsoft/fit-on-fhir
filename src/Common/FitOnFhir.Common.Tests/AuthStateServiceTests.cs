@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.Exceptions;
@@ -76,7 +77,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         public void GivenAnonymousLoginEnabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithQueryParams(bool includeStateQueryParam)
         {
             SetupConfiguration(true);
-            SetupHttpRequest(ExpectedToken, true, includeStateQueryParam);
+            SetupHttpRequest(ExpectedToken, includePatient: true, includeSystem: true, includeRedirectUrl: true, includeState: includeStateQueryParam);
 
             var authState = _authStateService.CreateAuthState(Request);
 
@@ -94,12 +95,42 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             }
         }
 
+        [InlineData(false, true, true, "external_id")]
+        [InlineData(false, true, false, "external_id, redirect_url")]
+        [InlineData(false, false, true, "external_id, external_system")]
+        [InlineData(false, false, false, "external_id, external_system, redirect_url")]
+        [InlineData(true, true, false, "redirect_url")]
+        [InlineData(true, false, true, "external_system")]
+        [InlineData(true, false, false, "external_system, redirect_url")]
+        [Theory]
+        public void GivenAnonymousLoginEnabledWithInvalidRequest_WhenCreateAuthStateCalled_ThrowsAuthStateExceptionWithCorrectMessage(
+            bool includePatient,
+            bool includeSystem,
+            bool includeRedirectUrl,
+            string missing)
+        {
+            SetupConfiguration(true);
+            SetupHttpRequest(ExpectedToken, includePatient: includePatient, includeSystem: includeSystem, includeRedirectUrl: includeRedirectUrl);
+
+            try
+            {
+                var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+            }
+            catch (AuthStateException ex)
+            {
+                string errorMessageFormat = "{0}, {1}, {2} are required query parameters with anonymous authorization. The request is missing {3}.";
+                string expectedMessage = string.Format(errorMessageFormat, Constants.ExternalIdQueryParameter, Constants.ExternalSystemQueryParameter, Constants.RedirectUrlQueryParameter, missing);
+                Assert.Equal(expectedMessage, ex.Message);
+            }
+        }
+
         [InlineData(true)]
         [InlineData(false)]
         [Theory]
         public void GivenAnonymousLoginDisabledWithValidRequest_WhenCreateAuthStateCalled_ReturnsAuthStateWithSubjectAndIssuer(bool includeStateQueryParam)
         {
-            SetupHttpRequest(ExpectedToken, includeState: includeStateQueryParam);
+            SetupHttpRequest(ExpectedToken, includeRedirectUrl: true, includeState: includeStateQueryParam);
 
             var authState = _authStateService.CreateAuthState(Request);
 
@@ -117,80 +148,130 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             }
         }
 
-        [Fact]
-        public void GivenAnonymousLoginDisabledWithExternalQueryParametersInRequest_WhenCreateAuthStateCalled_ThrowsArgumentException()
+        [InlineData(true, false, "external_id")]
+        [InlineData(false, true, "external_system")]
+        [InlineData(true, true, "external_id, external_system")]
+        [Theory]
+        public void GivenAnonymousLoginDisabledWithExternalQueryParametersInRequest_WhenCreateAuthStateCalled_ThrowsAuthStateExceptionWithCorrectMessage(bool includePatient, bool includeSystem, string present)
         {
-            SetupHttpRequest(ExpectedToken, true);
+            SetupHttpRequest(ExpectedToken, includePatient: includePatient, includeSystem: includeSystem, includeRedirectUrl: true);
 
-            Assert.Throws<ArgumentException>(() => _authStateService.CreateAuthState(Request));
-
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg =>
-                    msg == $"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are forbidden query parameters with non-anonymous authorization."));
+            try
+            {
+                var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+            }
+            catch (AuthStateException ex)
+            {
+                string errorMessageFormat = "{0} and {1} are forbidden query parameters with authenticated authorization. The request contains {2}.";
+                string expectedMessage = string.Format(errorMessageFormat, Constants.ExternalIdQueryParameter, Constants.ExternalSystemQueryParameter, present);
+                Assert.Equal(expectedMessage, ex.Message);
+            }
         }
 
         [Fact]
-        public void GivenRedirectUrlNotInApprovedList_WhenCreateAuthStateCalled_ThrowsRedirectUrlExceptionAndErrorIsLogged()
+        public void GivenRedirectUrlNotInApprovedList_WhenCreateAuthStateCalled_ThrowsAuthStateExceptionWithCorrectMessage()
         {
             SetupHttpRequest(ExpectedToken);
             AuthConfiguration.ApprovedRedirectUrls.Returns(new List<string>());
 
-            Assert.Throws<RedirectUrlException>(() => _authStateService.CreateAuthState(Request));
-
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg =>
-                    msg == "The redirect URL was not found in the list of approved redirect URLs."));
-
-            _logger.DidNotReceive().Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg =>
-                    msg == $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request"));
+            try
+            {
+                var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+            }
+            catch (AuthStateException ex)
+            {
+                Assert.Equal("The redirect URL was not found in the list of approved redirect URLs.", ex.Message);
+            }
         }
 
         [Fact]
-        public void GivenRedirectUrlNotInRequest_WhenCreateAuthStateCalled_ThrowsRedirectUrlExceptionAndErrorIsLogged()
+        public void GivenRedirectUrlNotInRequest_WhenCreateAuthStateCalled_ThrowsAuthStateExceptionWithCorrectMessage()
         {
             SetupHttpRequest(ExpectedToken, includeRedirectUrl: false);
 
-            Assert.Throws<RedirectUrlException>(() => _authStateService.CreateAuthState(Request));
+            try
+            {
+                var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+            }
+            catch (AuthStateException ex)
+            {
+                Assert.Equal($"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in the request.", ex.Message);
+            }
+        }
 
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg =>
-                    msg == $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request"));
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public void GivenApprovedRedirectUrlListReturnsNull_WhenCreateAuthStateCalled_ThrowsAuthStateExceptionWithCorrectMessage(bool anonymous)
+        {
+            SetupConfiguration(anonymous);
+            List<string> emptyRedirectList = null;
+            AuthConfiguration.ApprovedRedirectUrls.Returns(emptyRedirectList);
 
-            _logger.DidNotReceive().Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg =>
-                    msg == "The redirect URL was not found in the list of approved redirect URLs."));
+            if (anonymous)
+            {
+                SetupHttpRequest(ExpectedToken, includePatient: true, includeSystem: true);
+            }
+            else
+            {
+                SetupHttpRequest(ExpectedToken);
+            }
+
+            try
+            {
+                var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+            }
+            catch (AuthStateException ex)
+            {
+                Assert.Equal("The approved redirect URL list is empty.", ex.Message);
+            }
         }
 
         [Fact]
-        public void GivenHttpRequestHasInvalidToken_WhenValidateTokenIsCalled_ReturnsDefaultAndErrorIsLogged()
+        public void GivenHttpRequestIsNull_WhenCreateAuthStateCalled_ThrowsArgumentNullException()
+        {
+            HttpRequest nullHttpRequest = null;
+
+            Assert.Throws<ArgumentNullException>(() => _authStateService.CreateAuthState(nullHttpRequest));
+        }
+
+        [Fact]
+        public void GivenHttpRequestHasInvalidToken_WhenValidateTokenIsCalled_ThrowsAuthStateExceptionWithCorrectMessage()
         {
             SetupHttpRequest(string.Empty);
 
-            var authState = _authStateService.CreateAuthState(Request);
-
-            Assert.Null(authState);
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg => msg == "The request Authorization header is invalid."));
+            try
+            {
+                var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+            }
+            catch (AuthStateException ex)
+            {
+                Assert.Equal("The request Authorization header is invalid.", ex.Message);
+            }
         }
 
         [Fact]
-        public void GivenReadJwtTokenReturnsDefault_WhenValidateTokenIsCalled_ReturnsDefaultAndErrorIsLogged()
+        public void GivenReadJwtTokenReturnsDefault_WhenCreateAuthStateIsCalled_ThrowsAuthStateExceptionWithCorrectMessage()
         {
             SetupHttpRequest(ExpectedToken);
 
             JwtSecurityToken jwtSecurityToken = default;
             SecurityTokenHandlerProvider.ReadJwtToken(Arg.Is<string>(str => str == ExpectedToken)).Returns(jwtSecurityToken);
 
-            var authState = _authStateService.CreateAuthState(Request);
-
-            Assert.Null(authState);
+            try
+            {
+                var authState = _authStateService.CreateAuthState(Request);
+                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+            }
+            catch (AuthStateException ex)
+            {
+                Assert.Equal("The security token is invalid.", ex.Message);
+            }
         }
 
         [Fact]

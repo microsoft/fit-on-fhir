@@ -9,7 +9,7 @@ using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace Microsoft.Health.FitOnFhir.Common.Requests
 {
-    public class RoutingRequest
+    public class RoutingRequest : RequestBase
     {
         public RoutingRequest(HttpRequest httpRequest, ExecutionContext context, CancellationToken token)
         {
@@ -23,5 +23,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Requests
         public ExecutionContext Context { get; set; }
 
         public CancellationToken Token { get; set; }
+
+        public override string Route => HttpRequest.Path.Value?[1..];
     }
 }

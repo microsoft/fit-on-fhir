@@ -4,15 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Health.Common.Handler;
 using Microsoft.Health.FitOnFhir.Common.Requests;
 
 namespace Microsoft.Health.FitOnFhir.Common.Handlers
 {
-    public class UnknownAuthorizationHandler : UnknownOperationHandlerBase<RoutingRequest, Task<IActionResult>>
+    public class UnknownAuthorizationHandler : IResponsibilityHandler<RoutingRequest, Task<IActionResult>>
     {
-        public override Task<IActionResult> Evaluate(RoutingRequest request)
+        public Task<IActionResult> Evaluate(RoutingRequest request)
         {
-            return Task.Run<IActionResult>(() => new NotFoundResult());
+            return Task.FromResult(new NotFoundResult() as IActionResult);
         }
     }
 }

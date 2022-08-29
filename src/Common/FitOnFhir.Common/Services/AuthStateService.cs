@@ -57,42 +57,74 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
-        public string ExternalIdentifier { get; set; }
-
-        public string ExternalSystem { get; set; }
-
-        public string RedirectUrl { get; set; }
-
-        public string State { get; set; }
-
         /// <inheritdoc/>
         public AuthState CreateAuthState(HttpRequest httpRequest)
         {
-            var externalId = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalIdQueryParameter]);
+            List<string> errorParams = new List<string>();
 
-            var externalSystem = HttpUtility.UrlDecode(httpRequest.Query[Constants.ExternalSystemQueryParameter]);
+            var request = EnsureArg.IsNotNull(httpRequest);
+
+            var externalId = HttpUtility.UrlDecode(request.Query[Constants.ExternalIdQueryParameter]);
+            var externalSystem = HttpUtility.UrlDecode(request.Query[Constants.ExternalSystemQueryParameter]);
+            var redirectUrl = HttpUtility.UrlDecode(request.Query[Constants.RedirectUrlQueryParameter]);
 
             // is this for anonymous logins?
             if (_authenticationConfiguration.IsAnonymousLoginEnabled)
             {
-                ExternalIdentifier = EnsureArg.IsNotNullOrWhiteSpace(externalId, nameof(externalId));
-                ExternalSystem = EnsureArg.IsNotNullOrWhiteSpace(externalSystem, nameof(externalSystem));
+                if (string.IsNullOrWhiteSpace(externalId))
+                {
+                    errorParams.Add($"{Constants.ExternalIdQueryParameter}");
+                }
+
+                if (string.IsNullOrWhiteSpace(externalSystem))
+                {
+                    errorParams.Add($"{Constants.ExternalSystemQueryParameter}");
+                }
+
+                if (string.IsNullOrWhiteSpace(redirectUrl))
+                {
+                    errorParams.Add($"{Constants.RedirectUrlQueryParameter}");
+                }
+
+                if (errorParams.Any())
+                {
+                    string errorMessageFormat = "{0}, {1}, {2} are required query parameters with anonymous authorization. The request is missing {3}.";
+                    string missing = string.Join(", ", errorParams);
+                    string message = string.Format(errorMessageFormat, Constants.ExternalIdQueryParameter, Constants.ExternalSystemQueryParameter, Constants.RedirectUrlQueryParameter, missing);
+                    throw new AuthStateException(message);
+                }
             }
             else
             {
                 // do not allow the ExternalId or ExternalSystem query params when authentication is enabled
-                if (!string.IsNullOrEmpty(externalId) || !string.IsNullOrEmpty(externalSystem))
+                if (!string.IsNullOrWhiteSpace(externalId))
                 {
-                    string errorMessage = $"{Constants.ExternalIdQueryParameter} and {Constants.ExternalSystemQueryParameter} are forbidden query parameters with non-anonymous authorization.";
-                    _logger.LogError(errorMessage);
-                    throw new ArgumentException(errorMessage);
+                    errorParams.Add($"{Constants.ExternalIdQueryParameter}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(externalSystem))
+                {
+                    errorParams.Add($"{Constants.ExternalSystemQueryParameter}");
+                }
+
+                if (errorParams.Any())
+                {
+                    string errorMessageFormat = "{0} and {1} are forbidden query parameters with authenticated authorization. The request contains {2}.";
+                    string present = string.Join(", ", errorParams);
+                    string message = string.Format(errorMessageFormat, Constants.ExternalIdQueryParameter, Constants.ExternalSystemQueryParameter, present);
+
+                    throw new AuthStateException(message);
+                }
+
+                if (string.IsNullOrEmpty(redirectUrl))
+                {
+                    throw new AuthStateException($"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in the request.");
                 }
 
                 // extract the token from the header.
-                if (!httpRequest.TryGetTokenStringFromAuthorizationHeader(JwtBearerDefaults.AuthenticationScheme, out string token))
+                if (!request.TryGetTokenStringFromAuthorizationHeader(JwtBearerDefaults.AuthenticationScheme, out string token))
                 {
-                    _logger.LogError("The request Authorization header is invalid.");
-                    return default;
+                    throw new AuthStateException("The request Authorization header is invalid.");
                 }
 
                 // Read the token
@@ -101,38 +133,31 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
                 if (jwtSecurityToken == default)
                 {
-                    return default;
+                    throw new AuthStateException("The security token is invalid.");
                 }
 
-                ExternalIdentifier = jwtSecurityToken.Subject;
-                ExternalSystem = jwtSecurityToken.Issuer;
+                externalId = jwtSecurityToken.Subject;
+                externalSystem = jwtSecurityToken.Issuer;
             }
 
-            var redirectUrl = HttpUtility.UrlDecode(httpRequest.Query[Constants.RedirectUrlQueryParameter]);
-
-            if (string.IsNullOrEmpty(redirectUrl))
+            if (_authenticationConfiguration.ApprovedRedirectUrls == null)
             {
-                string errorMessage = $"The required parameter {Constants.RedirectUrlQueryParameter} was not provided in request";
-                _logger.LogError(errorMessage);
-                throw new RedirectUrlException(errorMessage);
+                throw new AuthStateException("The approved redirect URL list is empty.");
             }
 
             if (!_authenticationConfiguration.ApprovedRedirectUrls.Any(url => string.Equals(url, redirectUrl, StringComparison.OrdinalIgnoreCase)))
             {
-                string errorMessage = "The redirect URL was not found in the list of approved redirect URLs.";
-                _logger.LogError(errorMessage);
-                throw new RedirectUrlException(errorMessage);
+                throw new AuthStateException("The redirect URL was not found in the list of approved redirect URLs.");
             }
 
-            RedirectUrl = redirectUrl;
-            State = HttpUtility.UrlDecode(httpRequest.Query[Constants.StateQueryParameter]);
+            var state = HttpUtility.UrlDecode(request.Query[Constants.StateQueryParameter]);
 
             return new AuthState(
-                ExternalIdentifier,
-                ExternalSystem,
+                externalId,
+                externalSystem,
                 _utcNowFunc() + Constants.AuthStateExpiry,
-                RedirectUrl,
-                State);
+                redirectUrl,
+                state);
         }
 
         public async Task<AuthState> RetrieveAuthState(string nonce, CancellationToken cancellationToken)

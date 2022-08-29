@@ -3,16 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Common.Handler;
-
-namespace Microsoft.Health.FitOnFhir.Common.Handlers
+namespace Microsoft.Health.FitOnFhir.Common.Exceptions
 {
-    public class UnknownOperationHandlerBase<TRequest, TResult> : IResponsibilityHandler<TRequest, TResult>
-    where TResult : class
+    public class AuthStateException : Exception
     {
-        public virtual TResult Evaluate(TRequest request)
+        public AuthStateException(string message)
+            : base(message)
         {
-            throw new NotImplementedException();
         }
     }
 }
