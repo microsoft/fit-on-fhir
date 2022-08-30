@@ -1,0 +1,23 @@
+<Project>
+
+  <PropertyGroup>
+    <DebugType>Portable</DebugType>
+    <HighEntropyVA>true</HighEntropyVA>
+    <LangVersion>10.0</LangVersion>
+    <!--This will target the latest patch release of the runtime released with the current SDK.  -->
+    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>	
+    <WarningsAsErrors />
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)\stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

@@ -18,7 +18,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         private readonly IUsersKeyVaultRepository _usersKeyVaultRepository;
         private readonly ILogger _logger;
 
-        public TokensServiceBase(IUsersKeyVaultRepository usersKeyVaultRepository, ILogger logger)
+        protected TokensServiceBase(IUsersKeyVaultRepository usersKeyVaultRepository, ILogger logger)
         {
             _usersKeyVaultRepository = EnsureArg.IsNotNull(usersKeyVaultRepository, nameof(usersKeyVaultRepository));
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));

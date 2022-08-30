@@ -67,7 +67,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         protected string TokenAuthScheme => $"{JwtBearerDefaults.AuthenticationScheme} ";
 
-        protected string ExpectedRedirectUrl => "http://localhost";
+        protected string ExpectedRedirectUrl => "http://localhost/";
 
         protected string ExpectedState => "ExpectedState";
 

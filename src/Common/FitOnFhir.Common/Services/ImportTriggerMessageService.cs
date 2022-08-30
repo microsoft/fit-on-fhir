@@ -28,6 +28,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
         public async Task AddImportMessagesToCollector(ICollector<string> collector, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(collector, nameof(collector));
+
             AsyncPageable<TableEntity> tableEntities = _usersTableRepository.GetAll(cancellationToken);
 
             await foreach (TableEntity entity in tableEntities)

@@ -19,9 +19,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Providers
             _configuration = EnsureArg.IsNotNull(configuration, nameof(configuration));
         }
 
-        SecretClient ISecretClientProvider.GetSecretClient()
+        public SecretClient GetSecretClient()
         {
-            return new SecretClient(new Uri(_configuration.UsersKeyVaultUri), new DefaultAzureCredential());
+            return new SecretClient(_configuration.UsersKeyVaultUri, new DefaultAzureCredential());
         }
     }
 }

@@ -75,36 +75,20 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public async Task GivenCreateIfNotExistsAsyncThrowsRequestFailedException_WhenInitQueueCalled_ExceptionIsCaughtAndLogged()
+        public async Task GivenCreateIfNotExistsAsyncThrowsRequestFailedException_WhenInitQueueCalled_ExceptionThrown()
         {
-            string exceptionMessage = "CreateIfNotExistsAsync exception";
-            var exception = new RequestFailedException(exceptionMessage);
+            _queueClient.CreateIfNotExistsAsync().Throws(new InvalidDataException());
 
-            _queueClient.CreateIfNotExistsAsync().Throws(exception);
-
-            await _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None);
-
-            _queueServiceLogger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<RequestFailedException>(),
-                Arg.Is<string>(msg => msg == exceptionMessage));
+            await Assert.ThrowsAsync<InvalidDataException>(() => _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None));
         }
 
         [Fact]
         public async Task GivenSendMessageAsyncThrowsException_WhenSendQueueMessageCalled_ExceptionIsCaughtAndLogged()
         {
-            string exceptionMessage = "SendMessageAsync exception";
-            var exception = new Exception(exceptionMessage);
-
-            _queueClient.SendMessageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(exception);
+            _queueClient.SendMessageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new UnauthorizedAccessException());
             _queueClient.CreateIfNotExistsAsync().Returns(Substitute.For<Response>());
 
-            await _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None);
-
-            _queueServiceLogger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<Exception>(),
-                Arg.Is<string>(msg => msg == exceptionMessage));
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None));
         }
 
         [Fact]

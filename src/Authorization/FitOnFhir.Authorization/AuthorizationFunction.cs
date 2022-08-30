@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading;
-using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +33,7 @@ namespace Microsoft.Health.FitOnFhir.Authorization
             ExecutionContext context,
             CancellationToken cancellationToken)
         {
-            _logger.LogInformation("incoming request from: {0}", req.Host + req.Path);
+            _logger.LogInformation("incoming request from: {0}", req?.Host + req?.Path);
             return await _routingService.RouteTo(req, context, cancellationToken);
         }
     }

@@ -15,7 +15,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
     public class GoogleFitTokensService : TokensServiceBase<AuthTokensResponse>, IGoogleFitTokensService
     {
         private readonly IGoogleFitAuthService _googleFitAuthService;
-        private readonly ILogger<GoogleFitTokensService> _logger;
 
         public GoogleFitTokensService(
             IGoogleFitAuthService googleFitAuthService,
@@ -24,7 +23,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         : base(usersKeyVaultRepository, logger)
         {
             _googleFitAuthService = EnsureArg.IsNotNull(googleFitAuthService, nameof(googleFitAuthService));
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         protected override async Task<AuthTokensResponse> UpdateRefreshToken(string refreshToken, CancellationToken cancellationToken)

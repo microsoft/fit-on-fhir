@@ -32,6 +32,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         /// <inheritdoc/>
         public Task Import(string message, CancellationToken cancellationToken)
         {
+#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 QueueMessage queueMessage = JsonConvert.DeserializeObject<QueueMessage>(message);
@@ -44,6 +45,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 _errorHandler.HandleDataImportError(message, ex);
                 return Task.FromException(ex);
             }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
     }
 }

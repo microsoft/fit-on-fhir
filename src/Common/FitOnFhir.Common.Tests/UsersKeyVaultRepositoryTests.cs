@@ -5,7 +5,6 @@
 
 using Azure;
 using Azure.Security.KeyVault.Secrets;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.FitOnFhir.Common.Providers;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
 using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
@@ -24,7 +23,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             _secretClient = Substitute.For<MockSecretClient>();
             ISecretClientProvider provider = Substitute.For<ISecretClientProvider>();
             provider.GetSecretClient().Returns(_secretClient);
-            _repository = new UsersKeyVaultRepository(provider, NullLogger<UsersKeyVaultRepository>.Instance);
+            _repository = new UsersKeyVaultRepository(provider);
         }
 
         [Theory]
@@ -56,7 +55,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         [Fact]
         public async Task GivenSetSecretAsyncThrows_WhenUpsertCalled_ExceptionThrown()
         {
-            _secretClient.GetDeletedSecretAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns<Response<DeletedSecret>>(x => throw new Exception());
+            _secretClient.GetDeletedSecretAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns<Response<DeletedSecret>>(x => throw new RequestFailedException(404, "Not Found"));
             _secretClient.SetSecretAsync(Arg.Any<KeyVaultSecret>(), Arg.Any<CancellationToken>()).Returns<Response<KeyVaultSecret>>(x => throw new ArgumentNullException());
 
             await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.Upsert("TestSecretName", "TestSecretValue", CancellationToken.None));
@@ -73,7 +72,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         [Fact]
         public async Task GivenSecretWasNotPreviouslyDeleted_WhenUpsertCalled_SetSecretCalled()
         {
-            _secretClient.GetDeletedSecretAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns<Response<DeletedSecret>>(x => throw new Exception());
+            _secretClient.GetDeletedSecretAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns<Response<DeletedSecret>>(x => throw new RequestFailedException(404, "Not Found"));
 
             await _repository.Upsert("TestSecretName", "TestSecretValue", CancellationToken.None);
 

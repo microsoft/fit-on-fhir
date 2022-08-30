@@ -54,6 +54,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
         public override Task<IActionResult> EvaluateRequest(RoutingRequest request)
         {
+            EnsureArg.IsNotNull(request, nameof(request));
+
             if (request.Route.StartsWith(GoogleFitConstants.GoogleFitCallbackRequest, StringComparison.OrdinalIgnoreCase))
             {
                 return Callback(request);
@@ -64,6 +66,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
         protected async Task<IActionResult> HandleAuthorizeRequest(RoutingRequest request)
         {
+            EnsureArg.IsNotNull(EnsureArg.IsNotNull(request, nameof(request)));
+
             AuthState state;
             var isValidated = await _tokenValidationService.ValidateToken(request.HttpRequest, request.Token);
             if (isValidated)
@@ -99,20 +103,12 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
         private async Task<IActionResult> Callback(RoutingRequest request)
         {
-            try
-            {
-                var url = await _usersService.ProcessAuthorizationCallback(
-                    request?.HttpRequest?.Query?["code"],
-                    request?.HttpRequest?.Query?["state"],
-                    request.Token);
+            var url = await _usersService.ProcessAuthorizationCallback(
+                request?.HttpRequest?.Query?["code"],
+                request?.HttpRequest?.Query?["state"],
+                request.Token);
 
-                return new RedirectResult(url);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return new NotFoundObjectResult(ex.Message);
-            }
+            return new RedirectResult(url.ToString());
         }
 
         private async Task<IActionResult> Authorize(RoutingRequest request, AuthState state)

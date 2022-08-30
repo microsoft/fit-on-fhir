@@ -81,7 +81,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Models
 
         public override TableEntity ToTableEntity()
         {
-            if (_lastSyncTimes != null && _lastSyncTimes.Count > 0)
+            if (_lastSyncTimes != null && _lastSyncTimes.Any())
             {
                 string serializedLastSyncTimes = JsonConvert.SerializeObject(_lastSyncTimes);
                 InternalTableEntity.Add(_lastSyncTimesKey, serializedLastSyncTimes);

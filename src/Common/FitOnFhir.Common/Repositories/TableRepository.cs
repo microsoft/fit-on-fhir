@@ -17,7 +17,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Repositories
         private readonly TableClient _tableClient;
         private readonly ILogger _logger;
 
-        public TableRepository(string connectionString, TableClient tableClient, ILogger logger)
+        protected TableRepository(string connectionString, TableClient tableClient, ILogger logger)
         {
             EnsureArg.IsNotNull(logger, nameof(logger));
 
@@ -65,14 +65,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Repositories
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
 
-            try
-            {
-                await _tableClient.AddEntityAsync(entity.ToTableEntity(), cancellationToken: cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-            }
+            await _tableClient.AddEntityAsync(entity.ToTableEntity(), cancellationToken: cancellationToken);
 
             return await GetById(entity.Id, cancellationToken);
         }
@@ -123,14 +116,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Repositories
         {
             EnsureArg.IsNotNull(entity, nameof(entity));
 
-            try
-            {
-                await _tableClient.DeleteEntityAsync(entity.PartitionKey, entity.Id, cancellationToken: cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-            }
+            await _tableClient.DeleteEntityAsync(entity.PartitionKey, entity.Id, cancellationToken: cancellationToken);
         }
     }
 }

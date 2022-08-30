@@ -9,7 +9,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
     {
         public string StorageAccountConnectionString { get; set; }
 
-        public string UsersKeyVaultUri { get; set; }
+        public Uri UsersKeyVaultUri { get; set; }
 
         public string EventHubConnectionString { get; set; }
 

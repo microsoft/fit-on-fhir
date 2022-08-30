@@ -7,8 +7,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
 {
     public class AuthenticationConfiguration
     {
-        private string[] _providerMetadataEndpoints = new string[] { };
-        private string[] _approvedRedirectUrls = new string[] { };
+        private string[] _providerMetadataEndpoints = Array.Empty<string>();
+        private string[] _approvedRedirectUrls = Array.Empty<string>();
 
         /// <summary>
         /// Indicates whether anonymous logins are allowed.
@@ -45,7 +45,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    _providerMetadataEndpoints = value.Replace(" ", string.Empty).Split(',');
+                    _providerMetadataEndpoints = value.Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase).Split(',');
                     return;
                 }
             }
@@ -75,7 +75,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    _approvedRedirectUrls = value.Replace(" ", string.Empty).Split(',');
+                    _approvedRedirectUrls = value.Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase).Split(',');
                     return;
                 }
             }

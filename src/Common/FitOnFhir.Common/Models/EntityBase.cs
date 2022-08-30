@@ -10,11 +10,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
 {
     public abstract class EntityBase
     {
-        public EntityBase()
-        {
-        }
-
-        public EntityBase(TableEntity tableEntity)
+        protected EntityBase(TableEntity tableEntity)
         {
             InternalTableEntity = tableEntity;
         }

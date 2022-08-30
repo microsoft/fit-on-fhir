@@ -13,8 +13,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
     {
         public PlatformUserInfo(string platformName, string userId, DataImportState dataImportState)
         {
-            PlatformName = EnsureArg.IsNotEmptyOrWhiteSpace(platformName, nameof(platformName));
-            UserId = EnsureArg.IsNotEmptyOrWhiteSpace(userId, nameof(userId));
+            PlatformName = EnsureArg.IsNotNullOrWhiteSpace(platformName, nameof(platformName));
+            UserId = EnsureArg.IsNotNullOrWhiteSpace(userId, nameof(userId));
             ImportState = dataImportState;
         }
 
@@ -30,19 +30,34 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
 
         public DateTimeOffset? RevokedTimeStamp { get; set; }
 
+        public override bool Equals(object other)
+        {
+            if (other is PlatformUserInfo platformUserInfo)
+            {
+                return Equals(platformUserInfo);
+            }
+
+            return false;
+        }
+
         public bool Equals(PlatformUserInfo other)
         {
-            return PlatformName == other.PlatformName &&
+            if (other != null)
+            {
+                return PlatformName == other.PlatformName &&
                    UserId == other.UserId &&
                    ImportState == other.ImportState &&
                    RevokedAccessReason == other.RevokedAccessReason &&
                    RevokedTimeStamp == other.RevokedTimeStamp;
+            }
+
+            return false;
         }
 
         public override int GetHashCode()
         {
-            return PlatformName.GetHashCode() ^
-                   UserId.GetHashCode() ^
+            return PlatformName.GetHashCode(StringComparison.Ordinal) ^
+                   UserId.GetHashCode(StringComparison.Ordinal) ^
                    ImportState.GetHashCode() ^
                    RevokedAccessReason.GetHashCode() ^
                    RevokedTimeStamp.GetHashCode();

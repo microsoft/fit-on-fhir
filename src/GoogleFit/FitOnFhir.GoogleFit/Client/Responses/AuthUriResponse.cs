@@ -7,6 +7,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses
 {
     public class AuthUriResponse
     {
-        public string Uri { get; set; }
+        public Uri Uri { get; set; }
     }
 }

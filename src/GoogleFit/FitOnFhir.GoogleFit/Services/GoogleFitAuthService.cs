@@ -14,9 +14,8 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 
 namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 {
-    public class GoogleFitAuthService : IGoogleFitAuthService
+    public sealed class GoogleFitAuthService : IGoogleFitAuthService, IDisposable
     {
-        private readonly ILogger<GoogleFitAuthService> _logger;
         private readonly GoogleFitAuthorizationConfiguration _authorizationConfiguration;
         private readonly GoogleAuthorizationCodeFlow _googleAuthorizationCodeFlow;
 
@@ -27,7 +26,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         /// <param name="authorizationConfiguration">The <see cref="GoogleFitAuthorizationConfiguration"/> to be used by this service.</param>
         public GoogleFitAuthService(ILogger<GoogleFitAuthService> logger, GoogleFitAuthorizationConfiguration authorizationConfiguration)
         {
-            _logger = EnsureArg.IsNotNull(logger);
             _authorizationConfiguration = EnsureArg.IsNotNull(authorizationConfiguration);
             _googleAuthorizationCodeFlow = new GoogleAuthorizationCodeFlow(
                 new GoogleAuthorizationCodeFlow.Initializer
@@ -47,7 +45,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         {
             var request = new AuthorizationCodeWebApp(
                 _googleAuthorizationCodeFlow,
-                _authorizationConfiguration.CallbackUri,
+                _authorizationConfiguration.CallbackUri.ToString(),
                 state);
 
             var result = await request.AuthorizeAsync("user", cancellationToken);
@@ -55,7 +53,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             {
                 var response = new AuthUriResponse
                 {
-                    Uri = result.RedirectUri,
+                    Uri = new Uri(result.RedirectUri),
                 };
 
                 return response;
@@ -70,9 +68,10 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         /// <inheritdoc/>
         public async Task<AuthTokensResponse> AuthTokensRequest(string authCode, CancellationToken cancellationToken)
         {
-            TokenResponse tokenResponse = await _googleAuthorizationCodeFlow.ExchangeCodeForTokenAsync("me", authCode, _authorizationConfiguration.CallbackUri, cancellationToken);
+            TokenResponse tokenResponse = await _googleAuthorizationCodeFlow.ExchangeCodeForTokenAsync("me", authCode, _authorizationConfiguration.CallbackUri.ToString(), cancellationToken);
 
-            AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
+            _ = AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
+
             return response;
         }
 
@@ -81,7 +80,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         {
             TokenResponse tokenResponse = await _googleAuthorizationCodeFlow.RefreshTokenAsync("me", refreshToken, cancellationToken);
 
-            AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
+            _ = AuthTokensResponse.TryParse(tokenResponse, out AuthTokensResponse response);
+
             return response;
         }
 
@@ -89,6 +89,12 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         public async Task RevokeTokenRequest(string accessToken, CancellationToken cancellationToken)
         {
             await _googleAuthorizationCodeFlow.RevokeTokenAsync("me", accessToken, cancellationToken);
+        }
+
+        public void Dispose()
+        {
+            _googleAuthorizationCodeFlow.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -86,30 +86,27 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
             // Fetch the signing keys from the authority.
             var config = await _openIdConfigurationProvider.GetConfigurationAsync(authority, cancellationToken);
 
-            try
+            var tokenValidationParameters = new TokenValidationParameters
             {
-                var tokenValidationParameters = new TokenValidationParameters
-                {
-                    RequireSignedTokens = true,
-                    ValidAudience = _authenticationConfiguration.Audience,
-                    ValidateAudience = true,
-                    ValidIssuer = config.Issuer,
-                    ValidateIssuer = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidateLifetime = true,
-                    IssuerSigningKeys = config.SigningKeys,
-                };
+                RequireSignedTokens = true,
+                ValidAudience = _authenticationConfiguration.Audience,
+                ValidateAudience = true,
+                ValidIssuer = config.Issuer,
+                ValidateIssuer = true,
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                IssuerSigningKeys = config.SigningKeys,
+            };
 
-                // Validate the token.
-                var tokenValidationResult = await _jwtSecurityTokenHandlerProvider.ValidateTokenAsync(jwtSecurityToken.RawData, tokenValidationParameters);
+            // Validate the token.
+            var tokenValidationResult = await _jwtSecurityTokenHandlerProvider.ValidateTokenAsync(jwtSecurityToken.RawData, tokenValidationParameters);
 
-                return tokenValidationResult.IsValid;
-            }
-            catch (Exception e)
+            if (tokenValidationResult.Exception != null)
             {
-                _logger.LogError(e, "Failed to validate the request Bearer token.");
-                return false;
+                _logger.LogError(tokenValidationResult.Exception, tokenValidationResult.Exception.Message);
             }
+
+            return tokenValidationResult.IsValid;
         }
 
         /// <summary>
@@ -122,21 +119,14 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         {
             foreach (var tokenAuthority in _authenticationConfiguration.TokenAuthorities)
             {
-                try
+                _configurationTasks.Add(Task.Run(async () =>
                 {
-                    _configurationTasks.Add(Task.Run(async () =>
-                    {
-                        CancellationTokenSource cts = new CancellationTokenSource();
-                        cts.CancelAfter(60000);
-                        var config =
-                            await _openIdConfigurationProvider.GetConfigurationAsync(tokenAuthority, cts.Token);
-                        _issuers.Add(config.Issuer, tokenAuthority);
-                    }));
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, $"Failed to retrieve the config for authority: {tokenAuthority}");
-                }
+                    CancellationTokenSource cts = new CancellationTokenSource();
+                    cts.CancelAfter(60000);
+                    var config =
+                        await _openIdConfigurationProvider.GetConfigurationAsync(tokenAuthority, cts.Token);
+                    _issuers.Add(config.Issuer, tokenAuthority);
+                }));
             }
         }
     }

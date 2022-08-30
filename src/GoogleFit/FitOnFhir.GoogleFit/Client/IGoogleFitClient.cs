@@ -11,14 +11,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client
     public interface IGoogleFitClient
     {
         /// <summary>
-        /// Wrapper around an email GET request made to the "people/me" endpoint.
-        /// </summary>
-        /// <param name="accessToken">The authorized access token for the request.</param>
-        /// <param name="cancellationToken">The cancellation token used to cancel the request, if necessary.</param>
-        /// <returns>The <see cref="MyEmailResponse"/> that contains the user's email address.</returns>
-        Task<MyEmailResponse> MyEmailRequest(string accessToken, CancellationToken cancellationToken);
-
-        /// <summary>
         /// Wrapper around a GET request made to the "datasources" endpoint.  Lists all data sources that are visible to the developer,
         /// using the OAuth scopes provided. The list is not exhaustive; the user may have private data sources that are only visible to
         /// other developers, or calls using other scopes.
