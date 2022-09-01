@@ -49,6 +49,9 @@ param authentication_blob_container_name string = 'authdata'
 @description('A comma delimited list of approved redirect URLs that can be navigated to when authentication completes successfully.')
 param authentication_redirect_urls string
 
+@description('An array of allowed origins that can make requests to the authorize API (CORS).')
+param authorize_allowed_origins array
+
 var fhirServiceUrl = 'https://${replace('hw-${basename}', '-', '')}-fs-${basename}.fhir.azurehealthcareapis.com'
 var fhirWriterRoleId = '3f88fce4-5892-4214-ae73-ba5294559913'
 var eventHubReceiverRoleId = 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde'
@@ -342,6 +345,11 @@ resource authorize_basename 'Microsoft.Web/sites@2020-06-01' = {
     hostNamesDisabled: false
     containerSize: 1536
     dailyMemoryTimeQuota: 0
+    siteConfig: {
+      cors: {
+        allowedOrigins: authorize_allowed_origins
+      }
+    }
   }
 }
 
@@ -363,11 +371,11 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2015-08-01' 
     GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(resourceId('Microsoft.KeyVault/vaults/secrets', 'kv-${basename}', 'google-client-secret')).secretUriWithVersion})'
 	  GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
     AzureConfiguration__UsersKeyVaultUri: 'https://kv-${basename}${environment().suffixes.keyvaultDns}'
-	AzureConfiguration__BlobContainerName: authentication_blob_container_name
-	AuthenticationConfiguration__IsAnonymousLoginEnabled : (authentication_anonymous_login_enabled == true) ? 'true' : 'false'
-	AuthenticationConfiguration__IdentityProviders: (authentication_anonymous_login_enabled == true) ? '' : authentication_identity_providers
-	AuthenticationConfiguration__Audience: (authentication_anonymous_login_enabled == true) ? '' : authentication_audience
-	AuthenticationConfiguration__RedirectUrls: authentication_redirect_urls
+	  AzureConfiguration__BlobContainerName: authentication_blob_container_name
+	  AuthenticationConfiguration__IsAnonymousLoginEnabled : (authentication_anonymous_login_enabled == true) ? 'true' : 'false'
+	  AuthenticationConfiguration__IdentityProviders: (authentication_anonymous_login_enabled == true) ? '' : authentication_identity_providers
+	  AuthenticationConfiguration__Audience: (authentication_anonymous_login_enabled == true) ? '' : authentication_audience
+	  AuthenticationConfiguration__RedirectUrls: authentication_redirect_urls
     FhirService__Url: fhirServiceUrl
     FhirClient__UseManagedIdentity: 'true'
   }
