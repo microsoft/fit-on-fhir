@@ -160,6 +160,9 @@ dotnet_diagnostic.CA1848.severity = none
 # IDE0090: Use 'new(...)'
 csharp_style_implicit_object_creation_when_type_is_apparent = false
 
+# Default file header
+file_header_template =  -------------------------------------------------------------------------------------------------\nCopyright (c) Microsoft Corporation. All rights reserved.\nLicensed under the MIT License (MIT). See LICENSE in the repo root for license information.\n-------------------------------------------------------------------------------------------------
+
 # C++ Files
 [*.{cpp,h,in}]
 curly_bracket_next_line = true
