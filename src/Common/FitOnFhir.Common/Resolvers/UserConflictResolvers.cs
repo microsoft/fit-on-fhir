@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
 using Microsoft.Health.FitOnFhir.Common.Models;
 
 namespace Microsoft.Health.FitOnFhir.Common.Resolvers
@@ -20,6 +21,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Resolvers
         /// <returns>A merged <see cref="User"/> with the correct <see cref="DataImportState"/> for each <see cref="PlatformUserInfo"/> stored.</returns>
         public static User ResolveConflictDefault(User newUser, User mergedUser)
         {
+            EnsureArg.IsNotNull(newUser, nameof(newUser));
+            EnsureArg.IsNotNull(mergedUser, nameof(mergedUser));
+
             DataImportState mergeDataImportState;
 
             // Retrieve all of the PlatformUserInfo from the new user
@@ -73,6 +77,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Resolvers
         /// <returns>A merged <see cref="User"/> with the correct <see cref="DataImportState"/> for each <see cref="PlatformUserInfo"/> stored.</returns>
         public static User ResolveConflictAuthorization(User newUser, User mergedUser)
         {
+            EnsureArg.IsNotNull(newUser, nameof(newUser));
+            EnsureArg.IsNotNull(mergedUser, nameof(mergedUser));
+
             // Retrieve all of the PlatformUserInfo from the new user
             var newPlatformUserInfoCollection = newUser.GetPlatformUserInfo();
 

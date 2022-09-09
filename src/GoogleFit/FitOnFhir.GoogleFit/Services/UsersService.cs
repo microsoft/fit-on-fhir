@@ -3,8 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Web;
 using EnsureThat;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Extensions.Fhir.Service;
 using Microsoft.Health.FitOnFhir.Common;
@@ -52,14 +52,14 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             _queueService = EnsureArg.IsNotNull(queueService, nameof(queueService));
             _googleFitTokensService = EnsureArg.IsNotNull(googleFitTokensService, nameof(googleFitTokensService));
             _authStateService = EnsureArg.IsNotNull(authStateService, nameof(authStateService));
-            _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
-            _logger = logger;
+            _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc, nameof(utcNowFunc));
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         public override string PlatformName => GoogleFitConstants.GoogleFitPlatformName;
 
         /// <inheritdoc/>
-        public async Task<string> ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken)
+        public async Task<Uri> ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(authCode))
             {
@@ -73,8 +73,9 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             {
                 authState = await _authStateService.RetrieveAuthState(validNonce, cancellationToken);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message);
                 throw new Exception("An error occurred while validating the Google authorization callback 'state' parameter.");
             }
 
@@ -121,14 +122,26 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             await _usersKeyVaultRepository.Upsert(googleUserId, tokenResponse.RefreshToken, cancellationToken);
 
             // Return the provided authorization URL
-            var redirectUrl = string.IsNullOrEmpty(authState.State) ? authState.RedirectUrl :
-                QueryHelpers.AddQueryString(authState.RedirectUrl, Constants.StateQueryParameter, authState.State);
+            Uri redirectUrl = authState.RedirectUrl;
+
+            if (string.IsNullOrEmpty(authState.State))
+            {
+                var uriBuilder = new UriBuilder(redirectUrl);
+                var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+                query[Constants.StateQueryParameter] = authState.State;
+                uriBuilder.Query = query.ToString();
+
+                redirectUrl = uriBuilder.Uri;
+            }
+
             return redirectUrl;
         }
 
         /// <inheritdoc/>
         public override async Task QueueFitnessImport(User user, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(user, nameof(user));
+
             var googleUserInfo = user.GetPlatformUserInfo().FirstOrDefault(usr => usr.PlatformName == GoogleFitConstants.GoogleFitPlatformName);
             if (googleUserInfo != null)
             {

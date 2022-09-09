@@ -3,9 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Net;
+using Azure;
 using Azure.Security.KeyVault.Secrets;
 using EnsureThat;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Providers;
 
 namespace Microsoft.Health.FitOnFhir.Common.Repositories
@@ -13,14 +14,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Repositories
     public class UsersKeyVaultRepository : IUsersKeyVaultRepository
     {
         private readonly SecretClient _secretClient;
-        private readonly ILogger<UsersKeyVaultRepository> _logger;
 
         public UsersKeyVaultRepository(
-            ISecretClientProvider secretClientProvider,
-            ILogger<UsersKeyVaultRepository> logger)
+            ISecretClientProvider secretClientProvider)
         {
+            EnsureArg.IsNotNull(secretClientProvider);
             _secretClient = secretClientProvider.GetSecretClient();
-            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         public async Task Upsert(string secretName, string value, CancellationToken cancellationToken)
@@ -56,7 +55,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Repositories
                 var deletedSecret = await _secretClient.GetDeletedSecretAsync(secretName, cancellationToken);
                 return deletedSecret != null;
             }
-            catch
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
             {
                 // An exception can be thrown if a deleted secret does not exist, or if purge protection is not enabled.
                 return false;

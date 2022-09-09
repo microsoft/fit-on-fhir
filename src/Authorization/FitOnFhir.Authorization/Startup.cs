@@ -3,8 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +36,8 @@ namespace Microsoft.Health.FitOnFhir.Authorization
     {
         public override void Configure(IFunctionsHostBuilder builder, IConfiguration configuration)
         {
+            EnsureArg.IsNotNull(builder, nameof(builder));
+
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
             builder.Services.AddConfiguration<AuthenticationConfiguration>(configuration);
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();

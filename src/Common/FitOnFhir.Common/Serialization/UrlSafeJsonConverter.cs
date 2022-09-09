@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.Common.Serialization
 {
-    internal class UrlSafeJsonConverter : JsonConverter
+    public class UrlSafeJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
@@ -17,7 +17,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Serialization
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (reader.Value is string stringValue)
+            if (reader?.Value is string stringValue)
             {
                 return HttpUtility.UrlDecode(stringValue);
             }
@@ -27,7 +27,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Serialization
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value is string stringValue)
+            if (writer != null && value is string stringValue)
             {
                 writer.WriteValue(HttpUtility.UrlEncode(stringValue));
             }

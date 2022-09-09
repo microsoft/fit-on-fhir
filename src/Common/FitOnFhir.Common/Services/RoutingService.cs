@@ -27,8 +27,11 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         /// <inheritdoc/>
         public Task<IActionResult> RouteTo(HttpRequest req, ExecutionContext context, CancellationToken cancellationToken)
         {
+            EnsureArg.IsNotNull(req, nameof(req));
+
             using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, req.HttpContext.RequestAborted);
 
+#pragma warning disable CA1031 // Do not catch general exception types
             try
             {
                 var routingRequest = new RoutingRequest(req, context, cancellationSource.Token);
@@ -39,6 +42,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 _logger.LogError(ex, ex.Message);
                 return Task.FromResult<IActionResult>(new ObjectResult("Internal Server Error.") { StatusCode = StatusCodes.Status500InternalServerError });
             }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
     }
 }

@@ -15,18 +15,12 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
     public class GoogleFitDataImportHandler : RequestHandlerBase<ImportRequest, Task<bool?>>
     {
         private readonly IGoogleFitDataImporter _googleFitDataImporter;
-        private readonly ILogger<GoogleFitDataImportHandler> _logger;
-
-        private GoogleFitDataImportHandler()
-        {
-        }
 
         public GoogleFitDataImportHandler(
             IGoogleFitDataImporter googleFitDataImporter,
             ILogger<GoogleFitDataImportHandler> logger)
         {
             _googleFitDataImporter = EnsureArg.IsNotNull(googleFitDataImporter);
-            _logger = EnsureArg.IsNotNull(logger);
         }
 
         public override IEnumerable<string> HandledRoutes => new List<string>()
@@ -36,6 +30,10 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers
 
         public override async Task<bool?> EvaluateRequest(ImportRequest request)
         {
+            EnsureArg.IsNotNull(request, nameof(request));
+            EnsureArg.IsNotNull(request?.Message?.UserId, nameof(request.Message.UserId));
+            EnsureArg.IsNotNull(request?.Message?.PlatformUserId, nameof(request.Message.PlatformUserId));
+
             await _googleFitDataImporter.Import(request.Message.UserId, request.Message.PlatformUserId, request.Token);
             return true;
         }

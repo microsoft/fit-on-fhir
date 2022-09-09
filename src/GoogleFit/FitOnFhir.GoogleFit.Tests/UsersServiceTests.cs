@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
 using Microsoft.Health.FitOnFhir.Common.Resolvers;
@@ -214,7 +213,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             User testUser = GetUser(ExpectedPatientId, ExpectedPlatformUserId, (ExpectedPlatform, DataImportState.ReadyToImport));
             UsersTableRepository.GetById(ExpectedPatientId, Arg.Any<CancellationToken>()).Returns(testUser);
 
-            AuthTokensResponse tokensResponse = new AuthTokensResponse() { AccessToken = Data.AccessToken, IdToken = _jwtSecurityToken, RefreshToken = Data.RefreshToken };
+            var tokensResponse = new AuthTokensResponse() { AccessToken = Data.AccessToken, IdToken = _jwtSecurityToken, RefreshToken = Data.RefreshToken };
             _googleFitTokensService.RefreshToken(
                 Arg.Is<string>(str => str == ExpectedPlatformUserId),
                 Arg.Any<CancellationToken>()).Returns(tokensResponse);

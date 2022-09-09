@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using EnsureThat;
 using Microsoft.Health.Common.Config;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Telemetry;
 using Microsoft.Health.Logging.Telemetry;
@@ -17,6 +18,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Config
 
         public GoogleFitImportOptions(GoogleFitDataImporterConfiguration config)
         {
+            EnsureArg.IsNotNull(config, nameof(config));
+
             ParallelTaskOptions = new ParallelTaskOptions { MaxConcurrency = config.MaxConcurrency };
             DataPointPageLimit = config.DatasetRequestLimit;
             MaxConcurrency = config.MaxConcurrency;

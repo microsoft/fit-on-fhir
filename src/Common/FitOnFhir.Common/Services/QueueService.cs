@@ -32,7 +32,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
             if (queueClient == null)
             {
-                var connectionString = EnsureArg.IsNotEmptyOrWhiteSpace(azureConfiguration.StorageAccountConnectionString);
+                var connectionString = EnsureArg.IsNotNullOrWhiteSpace(azureConfiguration?.StorageAccountConnectionString);
                 QueueClientOptions queueOptions = new () { MessageEncoding = QueueMessageEncoding.Base64 };
                 _queueClient = new QueueClient(connectionString, Constants.QueueName, queueOptions);
             }
@@ -45,20 +45,13 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         /// <inheritdoc/>
         public async Task SendQueueMessage(string userId, string platformUserId, string platformName, CancellationToken cancellationToken)
         {
-            try
-            {
-                await InitQueue();
+            await InitQueue();
 
-                _logger.LogInformation("Adding user [{0}] to queue [{1}] for platform [{2}]", userId, Constants.QueueName, platformName);
-                var queueMessage = new QueueMessage(userId, platformUserId, platformName);
-                var response = await _queueClient.SendMessageAsync(JsonConvert.SerializeObject(queueMessage), cancellationToken);
-                var rawResponse = response.GetRawResponse();
-                _logger.LogDebug("Response from message send: status '{0}', reason'{1}'", rawResponse.Status, rawResponse.ReasonPhrase);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-            }
+            _logger.LogInformation("Adding user [{0}] to queue [{1}] for platform [{2}]", userId, Constants.QueueName, platformName);
+            var queueMessage = new QueueMessage(userId, platformUserId, platformName);
+            var response = await _queueClient.SendMessageAsync(JsonConvert.SerializeObject(queueMessage), cancellationToken);
+            var rawResponse = response.GetRawResponse();
+            _logger.LogDebug("Response from message send: status '{0}', reason'{1}'", rawResponse.Status, rawResponse.ReasonPhrase);
         }
 
         private async Task InitQueue()

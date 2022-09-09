@@ -39,7 +39,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
             if (eventHubProducerClient == null)
             {
-                var connectionString = EnsureArg.IsNotEmptyOrWhiteSpace(azureConfiguration.EventHubConnectionString);
+                var connectionString = EnsureArg.IsNotNullOrWhiteSpace(azureConfiguration?.EventHubConnectionString, nameof(azureConfiguration.EventHubConnectionString));
                 _eventHubProducerClient = new EventHubProducerClient(connectionString);
             }
             else
@@ -190,6 +190,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         public async ValueTask DisposeAsync()
         {
             await _eventHubProducerClient.DisposeAsync();
+            GC.SuppressFinalize(this);
         }
     }
 }

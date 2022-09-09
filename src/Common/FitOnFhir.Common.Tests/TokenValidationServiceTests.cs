@@ -9,7 +9,6 @@ using Microsoft.Health.FitOnFhir.Common.Services;
 using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
 using Microsoft.IdentityModel.Tokens;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Microsoft.Health.FitOnFhir.Common.Tests
@@ -21,7 +20,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         public TokenValidationServiceTests()
         {
-            // setup configuration before consturcting service,
+            // setup configuration before constructing service,
             // so that CreateIssuerMapping() will populate _issuers with the correct substitute
             SetupConfiguration(false);
 
@@ -96,19 +95,22 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public async Task GivenValidateTokenAsyncThrowsException_WhenValidateTokenIsCalled_ReturnsFalseAndErrorIsLogged()
+        public async Task GivenTokenValidationResultHasException_WhenValidateTokenIsCalled_ReturnsFalseAndErrorIsLogged()
         {
             SetupHttpRequest(ExpectedToken);
 
-            string exceptionMessage = "ValidateTokenAsync exception";
-            var exception = new Exception(exceptionMessage);
-            SecurityTokenHandlerProvider.ValidateTokenAsync(Arg.Any<string>(), Arg.Any<TokenValidationParameters>()).Throws(exception);
+            string exceptionMessage = "Invalid Token";
+            var exception = new SecurityTokenValidationException(exceptionMessage);
+            var result = new TokenValidationResult
+            {
+                IsValid = false,
+                Exception = exception,
+            };
+
+            SecurityTokenHandlerProvider.ValidateTokenAsync(Arg.Any<string>(), Arg.Any<TokenValidationParameters>()).Returns(Task.FromResult(result));
 
             Assert.False(await _tokenValidationService.ValidateToken(Request, CancellationToken.None));
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<Exception>(),
-                Arg.Is<string>(msg => msg == "Failed to validate the request Bearer token."));
+            _logger.Received(1).Log(Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error), exception, exceptionMessage);
         }
 
         [Fact]
@@ -116,7 +118,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         {
             SetupHttpRequest(ExpectedToken);
 
-            TokenValidationResult tvr = new TokenValidationResult() { IsValid = false };
+            var tvr = new TokenValidationResult() { IsValid = false };
             SecurityTokenHandlerProvider.ValidateTokenAsync(Arg.Any<string>(), Arg.Any<TokenValidationParameters>()).Returns(tvr);
 
             Assert.False(await _tokenValidationService.ValidateToken(Request, CancellationToken.None));

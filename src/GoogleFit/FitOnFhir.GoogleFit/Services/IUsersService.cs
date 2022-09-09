@@ -20,7 +20,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
         /// <param name="nonce">The nonce that was used to authorize with the device platform.</param>
         /// <param name="cancellationToken">The token used to cancel the operation.</param>
         /// <returns>The URL that the user will be redirected to.</returns>
-        Task<string> ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken);
+        Task<Uri> ProcessAuthorizationCallback(string authCode, string nonce, CancellationToken cancellationToken);
 
         /// <summary>
         /// Inserts a <see cref="QueueMessage"/> for the <see cref="User"/> into the Queue identified by the connection string in

@@ -13,7 +13,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Repositories
     public class UsersTableRepository : TableRepository<User>, IUsersTableRepository
     {
         public UsersTableRepository(AzureConfiguration azureConfiguration, TableClient tableClient, ILogger<UsersTableRepository> logger)
-            : base(azureConfiguration.StorageAccountConnectionString, tableClient, logger)
+            : base(azureConfiguration?.StorageAccountConnectionString, tableClient, logger)
         {
             PartitionKey = Constants.UsersPartitionKey;
         }

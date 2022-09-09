@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Health Device Rules for Test" Description="The code analysis rules used for the Health Device C# test projects." ToolsVersion="14.0">
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Fit on FHIR Analysis Rules for Test" Description="The code analysis rules used for the Fit on FHIR C# test projects." ToolsVersion="14.0">
   <Include Path="CustomAnalysisRules.ruleset" Action="Default" />
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA1652" Action="None" />
@@ -90,7 +90,6 @@
     <Rule Id="CA5351" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
-    <Rule Id="CA1303" Action="None" />
     <Rule Id="CA1304" Action="None" />
     <Rule Id="CA1305" Action="None" />
     <Rule Id="CA1307" Action="None" />
@@ -126,7 +125,6 @@
     <Rule Id="CA1500" Action="None" />
     <Rule Id="CA1726" Action="None" />
     <Rule Id="CA1821" Action="None" />
-    <Rule Id="CA2000" Action="None" />
     <Rule Id="CA2001" Action="None" />
     <Rule Id="CA2109" Action="None" />
     <Rule Id="CA2200" Action="None" />

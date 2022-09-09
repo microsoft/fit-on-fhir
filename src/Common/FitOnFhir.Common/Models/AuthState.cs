@@ -20,13 +20,13 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
             string externalIdentifier,
             string externalSystem,
             DateTimeOffset expirationTimeStamp,
-            string redirectUrl,
+            Uri redirectUrl,
             string state = null)
         {
-            ExternalIdentifier = EnsureArg.IsNotEmptyOrWhiteSpace(externalIdentifier, nameof(externalIdentifier));
-            ExternalSystem = EnsureArg.IsNotEmptyOrWhiteSpace(externalSystem, nameof(externalSystem));
+            ExternalIdentifier = EnsureArg.IsNotNullOrWhiteSpace(externalIdentifier, nameof(externalIdentifier));
+            ExternalSystem = EnsureArg.IsNotNullOrWhiteSpace(externalSystem, nameof(externalSystem));
             ExpirationTimeStamp = expirationTimeStamp;
-            RedirectUrl = EnsureArg.IsNotEmptyOrWhiteSpace(redirectUrl, nameof(redirectUrl));
+            RedirectUrl = EnsureArg.IsNotNull(redirectUrl, nameof(redirectUrl));
             State = state;
         }
 
@@ -41,9 +41,8 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
         public string ExternalSystem { get; set; }
 
         [JsonProperty(Constants.RedirectUrlQueryParameter)]
-        [JsonConverter(typeof(UrlSafeJsonConverter))]
         [JsonRequired]
-        public string RedirectUrl { get; set; }
+        public Uri RedirectUrl { get; set; }
 
         [JsonProperty(Constants.StateQueryParameter)]
         [JsonConverter(typeof(UrlSafeJsonConverter))]
@@ -58,10 +57,10 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
 
             if (string.IsNullOrEmpty(authState.ExternalIdentifier) ||
                 string.IsNullOrEmpty(authState.ExternalSystem) ||
-                string.IsNullOrEmpty(authState.RedirectUrl) ||
+                authState.RedirectUrl == default ||
                 authState.ExpirationTimeStamp == default)
             {
-                throw new ArgumentException();
+                throw new ArgumentException($"{nameof(jsonString)} is missing a required property ({nameof(authState.ExternalIdentifier)}, {nameof(authState.ExternalSystem)}, {nameof(authState.RedirectUrl)} or {nameof(authState.ExpirationTimeStamp)}).");
             }
 
             return authState;

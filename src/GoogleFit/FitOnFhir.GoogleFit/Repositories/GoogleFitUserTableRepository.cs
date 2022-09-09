@@ -15,7 +15,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Repositories
     public class GoogleFitUserTableRepository : TableRepository<GoogleFitUser>, IGoogleFitUserTableRepository
     {
         public GoogleFitUserTableRepository(AzureConfiguration azureConfiguration, TableClient tableClient, ILogger<GoogleFitUserTableRepository> logger)
-            : base(azureConfiguration.StorageAccountConnectionString, tableClient, logger)
+            : base(azureConfiguration?.StorageAccountConnectionString, tableClient, logger)
         {
             PartitionKey = GoogleFitConstants.GoogleFitPartitionKey;
         }

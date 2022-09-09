@@ -7,7 +7,7 @@ using Microsoft.Health.FitOnFhir.Common.Models;
 
 namespace Microsoft.Health.FitOnFhir.Common
 {
-    public class Constants
+    public static class Constants
     {
         /// <summary>
         /// The name of the Table that contains a collection of <see cref="User"/>

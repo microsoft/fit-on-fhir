@@ -12,12 +12,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client
     public class GoogleFitClient : IGoogleFitClient
     {
         /// <inheritdoc/>
-        public Task<MyEmailResponse> MyEmailRequest(string accessToken, CancellationToken cancellationToken)
-        {
-            return new MyEmailRequest(accessToken).ExecuteAsync(cancellationToken);
-        }
-
-        /// <inheritdoc/>
         public Task<DataSourcesListResponse> DataSourcesListRequest(string accessToken, CancellationToken cancellationToken)
         {
             return new DatasourcesListRequest(accessToken).ExecuteAsync(cancellationToken);

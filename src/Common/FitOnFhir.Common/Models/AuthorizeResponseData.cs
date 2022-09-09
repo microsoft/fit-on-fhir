@@ -14,7 +14,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
         {
         }
 
-        public AuthorizeResponseData(string authUrl, DateTimeOffset expiresAt)
+        public AuthorizeResponseData(Uri authUrl, DateTimeOffset expiresAt)
         {
             AuthUrl = authUrl;
             ExpiresAt = expiresAt;
@@ -22,7 +22,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
 
         [JsonProperty("authUrl")]
         [JsonRequired]
-        public string AuthUrl { get; set; }
+        public Uri AuthUrl { get; set; }
 
         [JsonProperty("expiresAt")]
         [JsonRequired]

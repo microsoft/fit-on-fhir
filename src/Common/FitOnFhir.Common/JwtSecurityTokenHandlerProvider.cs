@@ -26,11 +26,11 @@ namespace Microsoft.Health.FitOnFhir.Common
         {
             try
             {
-                return _jwtSecurityTokenHandler.ReadJwtToken(EnsureArg.IsNotNullOrWhiteSpace(token, nameof(token)));
+                return _jwtSecurityTokenHandler.ReadJwtToken(token);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is ArgumentNullException || ex is ArgumentException)
             {
-                _logger.LogError(ex, "The request JWT is malformed.");
+                _logger.LogError(ex, ex.Message);
                 return default;
             }
         }

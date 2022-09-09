@@ -10,7 +10,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Common
     /// <summary>
     /// Holds project wide constant strings for platform endpoints and names
     /// </summary>
-    public class GoogleFitConstants
+    public static class GoogleFitConstants
     {
         /// <summary>
         /// GoogleFit authorize endpoint

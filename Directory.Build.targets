@@ -1,0 +1,54 @@
+<Project>
+
+  <Choose>
+    <When Condition="$(MSBuildProjectName.Contains('Test'))">
+      <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\CustomAnalysisRules.Test.ruleset</CodeAnalysisRuleSet>
+      </PropertyGroup>
+      <ItemGroup>
+        <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <IsPackable>true</IsPackable>
+        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <Choose>
+    <When Condition="!$(MSBuildProjectName.Contains('Test'))">
+      <Choose>
+        <When Condition="'$(TargetFramework)' == 'net5.0'">
+          <PropertyGroup>
+            <AnalysisLevel>5.0</AnalysisLevel>
+            <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+            <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
+          </PropertyGroup>
+        </When>
+        <When Condition="'$(TargetFramework)' == 'net6.0'">
+          <PropertyGroup>
+            <AnalysisLevel>latest-All</AnalysisLevel>
+            <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+          </PropertyGroup>
+        </When>
+        <Otherwise>
+          <ItemGroup>
+            <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" PrivateAssets="All" />
+          </ItemGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+  </Choose>
+
+  <Target Name="CopyReferenceSymbolFiles" AfterTargets="Build" Condition="'$(CopySymbols)' == 'true' And @(ReferenceCopyLocalPaths) != ''">
+    <ItemGroup>
+      <ReferenceAllFiles Include="%(ReferenceCopyLocalPaths.RelativeDir)%(ReferenceCopyLocalPaths.Filename).*" />
+      <ReferenceSymbolFiles Include="@(ReferenceAllFiles)" Condition="%(Extension) == '.pdb'" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ReferenceSymbolFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

@@ -8,12 +8,10 @@ using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.Models;
 using Microsoft.Health.FitOnFhir.Common.Services;
-using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
 using Newtonsoft.Json;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -30,13 +28,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         private readonly AzureConfiguration _azureConfiguration;
         private readonly BlobServiceClient _blobServiceClient;
         private readonly Func<DateTimeOffset> _utcNowFunc;
-        private readonly MockLogger<AuthStateService> _logger;
         private readonly AuthStateService _authStateService;
 
-        private static readonly DateTimeOffset _now =
+        private static readonly DateTimeOffset Now =
             new DateTimeOffset(2004, 1, 12, 0, 0, 0, new TimeSpan(-5, 0, 0));
 
-        private readonly DateTimeOffset _expiresAt = _now + Constants.AuthStateExpiry;
+        private readonly DateTimeOffset _expiresAt = Now + Constants.AuthStateExpiry;
 
         public AuthStateServiceTests()
         {
@@ -46,16 +43,14 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             _azureConfiguration = Substitute.For<AzureConfiguration>();
             _blobServiceClient = Substitute.For<BlobServiceClient>();
             _utcNowFunc = Substitute.For<Func<DateTimeOffset>>();
-            _utcNowFunc().Returns(_now);
-            _logger = Substitute.For<MockLogger<AuthStateService>>();
+            _utcNowFunc().Returns(Now);
             SetupBlobSubstitutes();
             _authStateService = new AuthStateService(
                 _azureConfiguration,
                 AuthConfiguration,
                 SecurityTokenHandlerProvider,
                 _blobServiceClient,
-                _utcNowFunc,
-                _logger);
+                _utcNowFunc);
         }
 
         protected string ExpectedBlobContainerName => "BlobContainerName";
@@ -65,7 +60,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         protected string AuthorizationState =>
             $"{{\"{Constants.ExternalIdQueryParameter}\":\"{ExpectedExternalIdentifier}\", " +
             $"\"{Constants.ExternalSystemQueryParameter}\":\"{ExpectedExternalSystem}\", " +
-            $"\"ExpirationTimeStamp\":\"{_utcNowFunc().ToString()}\", " +
+            $"\"ExpirationTimeStamp\":\"{_utcNowFunc()}\", " +
             $"\"{Constants.RedirectUrlQueryParameter}\":\"{ExpectedRedirectUrl}\", " +
             $"\"{Constants.StateQueryParameter}\":\"{ExpectedState}\"}}";
 
@@ -79,12 +74,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             SetupConfiguration(true);
             SetupHttpRequest(ExpectedToken, includePatient: true, includeSystem: true, includeRedirectUrl: true, includeState: includeStateQueryParam);
 
-            var authState = _authStateService.CreateAuthState(Request);
+            AuthState authState = _authStateService.CreateAuthState(Request);
 
             Assert.Equal(ExpectedExternalSystem, authState.ExternalSystem);
             Assert.Equal(ExpectedExternalIdentifier, authState.ExternalIdentifier);
             Assert.Equal(_expiresAt, authState.ExpirationTimeStamp);
-            Assert.Equal(ExpectedRedirectUrl, authState.RedirectUrl);
+            Assert.Equal(ExpectedRedirectUrl, authState.RedirectUrl.ToString());
             if (includeStateQueryParam)
             {
                 Assert.Equal(ExpectedState, authState.State);
@@ -114,7 +109,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             try
             {
-                var authState = _authStateService.CreateAuthState(Request);
+                AuthState authState = _authStateService.CreateAuthState(Request);
                 Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
@@ -132,12 +127,12 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         {
             SetupHttpRequest(ExpectedToken, includeRedirectUrl: true, includeState: includeStateQueryParam);
 
-            var authState = _authStateService.CreateAuthState(Request);
+            AuthState authState = _authStateService.CreateAuthState(Request);
 
             Assert.Equal(ExpectedIssuer, authState.ExternalSystem);
             Assert.Equal(ExpectedSubject, authState.ExternalIdentifier);
             Assert.Equal(_expiresAt, authState.ExpirationTimeStamp);
-            Assert.Equal(ExpectedRedirectUrl, authState.RedirectUrl);
+            Assert.Equal(ExpectedRedirectUrl, authState.RedirectUrl.ToString());
             if (includeStateQueryParam)
             {
                 Assert.Equal(ExpectedState, authState.State);
@@ -158,7 +153,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             try
             {
-                var authState = _authStateService.CreateAuthState(Request);
+                AuthState authState = _authStateService.CreateAuthState(Request);
                 Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
@@ -177,7 +172,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             try
             {
-                var authState = _authStateService.CreateAuthState(Request);
+                AuthState authState = _authStateService.CreateAuthState(Request);
                 Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
@@ -193,7 +188,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             try
             {
-                var authState = _authStateService.CreateAuthState(Request);
+                AuthState authState = _authStateService.CreateAuthState(Request);
                 Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
@@ -222,7 +217,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             try
             {
-                var authState = _authStateService.CreateAuthState(Request);
+                AuthState authState = _authStateService.CreateAuthState(Request);
                 Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
@@ -246,7 +241,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             try
             {
-                var authState = _authStateService.CreateAuthState(Request);
+                AuthState authState = _authStateService.CreateAuthState(Request);
                 Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
@@ -265,7 +260,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             try
             {
-                var authState = _authStateService.CreateAuthState(Request);
+                AuthState authState = _authStateService.CreateAuthState(Request);
                 Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
@@ -309,47 +304,28 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         [Fact]
         public async Task GivenNonceIsValid_WhenRetrieveAuthStateIsCalled_RetrunsStoredAuthState()
         {
-            var authState = await _authStateService.RetrieveAuthState(ExpectedNonce, CancellationToken.None);
+            AuthState authState = await _authStateService.RetrieveAuthState(ExpectedNonce, CancellationToken.None);
             Assert.Equal(ExpectedExternalIdentifier, authState.ExternalIdentifier);
             Assert.Equal(ExpectedExternalSystem, authState.ExternalSystem);
         }
 
         [Fact]
-        public async Task GivenGetBlobClientThrowsException_WhenStoreAuthStateIsCalled_ExceptionIsLoggedAndNullIsReturned()
+        public async Task GivenGetBlobClientThrowsException_WhenStoreAuthStateIsCalled_ExceptionIsThrown()
         {
-            string exceptionMessage = "Failed to store the auth state.";
-            var exception = new Exception(exceptionMessage);
-
-            _blobContainerClient.GetBlobClient(Arg.Any<string>()).Throws(exception);
-
-            var nonce = await _authStateService.StoreAuthState(StoredAuthState, CancellationToken.None);
-
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<Exception>(),
-                Arg.Is<string>(msg => msg == exceptionMessage));
-            Assert.Null(nonce);
+            _blobContainerClient.GetBlobClient(Arg.Any<string>()).Throws(new FileNotFoundException());
+            await Assert.ThrowsAsync<FileNotFoundException>(() => _authStateService.StoreAuthState(StoredAuthState, CancellationToken.None));
         }
 
         [Fact]
-        public async Task GivenUploadAsyncThrowsException_WhenStoreAuthStateIsCalled_ExceptionIsLoggedAndNullIsReturned()
+        public async Task GivenUploadAsyncThrowsException_WhenStoreAuthStateIsCalled_ExceptionIsThrown()
         {
-            string exceptionMessage = "Failed to store the auth state.";
-            var exception = new Exception(exceptionMessage);
-
             _blobContainerClient.GetBlobClient(Arg.Any<string>()).Returns(_blobClient);
             _blobClient.UploadAsync(
                 Arg.Any<BinaryData>(),
                 Arg.Any<bool>(),
-                Arg.Any<CancellationToken>()).Throws(exception);
+                Arg.Any<CancellationToken>()).Throws(new EndOfStreamException());
 
-            var nonce = await _authStateService.StoreAuthState(StoredAuthState, CancellationToken.None);
-
-            _logger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Any<Exception>(),
-                Arg.Is<string>(msg => msg == exceptionMessage));
-            Assert.Null(nonce);
+            await Assert.ThrowsAsync<EndOfStreamException>(() => _authStateService.StoreAuthState(StoredAuthState, CancellationToken.None));
         }
 
         [Fact]

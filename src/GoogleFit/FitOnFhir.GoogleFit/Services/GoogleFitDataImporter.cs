@@ -76,9 +76,10 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
                 _logger.LogInformation("Query userInfo for user: {0}, platformId: {1}", userId, googleFitId);
                 var googleUser = await _googleFitUserTableRepository.GetById(googleFitId, cancellationToken);
 
-                // Request the datasets from each datasource, based on the datasetId
+#pragma warning disable CA1031 // Do not catch general exception types
                 try
                 {
+                    // Request the datasets from each datasource, based on the datasetId
                     await _googleFitImportService.ProcessDatasetRequests(googleUser, dataSourcesList.DataSources, tokensResponse, cancellationToken);
 
                     // Persist the last sync times if no exceptions occur in the import service.
@@ -92,6 +93,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
                 {
                     _logger.LogError(ex, ex.Message);
                 }
+#pragma warning restore CA1031 // Do not catch general exception types
             }
 
             // Update the user as ready to import for GoogleFit
