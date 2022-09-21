@@ -9,12 +9,11 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="12.13.1" />
     <PackageReference Include="Azure.Storage.Queues" Version="12.11.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.9" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Microsoft.Health.Common" Version="1.0.0-20220906.2" />
     <PackageReference Include="Microsoft.Health.Extensions.Fhir.R4" Version="1.0.0-20220906.2" />
-    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.0.74" />
+    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.0.81" />
     <PackageReference Include="Microsoft.Health.Logging" Version="1.0.0-20220906.2" />
     <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.23.1" />
     <PackageReference Include="Microsoft.IdentityModel.Logging" Version="6.23.1" />
