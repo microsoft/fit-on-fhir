@@ -43,12 +43,4 @@
     </When>
   </Choose>
 
-  <Target Name="CopyReferenceSymbolFiles" AfterTargets="Build" Condition="'$(CopySymbols)' == 'true' And @(ReferenceCopyLocalPaths) != ''">
-    <ItemGroup>
-      <ReferenceAllFiles Include="%(ReferenceCopyLocalPaths.RelativeDir)%(ReferenceCopyLocalPaths.Filename).*" />
-      <ReferenceSymbolFiles Include="@(ReferenceAllFiles)" Condition="%(Extension) == '.pdb'" />
-    </ItemGroup>
-    <Copy SourceFiles="@(ReferenceSymbolFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-  </Target>
-
 </Project>
