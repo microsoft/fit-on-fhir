@@ -1,0 +1,879 @@
+{
+  "dataSource": [
+    {
+      "dataStreamId": "derived:com.google.blood_glucose:com.google.android.gms:merged",
+      "dataStreamName": "merged",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.blood_glucose",
+        "field": [
+          {
+            "name": "blood_glucose_level",
+            "format": "floatPoint"
+          },
+          {
+            "name": "temporal_relation_to_meal",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "meal_type",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "temporal_relation_to_sleep",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "blood_glucose_specimen_source",
+            "format": "integer",
+            "optional": true
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.blood_pressure:com.google.android.gms:merged",
+      "dataStreamName": "merged",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.blood_pressure",
+        "field": [
+          {
+            "name": "blood_pressure_systolic",
+            "format": "floatPoint"
+          },
+          {
+            "name": "blood_pressure_diastolic",
+            "format": "floatPoint"
+          },
+          {
+            "name": "body_position",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "blood_pressure_measurement_location",
+            "format": "integer",
+            "optional": true
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.body.fat.percentage:com.google.android.gms:merged",
+      "dataStreamName": "merged",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.body.fat.percentage",
+        "field": [
+          {
+            "name": "percentage",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.body.fat.percentage:com.google.fitkit:apple:iphone:12345678:local_data",
+      "dataStreamName": "local_data",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.body.fat.percentage",
+        "field": [
+          {
+            "name": "percentage",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "phone",
+        "model": "iphone",
+        "manufacturer": "apple"
+      },
+      "application": {
+        "packageName": "com.google.fitkit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.body.temperature:com.google.android.gms:merged",
+      "dataStreamName": "merged",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.body.temperature",
+        "field": [
+          {
+            "name": "body_temperature",
+            "format": "floatPoint"
+          },
+          {
+            "name": "body_temperature_measurement_location",
+            "format": "integer",
+            "optional": true
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.heart_minutes:com.google.android.gms:merge_heart_minutes",
+      "dataStreamName": "merge_heart_minutes",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.heart_minutes",
+        "field": [
+          {
+            "name": "intensity",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.heart_minutes:com.google.ios.fit:appleinc.:iphone:12345678:top_level",
+      "dataStreamName": "top_level",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.heart_minutes",
+        "field": [
+          {
+            "name": "intensity",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "phone",
+        "model": "iphone",
+        "manufacturer": "appleinc."
+      },
+      "application": {
+        "packageName": "com.google.ios.fit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.heart_minutes:com.google.ios.fit:appleinc.:watch:12345678:top_level",
+      "dataStreamName": "top_level",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.heart_minutes",
+        "field": [
+          {
+            "name": "intensity",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "watch",
+        "model": "watch",
+        "manufacturer": "appleinc."
+      },
+      "application": {
+        "packageName": "com.google.ios.fit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.heart_rate.bpm:com.google.android.gms:merge_heart_rate_bpm",
+      "dataStreamName": "merge_heart_rate_bpm",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.heart_rate.bpm",
+        "field": [
+          {
+            "name": "bpm",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.heart_rate.bpm:com.google.android.gms:resting_heart_rate<-merge_heart_rate_bpm",
+      "dataStreamName": "resting_heart_rate<-merge_heart_rate_bpm",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.heart_rate.bpm",
+        "field": [
+          {
+            "name": "bpm",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.heart_rate.bpm:com.google.fitkit:apple:iphone:12345678:local_data",
+      "dataStreamName": "local_data",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.heart_rate.bpm",
+        "field": [
+          {
+            "name": "bpm",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "phone",
+        "model": "iphone",
+        "manufacturer": "apple"
+      },
+      "application": {
+        "packageName": "com.google.fitkit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.heart_rate.bpm:com.google.fitkit:apple:iphone:12345678:top_level",
+      "dataStreamName": "top_level",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.heart_rate.bpm",
+        "field": [
+          {
+            "name": "bpm",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "phone",
+        "model": "iphone",
+        "manufacturer": "apple"
+      },
+      "application": {
+        "packageName": "com.google.fitkit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.heart_rate.bpm:com.google.ios.fit:appleinc.:watch:12345678:top_level",
+      "dataStreamName": "top_level",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.heart_rate.bpm",
+        "field": [
+          {
+            "name": "bpm",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "watch",
+        "model": "watch",
+        "manufacturer": "appleinc."
+      },
+      "application": {
+        "packageName": "com.google.ios.fit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.height:com.google.android.gms:merge_height",
+      "dataStreamName": "merge_height",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.height",
+        "field": [
+          {
+            "name": "height",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.height:com.google.fitkit:apple:iphone:12345678:local_data",
+      "dataStreamName": "local_data",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.height",
+        "field": [
+          {
+            "name": "height",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "phone",
+        "model": "iphone",
+        "manufacturer": "apple"
+      },
+      "application": {
+        "packageName": "com.google.fitkit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.oxygen_saturation:com.google.android.gms:merged",
+      "dataStreamName": "merged",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.oxygen_saturation",
+        "field": [
+          {
+            "name": "oxygen_saturation",
+            "format": "floatPoint"
+          },
+          {
+            "name": "supplemental_oxygen_flow_rate",
+            "format": "floatPoint"
+          },
+          {
+            "name": "oxygen_therapy_administration_mode",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "oxygen_saturation_system",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "oxygen_saturation_measurement_method",
+            "format": "integer",
+            "optional": true
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.oxygen_saturation:com.google.fitkit:apple:iphone:12345678:local_data",
+      "dataStreamName": "local_data",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.oxygen_saturation",
+        "field": [
+          {
+            "name": "oxygen_saturation",
+            "format": "floatPoint"
+          },
+          {
+            "name": "supplemental_oxygen_flow_rate",
+            "format": "floatPoint"
+          },
+          {
+            "name": "oxygen_therapy_administration_mode",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "oxygen_saturation_system",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "oxygen_saturation_measurement_method",
+            "format": "integer",
+            "optional": true
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "phone",
+        "model": "iphone",
+        "manufacturer": "apple"
+      },
+      "application": {
+        "packageName": "com.google.fitkit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps",
+      "dataStreamName": "estimated_steps",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.step_count.delta",
+        "field": [
+          {
+            "name": "steps",
+            "format": "integer"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.step_count.delta:com.google.android.gms:merge_step_deltas",
+      "dataStreamName": "merge_step_deltas",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.step_count.delta",
+        "field": [
+          {
+            "name": "steps",
+            "format": "integer"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.step_count.delta:com.google.ios.fit:appleinc.:iphone:12345678:top_level",
+      "dataStreamName": "top_level",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.step_count.delta",
+        "field": [
+          {
+            "name": "steps",
+            "format": "integer"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "phone",
+        "model": "iphone",
+        "manufacturer": "appleinc."
+      },
+      "application": {
+        "packageName": "com.google.ios.fit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.step_count.delta:com.google.ios.fit:appleinc.:watch:12345678:top_level",
+      "dataStreamName": "top_level",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.step_count.delta",
+        "field": [
+          {
+            "name": "steps",
+            "format": "integer"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "watch",
+        "model": "watch",
+        "manufacturer": "appleinc."
+      },
+      "application": {
+        "packageName": "com.google.ios.fit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.weight:com.google.android.gms:merge_weight",
+      "dataStreamName": "merge_weight",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.weight",
+        "field": [
+          {
+            "name": "weight",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.gms"
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "derived:com.google.weight:com.google.fitkit:apple:iphone:12345678:local_data",
+      "dataStreamName": "local_data",
+      "type": "derived",
+      "dataType": {
+        "name": "com.google.weight",
+        "field": [
+          {
+            "name": "weight",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "phone",
+        "model": "iphone",
+        "manufacturer": "apple"
+      },
+      "application": {
+        "packageName": "com.google.fitkit",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.blood_glucose:com.google.android.apps.fitness:user_input",
+      "dataStreamName": "user_input",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.blood_glucose",
+        "field": [
+          {
+            "name": "blood_glucose_level",
+            "format": "floatPoint"
+          },
+          {
+            "name": "temporal_relation_to_meal",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "meal_type",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "temporal_relation_to_sleep",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "blood_glucose_specimen_source",
+            "format": "integer",
+            "optional": true
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.apps.fitness",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.blood_pressure:com.google.android.apps.fitness:user_input",
+      "dataStreamName": "user_input",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.blood_pressure",
+        "field": [
+          {
+            "name": "blood_pressure_systolic",
+            "format": "floatPoint"
+          },
+          {
+            "name": "blood_pressure_diastolic",
+            "format": "floatPoint"
+          },
+          {
+            "name": "body_position",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "blood_pressure_measurement_location",
+            "format": "integer",
+            "optional": true
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.apps.fitness",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.body.fat.percentage:com.google.android.apps.fitness:user_input",
+      "dataStreamName": "user_input",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.body.fat.percentage",
+        "field": [
+          {
+            "name": "percentage",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.apps.fitness",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.body.temperature:com.google.android.apps.fitness:user_input",
+      "dataStreamName": "user_input",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.body.temperature",
+        "field": [
+          {
+            "name": "body_temperature",
+            "format": "floatPoint"
+          },
+          {
+            "name": "body_temperature_measurement_location",
+            "format": "integer",
+            "optional": true
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.apps.fitness",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.heart_rate.bpm:com.google.android.apps.fitness:user_input",
+      "dataStreamName": "user_input",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.heart_rate.bpm",
+        "field": [
+          {
+            "name": "bpm",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.apps.fitness",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.heart_rate.bpm:com.google.android.gms:appleinc.:watch:12345678:from_device",
+      "dataStreamName": "from_device",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.heart_rate.bpm",
+        "field": [
+          {
+            "name": "bpm",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "watch",
+        "model": "watch",
+        "manufacturer": "appleinc."
+      },
+      "application": {
+        "packageName": "com.google.android.gms",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.height:com.google.android.apps.fitness:user_input",
+      "dataStreamName": "user_input",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.height",
+        "field": [
+          {
+            "name": "height",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.apps.fitness",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.oxygen_saturation:com.google.android.apps.fitness:user_input",
+      "dataStreamName": "user_input",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.oxygen_saturation",
+        "field": [
+          {
+            "name": "oxygen_saturation",
+            "format": "floatPoint"
+          },
+          {
+            "name": "supplemental_oxygen_flow_rate",
+            "format": "floatPoint"
+          },
+          {
+            "name": "oxygen_therapy_administration_mode",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "oxygen_saturation_system",
+            "format": "integer",
+            "optional": true
+          },
+          {
+            "name": "oxygen_saturation_measurement_method",
+            "format": "integer",
+            "optional": true
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.apps.fitness",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.step_count.delta:com.google.android.gms:appleinc.:iphone:12345678:derive_step_deltas",
+      "dataStreamName": "derive_step_deltas",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.step_count.delta",
+        "field": [
+          {
+            "name": "steps",
+            "format": "integer"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "phone",
+        "model": "iphone",
+        "manufacturer": "appleinc."
+      },
+      "application": {
+        "packageName": "com.google.android.gms",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.step_count.delta:com.google.android.gms:appleinc.:watch:12345678:derive_step_deltas",
+      "dataStreamName": "derive_step_deltas",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.step_count.delta",
+        "field": [
+          {
+            "name": "steps",
+            "format": "integer"
+          }
+        ]
+      },
+      "device": {
+        "uid": "12345678",
+        "type": "watch",
+        "model": "watch",
+        "manufacturer": "appleinc."
+      },
+      "application": {
+        "packageName": "com.google.android.gms",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    },
+    {
+      "dataStreamId": "raw:com.google.weight:com.google.android.apps.fitness:user_input",
+      "dataStreamName": "user_input",
+      "type": "raw",
+      "dataType": {
+        "name": "com.google.weight",
+        "field": [
+          {
+            "name": "weight",
+            "format": "floatPoint"
+          }
+        ]
+      },
+      "application": {
+        "packageName": "com.google.android.apps.fitness",
+        "version": "",
+        "detailsUrl": ""
+      },
+      "dataQualityStandard": []
+    }
+  ]
+}

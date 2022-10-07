@@ -1,0 +1,904 @@
+{
+  "templateType": "CollectionFhir",
+  "template": [
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.blood_glucose"
+          }
+        ],
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_glucose.blood_glucose_level"
+              }
+            ],
+            "value": {
+              "valueName": "blood_glucose_level",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_glucose.temporal_relation_to_meal"
+              }
+            ],
+            "value": {
+              "valueName": "temporal_relation_to_meal",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_glucose.meal_type"
+              }
+            ],
+            "value": {
+              "valueName": "meal_type",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_glucose.temporal_relation_to_sleep"
+              }
+            ],
+            "value": {
+              "valueName": "temporal_relation_to_sleep",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_glucose.blood_glucose_specimen_source"
+              }
+            ],
+            "value": {
+              "valueName": "blood_glucose_specimen_source",
+              "valueType": "String"
+            }
+          }
+        ],
+        "typeName": "derived:com.google.blood_glucose:com.google.android.gms:merged"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.blood_pressure"
+          }
+        ],
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_pressure.blood_pressure_systolic"
+              }
+            ],
+            "value": {
+              "valueName": "blood_pressure_systolic",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_pressure.blood_pressure_diastolic"
+              }
+            ],
+            "value": {
+              "valueName": "blood_pressure_diastolic",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_pressure.body_position"
+              }
+            ],
+            "value": {
+              "valueName": "body_position",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_pressure.blood_pressure_measurement_location"
+              }
+            ],
+            "value": {
+              "valueName": "blood_pressure_measurement_location",
+              "valueType": "String"
+            }
+          }
+        ],
+        "typeName": "derived:com.google.blood_pressure:com.google.android.gms:merged"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.body.fat.percentage"
+          }
+        ],
+        "value": {
+          "valueName": "percentage",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.body.fat.percentage:com.google.android.gms:merged"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.body.fat.percentage"
+          }
+        ],
+        "value": {
+          "valueName": "percentage",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.body.fat.percentage:com.google.fitkit:apple:iphone:local_data"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.body.temperature"
+          }
+        ],
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "com.google.body.temperature.body_temperature"
+              }
+            ],
+            "value": {
+              "valueName": "body_temperature",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.body.temperature.body_temperature_measurement_location"
+              }
+            ],
+            "value": {
+              "valueName": "body_temperature_measurement_location",
+              "valueType": "String"
+            }
+          }
+        ],
+        "typeName": "derived:com.google.body.temperature:com.google.android.gms:merged"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.heart_minutes"
+          }
+        ],
+        "value": {
+          "valueName": "intensity",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.heart_minutes:com.google.android.gms:merge_heart_minutes"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.heart_minutes"
+          }
+        ],
+        "value": {
+          "valueName": "intensity",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.heart_minutes:com.google.ios.fit:appleinc.:iphone:top_level"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.heart_minutes"
+          }
+        ],
+        "value": {
+          "valueName": "intensity",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.heart_minutes:com.google.ios.fit:appleinc.:watch:top_level"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.heart_rate.bpm"
+          }
+        ],
+        "value": {
+          "valueName": "bpm",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.heart_rate.bpm:com.google.android.gms:merge_heart_rate_bpm"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.heart_rate.bpm"
+          }
+        ],
+        "value": {
+          "valueName": "bpm",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.heart_rate.bpm:com.google.android.gms:resting_heart_rate<-merge_heart_rate_bpm"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.heart_rate.bpm"
+          }
+        ],
+        "value": {
+          "valueName": "bpm",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.heart_rate.bpm:com.google.fitkit:apple:iphone:local_data"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.heart_rate.bpm"
+          }
+        ],
+        "value": {
+          "valueName": "bpm",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.heart_rate.bpm:com.google.fitkit:apple:iphone:top_level"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.heart_rate.bpm"
+          }
+        ],
+        "value": {
+          "valueName": "bpm",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.heart_rate.bpm:com.google.ios.fit:appleinc.:watch:top_level"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.height"
+          }
+        ],
+        "value": {
+          "valueName": "height",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.height:com.google.android.gms:merge_height"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.height"
+          }
+        ],
+        "value": {
+          "valueName": "height",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.height:com.google.fitkit:apple:iphone:local_data"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.oxygen_saturation"
+          }
+        ],
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_saturation"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_saturation",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.supplemental_oxygen_flow_rate"
+              }
+            ],
+            "value": {
+              "valueName": "supplemental_oxygen_flow_rate",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_therapy_administration_mode"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_therapy_administration_mode",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_saturation_system"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_saturation_system",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_saturation_measurement_method"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_saturation_measurement_method",
+              "valueType": "String"
+            }
+          }
+        ],
+        "typeName": "derived:com.google.oxygen_saturation:com.google.android.gms:merged"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.oxygen_saturation"
+          }
+        ],
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_saturation"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_saturation",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.supplemental_oxygen_flow_rate"
+              }
+            ],
+            "value": {
+              "valueName": "supplemental_oxygen_flow_rate",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_therapy_administration_mode"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_therapy_administration_mode",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_saturation_system"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_saturation_system",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_saturation_measurement_method"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_saturation_measurement_method",
+              "valueType": "String"
+            }
+          }
+        ],
+        "typeName": "derived:com.google.oxygen_saturation:com.google.fitkit:apple:iphone:local_data"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.step_count.delta"
+          }
+        ],
+        "value": {
+          "valueName": "steps",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.step_count.delta"
+          }
+        ],
+        "value": {
+          "valueName": "steps",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.step_count.delta:com.google.android.gms:merge_step_deltas"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.step_count.delta"
+          }
+        ],
+        "value": {
+          "valueName": "steps",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.step_count.delta:com.google.ios.fit:appleinc.:iphone:top_level"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.step_count.delta"
+          }
+        ],
+        "value": {
+          "valueName": "steps",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.step_count.delta:com.google.ios.fit:appleinc.:watch:top_level"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.weight"
+          }
+        ],
+        "value": {
+          "valueName": "weight",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.weight:com.google.android.gms:merge_weight"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.weight"
+          }
+        ],
+        "value": {
+          "valueName": "weight",
+          "valueType": "Quantity"
+        },
+        "typeName": "derived:com.google.weight:com.google.fitkit:apple:iphone:local_data"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.blood_glucose"
+          }
+        ],
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_glucose.blood_glucose_level"
+              }
+            ],
+            "value": {
+              "valueName": "blood_glucose_level",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_glucose.temporal_relation_to_meal"
+              }
+            ],
+            "value": {
+              "valueName": "temporal_relation_to_meal",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_glucose.meal_type"
+              }
+            ],
+            "value": {
+              "valueName": "meal_type",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_glucose.temporal_relation_to_sleep"
+              }
+            ],
+            "value": {
+              "valueName": "temporal_relation_to_sleep",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_glucose.blood_glucose_specimen_source"
+              }
+            ],
+            "value": {
+              "valueName": "blood_glucose_specimen_source",
+              "valueType": "String"
+            }
+          }
+        ],
+        "typeName": "raw:com.google.blood_glucose:com.google.android.apps.fitness:user_input"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.blood_pressure"
+          }
+        ],
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_pressure.blood_pressure_systolic"
+              }
+            ],
+            "value": {
+              "valueName": "blood_pressure_systolic",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_pressure.blood_pressure_diastolic"
+              }
+            ],
+            "value": {
+              "valueName": "blood_pressure_diastolic",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_pressure.body_position"
+              }
+            ],
+            "value": {
+              "valueName": "body_position",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.blood_pressure.blood_pressure_measurement_location"
+              }
+            ],
+            "value": {
+              "valueName": "blood_pressure_measurement_location",
+              "valueType": "String"
+            }
+          }
+        ],
+        "typeName": "raw:com.google.blood_pressure:com.google.android.apps.fitness:user_input"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.body.fat.percentage"
+          }
+        ],
+        "value": {
+          "valueName": "percentage",
+          "valueType": "Quantity"
+        },
+        "typeName": "raw:com.google.body.fat.percentage:com.google.android.apps.fitness:user_input"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.body.temperature"
+          }
+        ],
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "com.google.body.temperature.body_temperature"
+              }
+            ],
+            "value": {
+              "valueName": "body_temperature",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.body.temperature.body_temperature_measurement_location"
+              }
+            ],
+            "value": {
+              "valueName": "body_temperature_measurement_location",
+              "valueType": "String"
+            }
+          }
+        ],
+        "typeName": "raw:com.google.body.temperature:com.google.android.apps.fitness:user_input"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.heart_rate.bpm"
+          }
+        ],
+        "value": {
+          "valueName": "bpm",
+          "valueType": "Quantity"
+        },
+        "typeName": "raw:com.google.heart_rate.bpm:com.google.android.apps.fitness:user_input"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.heart_rate.bpm"
+          }
+        ],
+        "value": {
+          "valueName": "bpm",
+          "valueType": "Quantity"
+        },
+        "typeName": "raw:com.google.heart_rate.bpm:com.google.android.gms:appleinc.:watch:from_device"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.height"
+          }
+        ],
+        "value": {
+          "valueName": "height",
+          "valueType": "Quantity"
+        },
+        "typeName": "raw:com.google.height:com.google.android.apps.fitness:user_input"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.oxygen_saturation"
+          }
+        ],
+        "components": [
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_saturation"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_saturation",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.supplemental_oxygen_flow_rate"
+              }
+            ],
+            "value": {
+              "valueName": "supplemental_oxygen_flow_rate",
+              "valueType": "Quantity"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_therapy_administration_mode"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_therapy_administration_mode",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_saturation_system"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_saturation_system",
+              "valueType": "String"
+            }
+          },
+          {
+            "codes": [
+              {
+                "code": "com.google.oxygen_saturation.oxygen_saturation_measurement_method"
+              }
+            ],
+            "value": {
+              "valueName": "oxygen_saturation_measurement_method",
+              "valueType": "String"
+            }
+          }
+        ],
+        "typeName": "raw:com.google.oxygen_saturation:com.google.android.apps.fitness:user_input"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.step_count.delta"
+          }
+        ],
+        "value": {
+          "valueName": "steps",
+          "valueType": "Quantity"
+        },
+        "typeName": "raw:com.google.step_count.delta:com.google.android.gms:appleinc.:iphone:derive_step_deltas"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.step_count.delta"
+          }
+        ],
+        "value": {
+          "valueName": "steps",
+          "valueType": "Quantity"
+        },
+        "typeName": "raw:com.google.step_count.delta:com.google.android.gms:appleinc.:watch:derive_step_deltas"
+      }
+    },
+    {
+      "templateType": "CodeValueFhir",
+      "template": {
+        "codes": [
+          {
+            "code": "com.google.weight"
+          }
+        ],
+        "value": {
+          "valueName": "weight",
+          "valueType": "Quantity"
+        },
+        "typeName": "raw:com.google.weight:com.google.android.apps.fitness:user_input"
+      }
+    }
+  ]
+}

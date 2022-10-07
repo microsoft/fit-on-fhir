@@ -1,0 +1,46 @@
+[
+  {
+    "dataStreamId": "derived:com.google.active_minutes:com.google.ios.fit:appleinc.:watch:3569e4dd:top_level",
+    "dataStreamName": "top_level",
+    "type": "derived",
+    "dataType": {
+      "name": "com.google.active_minutes",
+      "field": [
+        {
+          "name": "duration",
+          "format": "integer"
+        }
+      ]
+    },
+    "device": {
+      "uid": "3569e4dd",
+      "type": "watch",
+      "model": "watch",
+      "manufacturer": "appleinc."
+    },
+    "application": {
+      "packageName": "com.google.ios.fit",
+      "version": "",
+      "detailsUrl": ""
+    },
+    "dataQualityStandard": []
+  },
+  {
+    "dataStreamId": "derived:com.google.activity.segment:com.google.android.gms:merge_activity_segments",
+    "dataStreamName": "merge_activity_segments",
+    "type": "derived",
+    "dataType": {
+      "name": "com.google.activity.segment",
+      "field": [
+        {
+          "name": "activity",
+          "format": "integer"
+        }
+      ]
+    },
+    "application": {
+      "packageName": "com.google.android.gms"
+    },
+    "dataQualityStandard": []
+  }
+]

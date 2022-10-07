@@ -17,7 +17,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Telemetry
 
             var exceptionTypeName = ex.GetType().Name;
             var handledExceptionMetric = ex is NotSupportedException ? GoogleFitMetrics.NotSupported() : GoogleFitMetrics.HandledException(exceptionTypeName, GoogleFitMetrics.ImportOperation);
-            return HandleException(ex, logger, handledExceptionMetric);
+            return HandleException(ex, logger, handledExceptionMetric, GoogleFitMetrics.UnhandledException(exceptionTypeName, GoogleFitMetrics.ImportOperation));
         }
     }
 }
