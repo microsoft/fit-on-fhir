@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+      <Description>Command-line utility for generating Fit on FHIR MedTech Mapping files.</Description>
+      <NoWarn>$(NoWarn);NU5104</NoWarn>
+      <OutputType>Exe</OutputType>
+      <TargetFramework>net6.0</TargetFramework>
+      <AssemblyName>GoogleFitMappingGenerator</AssemblyName>
+      <PublishSingleFile>true</PublishSingleFile>
+      <SelfContained>true</SelfContained>
+      <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+      <PublishReadyToRun>true</PublishReadyToRun>
+    </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Ensure.That" Version="10.1.0" />
+    <PackageReference Include="Hl7.Fhir.R4" Version="4.2.1" />
+    <PackageReference Include="Microsoft.Health.Fhir.Ingest.Template" Version="1.0.0-20220906.2" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20371.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.Health.FitOnFhir.GoogleFit.Mapping\Microsoft.Health.FitOnFhir.GoogleFit.Mapping.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Samples\" />
+  </ItemGroup>
+</Project>

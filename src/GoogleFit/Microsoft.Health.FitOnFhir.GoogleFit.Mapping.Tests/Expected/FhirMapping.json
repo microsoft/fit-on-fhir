@@ -1,0 +1,15 @@
+{
+  "templateType": "CodeValueFhir",
+  "template": {
+    "codes": [
+      {
+        "code": "com.google.active_minutes"
+      }
+    ],
+    "value": {
+      "valueName": "duration",
+      "valueType": "Quantity"
+    },
+    "typeName": "derived:com.google.active_minutes:com.google.ios.fit:appleinc.:iphone:top_level"
+  }
+}

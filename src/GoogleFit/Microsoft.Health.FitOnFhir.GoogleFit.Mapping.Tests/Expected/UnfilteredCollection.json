@@ -1,0 +1,45 @@
+{
+  "templateType": "CollectionContent",
+  "template": [
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "typeMatchExpression": "$..[?(@dataTypeName == 'com.google.active_minutes' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.ios.fit/ && $.Body.dataSourceId =~ /appleinc./ && $.Body.dataSourceId =~ /watch/ && $.Body.dataSourceId =~ /top_level/)]",
+        "deviceIdExpression": "$.Body.deviceIdentifier",
+        "patientIdExpression": "$.Body.patientIdentifier",
+        "timestampExpression": {
+          "value": "fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))",
+          "language": "JmesPath"
+        },
+        "values": [
+          {
+            "valueName": "duration",
+            "valueExpression": "matchedToken.value[0].intVal",
+            "required": true
+          }
+        ],
+        "typeName": "derived:com.google.active_minutes:com.google.ios.fit:appleinc.:watch:top_level"
+      }
+    },
+    {
+      "templateType": "CalculatedContent",
+      "template": {
+        "typeMatchExpression": "$..[?(@dataTypeName == 'com.google.activity.segment' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merge_activity_segments/)]",
+        "deviceIdExpression": "$.Body.deviceIdentifier",
+        "patientIdExpression": "$.Body.patientIdentifier",
+        "timestampExpression": {
+          "value": "fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))",
+          "language": "JmesPath"
+        },
+        "values": [
+          {
+            "valueName": "activity",
+            "valueExpression": "matchedToken.value[0].intVal",
+            "required": true
+          }
+        ],
+        "typeName": "derived:com.google.activity.segment:com.google.android.gms:merge_activity_segments"
+      }
+    }
+  ]
+}

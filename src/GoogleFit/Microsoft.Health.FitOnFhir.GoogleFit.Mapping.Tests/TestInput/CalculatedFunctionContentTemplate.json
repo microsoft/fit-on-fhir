@@ -1,0 +1,17 @@
+{
+  "typeMatchExpression": "$..[?(@dataTypeName == 'com.google.active_minutes' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.ios.fit/ && $.Body.dataSourceId =~ /appleinc./ && $.Body.dataSourceId =~ /iphone/ && $.Body.dataSourceId =~ /top_level/)]",
+  "deviceIdExpression": "$.Body.deviceIdentifier",
+  "patientIdExpression": "$.Body.patientIdentifier",
+  "timestampExpression": {
+    "value": "fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))",
+    "language": "JmesPath"
+  },
+  "values": [
+    {
+      "valueName": "duration",
+      "valueExpression": "matchedToken.value[0].intVal",
+      "required": true
+    }
+  ],
+  "typeName": "derived:com.google.active_minutes:com.google.ios.fit:appleinc.:iphone:top_level"
+}

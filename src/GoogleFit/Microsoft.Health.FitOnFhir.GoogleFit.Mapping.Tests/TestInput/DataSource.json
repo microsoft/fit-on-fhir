@@ -1,0 +1,26 @@
+{
+  "dataStreamId": "derived:com.google.active_minutes:com.google.ios.fit:appleinc.:iphone:12345:top_level",
+  "dataStreamName": "top_level",
+  "type": "derived",
+  "dataType": {
+    "name": "com.google.active_minutes",
+    "field": [
+      {
+        "name": "duration",
+        "format": "integer"
+      }
+    ]
+  },
+  "device": {
+    "uid": "12345",
+    "type": "phone",
+    "model": "iphone",
+    "manufacturer": "appleinc."
+  },
+  "application": {
+    "packageName": "com.google.ios.fit",
+    "version": "",
+    "detailsUrl": ""
+  },
+  "dataQualityStandard": []
+}
