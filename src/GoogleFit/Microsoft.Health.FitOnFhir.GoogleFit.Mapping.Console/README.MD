@@ -11,7 +11,7 @@ It's important to note that the Google Fitness Data Sources API does not provide
 1. Once a request to the Google Fitness Data Sources API has been made, save the response to a JSON file.
 1. Invoke the console application* with, at least, the 2 required arguments which are the path to the Data Sources API response (--dataSourcePath or -d) and an output path where the "mappings" will be saved (--outputPath or -o).
 
-* The for ease of use, a compiled console application ([GoogleFitMappingGenerator.exe](GoogleFitMappingGenerator.exe)) can be found in this project folder.
+*The for ease of use, a compiled console application ([GoogleFitMappingGenerator.exe](GoogleFitMappingGenerator.exe)) can be found in this (Health.FitOnFhir.GoogleFit.Mapping.Console) project folder.
 
 ### Examples
 
@@ -25,7 +25,7 @@ or
 GoogleFitMappingGenerator.exe generateMappings -d Samples/DataSources.json -o Samples/
 ```
 
-It is also possible to generate "mappings" for specific data sources in the Google Fitness Data Sources API response by providing a one or more (comma separated) regex strings with the --includedDataStreams (or -i) argument. Regex strings are matched against the DataStreamId string of response, and only Data Sources where the Regex matches will be mapped.
+It is also possible to generate "mappings" for specific data sources in the Google Fitness Data Sources API response by providing a one or more (comma separated) Regex strings with the --includedDataStreams (or -i) argument. Regex strings are matched against the DataStreamId string of response, and only Data Sources where the Regex matches will be mapped.
 
 In the example below, only Data Sources that have DataStreamIds containing "blood_pressure" will be mapped.
 
