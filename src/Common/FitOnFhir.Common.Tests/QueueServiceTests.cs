@@ -8,6 +8,7 @@ using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 using Microsoft.Health.FitOnFhir.Common.Services;
 using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
 using Microsoft.Health.FitOnFhir.GoogleFit.Common;
@@ -22,6 +23,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
     public class QueueServiceTests
     {
+        private IQueueClientProvider _queueClientProvider;
         private QueueClient _queueClient;
         private MockLogger<QueueService> _queueServiceLogger;
         private IQueueService _queueService;
@@ -31,9 +33,11 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         {
             _expectedUserId = Guid.NewGuid().ToString();
             _queueClient = Substitute.For<QueueClient>();
+            _queueClientProvider = Substitute.For<IQueueClientProvider>();
+            _queueClientProvider.GetQueueClient(Arg.Any<string>()).Returns(_queueClient);
             _queueServiceLogger = Substitute.For<MockLogger<QueueService>>();
 
-            _queueService = new QueueService(null, _queueClient, _queueServiceLogger);
+            _queueService = new QueueService(_queueClientProvider, _queueServiceLogger);
         }
 
         protected string ExpectedUserId => _expectedUserId;

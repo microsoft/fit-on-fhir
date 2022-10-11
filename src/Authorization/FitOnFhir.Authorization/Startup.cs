@@ -41,8 +41,9 @@ namespace Microsoft.Health.FitOnFhir.Authorization
             builder.Services.AddConfiguration<GoogleFitAuthorizationConfiguration>(configuration);
             builder.Services.AddConfiguration<AuthenticationConfiguration>(configuration);
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
-            builder.Services.AddSingleton<IGoogleFitDataImporter, GoogleFitDataImporter>();
             builder.Services.AddSingleton<ISecretClientProvider, SecretClientProvider>();
+            builder.Services.AddSingleton<IQueueClientProvider, QueueClientProvider>();
+            builder.Services.AddSingleton<IBlobContainerClientProvider, BlobContainerClientProvider>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
             builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();

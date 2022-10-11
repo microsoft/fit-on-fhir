@@ -8,9 +8,9 @@ using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 using Microsoft.Health.FitOnFhir.Common.Services;
 using Newtonsoft.Json;
 using NSubstitute;
@@ -21,12 +21,11 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 {
     public class AuthStateServiceTests : AuthenticationBaseTests
     {
+        private IBlobContainerClientProvider _blobContainerClientProvider;
         private BlobContainerClient _blobContainerClient;
         private BlobClient _blobClient;
         private BlobDownloadResult _blobDownloadResult;
         private BinaryData _authStateBinaryData;
-        private readonly AzureConfiguration _azureConfiguration;
-        private readonly BlobServiceClient _blobServiceClient;
         private readonly Func<DateTimeOffset> _utcNowFunc;
         private readonly AuthStateService _authStateService;
 
@@ -40,17 +39,10 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             SetupConfiguration(false);
 
             // create new service for testing
-            _azureConfiguration = Substitute.For<AzureConfiguration>();
-            _blobServiceClient = Substitute.For<BlobServiceClient>();
             _utcNowFunc = Substitute.For<Func<DateTimeOffset>>();
             _utcNowFunc().Returns(Now);
             SetupBlobSubstitutes();
-            _authStateService = new AuthStateService(
-                _azureConfiguration,
-                AuthConfiguration,
-                SecurityTokenHandlerProvider,
-                _blobServiceClient,
-                _utcNowFunc);
+            _authStateService = new AuthStateService(AuthConfiguration, _blobContainerClientProvider, SecurityTokenHandlerProvider, _utcNowFunc);
         }
 
         protected string ExpectedBlobContainerName => "BlobContainerName";
@@ -302,7 +294,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         }
 
         [Fact]
-        public async Task GivenNonceIsValid_WhenRetrieveAuthStateIsCalled_RetrunsStoredAuthState()
+        public async Task GivenNonceIsValid_WhenRetrieveAuthStateIsCalled_ReturnsStoredAuthState()
         {
             AuthState authState = await _authStateService.RetrieveAuthState(ExpectedNonce, CancellationToken.None);
             Assert.Equal(ExpectedExternalIdentifier, authState.ExternalIdentifier);
@@ -345,11 +337,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         private void SetupBlobSubstitutes()
         {
-            _azureConfiguration.BlobContainerName = ExpectedBlobContainerName;
-
             _blobContainerClient = Substitute.For<BlobContainerClient>();
-            _blobServiceClient.GetBlobContainerClient(Arg.Is<string>(str => str == ExpectedBlobContainerName))
-                .Returns(_blobContainerClient);
+            _blobContainerClientProvider = Substitute.For<IBlobContainerClientProvider>();
+            _blobContainerClientProvider.GetBlobContainerClient(Arg.Any<string>()).Returns(_blobContainerClient);
 
             _blobClient = Substitute.For<BlobClient>();
             _blobContainerClient.GetBlobClient(Arg.Is<string>(str => str == ExpectedNonce)).Returns(_blobClient);

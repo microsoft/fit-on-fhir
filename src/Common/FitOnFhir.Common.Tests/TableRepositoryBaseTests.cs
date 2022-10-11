@@ -5,8 +5,8 @@
 
 using Azure;
 using Azure.Data.Tables;
-using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
 using NSubstitute;
 using Xunit;
@@ -16,8 +16,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
     public abstract class TableRepositoryBaseTests<T>
         where T : EntityBase
     {
-        private TableClient _tableClient;
-        private AzureConfiguration _azureConfig;
         private Func<T, T, T> _conflictResolverFunc;
         private T _mergedEntity;
         private T _arg1Entity;
@@ -25,9 +23,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
         public TableRepositoryBaseTests()
         {
-            _tableClient = Substitute.For<TableClient>();
-            _azureConfig = Substitute.For<AzureConfiguration>();
-            _azureConfig.StorageAccountConnectionString = "connection string";
+            TableClient = Substitute.For<TableClient>();
+            TableClientProvider = Substitute.For<ITableClientProvider>();
+            TableClientProvider.GetTableClient(Arg.Any<string>()).Returns(TableClient);
             _mergedEntity = Substitute.For<T>();
 
             _conflictResolverFunc = (arg1, arg2) =>
@@ -38,9 +36,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             };
         }
 
-        protected AzureConfiguration AzureConfig => _azureConfig;
+        protected ITableClientProvider TableClientProvider { get; private set; }
 
-        protected TableClient TableClient => _tableClient;
+        protected TableClient TableClient { get; private set; }
 
         protected ITableRepository<T> TableRepository { get; set; }
 
@@ -110,11 +108,11 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         public void SetupTableClient(int exceptionStatusCode)
         {
             AsyncPageable<TableEntity> fakeAsyncPageable = Substitute.For<AsyncPageable<TableEntity>>();
-            _tableClient.QueryAsync<TableEntity>(cancellationToken: Arg.Any<CancellationToken>())
+            TableClient.QueryAsync<TableEntity>(cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(fakeAsyncPageable);
 
             var fakeResponse = Substitute.For<Response>();
-            _tableClient.AddEntityAsync(Arg.Any<TableEntity>(), cancellationToken: Arg.Any<CancellationToken>())
+            TableClient.AddEntityAsync(Arg.Any<TableEntity>(), cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(fakeResponse);
 
             var exceptionMsg = "request failed exception";
@@ -125,9 +123,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
                     cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(x => throw exception, x => fakeResponse);
 
-            _tableClient.UpsertEntityAsync(Arg.Any<TableEntity>(), cancellationToken: Arg.Any<CancellationToken>())
+            TableClient.UpsertEntityAsync(Arg.Any<TableEntity>(), cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(fakeResponse);
-            _tableClient.DeleteEntityAsync(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
+            TableClient.DeleteEntityAsync(Arg.Any<string>(), Arg.Any<string>(), cancellationToken: Arg.Any<CancellationToken>())
                 .Returns(fakeResponse);
 
             Response<TableEntity> getEntityAsyncResponse = Substitute.For<Response<TableEntity>>();

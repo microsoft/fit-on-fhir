@@ -8,6 +8,7 @@ using Azure.Data.Tables;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 
 namespace Microsoft.Health.FitOnFhir.Common.Repositories
 {
@@ -17,21 +18,10 @@ namespace Microsoft.Health.FitOnFhir.Common.Repositories
         private readonly TableClient _tableClient;
         private readonly ILogger _logger;
 
-        protected TableRepository(string connectionString, TableClient tableClient, ILogger logger)
+        protected TableRepository(ITableClientProvider tableClientProvider, ILogger logger)
         {
-            EnsureArg.IsNotNull(logger, nameof(logger));
-
-            if (tableClient == null)
-            {
-                EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
-                _tableClient = new TableClient(connectionString, Constants.UsersTableName);
-            }
-            else
-            {
-                _tableClient = tableClient;
-            }
-
-            _logger = logger;
+            _tableClient = EnsureArg.IsNotNull(tableClientProvider, nameof(tableClientProvider)).GetTableClient(Constants.UsersTableName);
+            _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         }
 
         public string PartitionKey { get; set; }

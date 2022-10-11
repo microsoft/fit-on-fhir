@@ -7,12 +7,18 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
 {
     public class AzureConfiguration
     {
-        public string StorageAccountConnectionString { get; set; }
+        public string FunctionPrincipalId { get; set; }
 
-        public Uri UsersKeyVaultUri { get; set; }
+        public Uri BlobServiceUri { get; set; }
 
-        public string EventHubConnectionString { get; set; }
+        public Uri TableServiceUri { get; set; }
 
-        public string BlobContainerName { get; set; }
+        public Uri QueueServiceUri { get; set; }
+
+        public Uri VaultUri { get; set; }
+
+        public string EventHubFullyQualifiedNamespace { get; set; }
+
+        public string EventHubName { get; set; }
     }
 }

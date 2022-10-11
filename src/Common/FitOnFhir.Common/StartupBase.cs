@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Common.DependencyInjection;
 using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 using Microsoft.Health.FitOnFhir.Common.Repositories;
 
 namespace Microsoft.Health.FitOnFhir.Common
@@ -28,6 +29,8 @@ namespace Microsoft.Health.FitOnFhir.Common
 
             builder.Services.AddLogging();
             builder.Services.AddConfiguration<AzureConfiguration>(config);
+            builder.Services.AddSingleton<ITokenCredentialProvider, TokenCredentialProvider>();
+            builder.Services.AddSingleton<ITableClientProvider, TableClientProvider>();
             builder.Services.AddSingleton<IUsersTableRepository, UsersTableRepository>();
 
             Configure(_hostBuilder, config);

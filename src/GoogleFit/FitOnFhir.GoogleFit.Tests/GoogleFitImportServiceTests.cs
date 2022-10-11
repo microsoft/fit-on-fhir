@@ -6,6 +6,7 @@
 using Google.Apis.Fitness.v1.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 using Microsoft.Health.FitOnFhir.Common.Tests.Mocks;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Config;
@@ -50,7 +51,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
         private readonly GoogleFitUser _googleFitUser;
         private readonly MockEventHubProducerClient _eventHubProducerClient;
-        private readonly MockFaultyEventHubProducerClient _faultyEventHubProducerClient;
+        private readonly IEventHubProducerClientProvider _eventHubProducerClientProvider;
         private readonly MedTechDataset _medTechDataset;
 
         private readonly IGoogleFitClient _googleFitClient;
@@ -66,7 +67,6 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             _medTechDataset = Substitute.For<MedTechDataset>(_dataset, _dataSource);
             _dataSources.Add(_dataSource);
-            _faultyEventHubProducerClient = new MockFaultyEventHubProducerClient();
 
             var parallelTaskOptions = new ParallelTaskOptions() { MaxConcurrency = 10 };
             _options = Substitute.For<GoogleFitImportOptions>();
@@ -77,6 +77,8 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             // GoogleFitImportService dependencies
             _googleFitClient = Substitute.For<IGoogleFitClient>();
             _eventHubProducerClient = new MockEventHubProducerClient();
+            _eventHubProducerClientProvider = Substitute.For<IEventHubProducerClientProvider>();
+            _eventHubProducerClientProvider.GetEventHubProducerClient().Returns(_eventHubProducerClient);
             _utcNowFunc = Substitute.For<Func<DateTimeOffset>>();
             _utcNowFunc().Returns(_now);
             _importServiceLogger = Substitute.For<MockLogger<GoogleFitImportService>>();
@@ -85,8 +87,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             // create the service
             _googleFitImportService = new GoogleFitImportService(
                 _googleFitClient,
-                null,
-                _eventHubProducerClient,
+                _eventHubProducerClientProvider,
                 _options,
                 _utcNowFunc,
                 _importServiceLogger,
@@ -169,14 +170,14 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         [Fact]
         public async Task GivenEventDataBatchTryAddReturnsFalse_WhenMedTechDatasetAdded_EventBatchExceptionIsLogged()
         {
-            string errorMessaage = $"Event data too large, Dataset: 0, User: {_dataStreamId}";
+            string errorMessage = $"Event data too large, Dataset: 0, User: {_dataStreamId}";
+            _eventHubProducerClientProvider.GetEventHubProducerClient().Returns(new MockFaultyEventHubProducerClient());
 
             // create a different service, with an EventHubProducerClient mock (_faultyEventHubProducerClient)
             // that uses a TryAdd callback override which returns false
             _googleFitImportService = new GoogleFitImportService(
                 _googleFitClient,
-                null,
-                _faultyEventHubProducerClient,
+                _eventHubProducerClientProvider,
                 _options,
                 _utcNowFunc,
                 _importServiceLogger,
@@ -188,7 +189,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             _importServiceLogger.Received(1).Log(
                 Arg.Is<LogLevel>(lvl => lvl == LogLevel.Error),
-                Arg.Is<string>(msg => msg == errorMessaage));
+                Arg.Is<string>(msg => msg == errorMessage));
         }
 
         [Fact]
@@ -307,8 +308,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
 
             _googleFitImportService = new GoogleFitImportService(
                 _googleFitClient,
-                azureConfiguration: null,
-                _eventHubProducerClient,
+                _eventHubProducerClientProvider,
                 options,
                 () => DateTimeOffset.UtcNow,
                 _importServiceLogger,

@@ -22,7 +22,7 @@ namespace Microsoft.Health.FitOnFhir.ImportTimerTrigger
         [FunctionName("import-timer")]
         public async Task Run(
             [TimerTrigger("%SCHEDULE%")] TimerInfo myTimer,
-            [Queue(Constants.QueueName, Connection = "AzureWebJobsStorage")] ICollector<string> queueService,
+            [Queue(Constants.ImportDataQueueName, Connection = "AzureWebJobsStorage")] ICollector<string> queueService,
             ILogger logger,
             CancellationToken cancellationToken)
         {

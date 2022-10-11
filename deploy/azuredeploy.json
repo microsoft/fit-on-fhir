@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.9.1.41621",
-      "templateHash": "14312509375071981751"
+      "version": "0.11.1.770",
+      "templateHash": "2093625114022734447"
     }
   },
   "parameters": {
@@ -106,13 +106,6 @@
         "description": "The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)"
       }
     },
-    "authentication_blob_container_name": {
-      "type": "string",
-      "defaultValue": "authdata",
-      "metadata": {
-        "description": "Name for the authentication data storage container."
-      }
-    },
     "authentication_redirect_urls": {
       "type": "string",
       "metadata": {
@@ -127,14 +120,18 @@
     }
   },
   "variables": {
-    "fhirServiceUrl": "[format('https://{0}-fs-{1}.fhir.azurehealthcareapis.com', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
-    "fhirWriterRoleId": "3f88fce4-5892-4214-ae73-ba5294559913",
-    "eventHubReceiverRoleId": "a638d3c7-ab3a-418d-83e6-5f17a39d4fde"
+    "fhir_data_writer": "[resourceId('Microsoft.Authorization/roleDefinitions', '3f88fce4-5892-4214-ae73-ba5294559913')]",
+    "event_hubs_data_receiver": "[resourceId('Microsoft.Authorization/roleDefinitions', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')]",
+    "event_hubs_data_sender": "[resourceId('Microsoft.Authorization/roleDefinitions', '2b629674-e913-4c01-ae53-ef4638d8f975')]",
+    "storage_table_data_contributor": "[resourceId('Microsoft.Authorization/roleDefinitions', '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3')]",
+    "storage_blob_data_owner": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')]",
+    "storage_queue_data_message_sender": "[resourceId('Microsoft.Authorization/roleDefinitions', 'c6a89b2d-59bc-44d0-9896-0f6e12d7b80a')]",
+    "storage_queue_data_message_processor": "[resourceId('Microsoft.Authorization/roleDefinitions', '8a0f0c08-91a1-4084-bc3d-661d67233fed')]"
   },
   "resources": [
     {
       "type": "Microsoft.KeyVault/vaults",
-      "apiVersion": "2019-09-01",
+      "apiVersion": "2022-07-01",
       "name": "[format('kv-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "properties": {
@@ -144,8 +141,8 @@
         },
         "accessPolicies": [
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2022-03-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "get",
@@ -156,8 +153,8 @@
             }
           },
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2022-03-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "get"
@@ -165,8 +162,8 @@
             }
           },
           {
-            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.tenantId]",
-            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2020-06-01', 'Full').identity.principalId]",
+            "tenantId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'full').identity.tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]",
             "permissions": {
               "secrets": [
                 "get",
@@ -189,19 +186,7 @@
     },
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2019-09-01",
-      "name": "[format('{0}/{1}', format('kv-{0}', parameters('basename')), 'eventhub-connection-string')]",
-      "properties": {
-        "value": "[listkeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender'), '2021-01-01-preview').primaryConnectionString]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]",
-        "[resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))]"
-      ]
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2019-09-01",
+      "apiVersion": "2022-07-01",
       "name": "[format('{0}/{1}', format('kv-{0}', parameters('basename')), 'google-client-secret')]",
       "properties": {
         "value": "[parameters('google_client_secret')]"
@@ -211,20 +196,8 @@
       ]
     },
     {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2019-09-01",
-      "name": "[format('{0}/{1}', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')]",
-      "properties": {
-        "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', replace(format('sa-{0}', parameters('basename')), '-', ''), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2021-02-01').keys[0].value)]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
-      ]
-    },
-    {
       "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2021-02-01",
+      "apiVersion": "2022-05-01",
       "name": "[replace(format('sa-{0}', parameters('basename')), '-', '')]",
       "location": "[parameters('location')]",
       "kind": "StorageV2",
@@ -260,8 +233,8 @@
     },
     {
       "type": "Microsoft.Storage/storageAccounts/blobServices",
-      "apiVersion": "2021-04-01",
-      "name": "[format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "apiVersion": "2022-05-01",
+      "name": "[format('{0}/{1}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]",
       "properties": {
         "changeFeed": {
           "enabled": false
@@ -296,8 +269,8 @@
     },
     {
       "type": "Microsoft.Storage/storageAccounts/managementPolicies",
-      "apiVersion": "2021-06-01",
-      "name": "[format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "apiVersion": "2022-05-01",
+      "name": "[format('{0}/{1}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]",
       "properties": {
         "policy": {
           "rules": [
@@ -316,7 +289,7 @@
                     "blockBlob"
                   ],
                   "prefixMatch": [
-                    "[format('{0}/', parameters('authentication_blob_container_name'))]"
+                    "authdata/"
                   ]
                 }
               },
@@ -333,17 +306,16 @@
     },
     {
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
-      "apiVersion": "2021-04-01",
-      "name": "[format('{0}/{1}/{2}', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1], parameters('authentication_blob_container_name'))]",
+      "apiVersion": "2022-05-01",
+      "name": "[format('{0}/{1}/{2}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default', 'authdata')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
-        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1])]"
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]"
       ]
     },
     {
       "type": "Microsoft.Storage/storageAccounts/fileServices",
-      "apiVersion": "2021-04-01",
-      "name": "[format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "apiVersion": "2022-05-01",
+      "name": "[format('{0}/{1}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]",
       "properties": {},
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
@@ -351,39 +323,37 @@
     },
     {
       "type": "Microsoft.Storage/storageAccounts/queueServices",
-      "apiVersion": "2021-04-01",
-      "name": "[format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "apiVersion": "2022-05-01",
+      "name": "[format('{0}/{1}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]",
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
-      "apiVersion": "2021-04-01",
-      "name": "[format('{0}/{1}/{2}', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1], 'import-data')]",
+      "apiVersion": "2022-05-01",
+      "name": "[format('{0}/{1}/{2}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default', 'import-data')]",
       "properties": {
         "metadata": {}
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts/queueServices', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1])]",
-        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+        "[resourceId('Microsoft.Storage/storageAccounts/queueServices', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]"
       ]
     },
     {
       "type": "Microsoft.Storage/storageAccounts/tableServices",
-      "apiVersion": "2021-02-01",
-      "name": "[format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "apiVersion": "2022-05-01",
+      "name": "[format('{0}/{1}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]",
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
-      "apiVersion": "2021-02-01",
-      "name": "[format('{0}/{1}/{2}', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1], 'users')]",
+      "apiVersion": "2022-05-01",
+      "name": "[format('{0}/{1}/{2}', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default', 'users')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts/tableServices', split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[0], split(format('{0}/default', replace(format('sa-{0}', parameters('basename')), '-', '')), '/')[1])]",
-        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+        "[resourceId('Microsoft.Storage/storageAccounts/tableServices', replace(format('sa-{0}', parameters('basename')), '-', ''), 'default')]"
       ]
     },
     {
@@ -413,7 +383,7 @@
     },
     {
       "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2020-10-01",
+      "apiVersion": "2022-03-01",
       "name": "[format('app-plan-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "sku": {
@@ -437,7 +407,7 @@
     },
     {
       "type": "Microsoft.Web/sites",
-      "apiVersion": "2020-06-01",
+      "apiVersion": "2022-03-01",
       "name": "[format('authorize-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "kind": "functionapp",
@@ -467,41 +437,42 @@
     },
     {
       "type": "Microsoft.Web/sites/config",
-      "apiVersion": "2015-08-01",
+      "apiVersion": "2022-03-01",
       "name": "[format('{0}/{1}', format('authorize-{0}', parameters('basename')), 'appsettings')]",
-      "location": "[parameters('location')]",
       "properties": {
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/Authorization/FitOnFhir.Authorization/Microsoft.Health.FitOnFhir.Authorization.csproj",
-        "AzureWebJobsStorage": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
-        "AzureConfiguration__StorageAccountConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
+        "AzureWebJobsStorage__accountName": "[replace(format('sa-{0}', parameters('basename')), '-', '')]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
-        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
-        "WEBSITE_CONTENTSHARE": "[format('authorize-{0}-{1}', parameters('basename'), take(uniqueString('authorize-', parameters('basename')), 4))]",
         "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
         "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')).secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
-        "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]",
-        "AzureConfiguration__BlobContainerName": "[parameters('authentication_blob_container_name')]",
+        "AzureConfiguration__FunctionPrincipalId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]",
+        "AzureConfiguration__BlobServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.blob]",
+        "AzureConfiguration__TableServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.table]",
+        "AzureConfiguration__QueueServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.queue]",
+        "AzureConfiguration__VaultUri": "[reference(resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))).vaultUri]",
         "AuthenticationConfiguration__IsAnonymousLoginEnabled": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), 'true', 'false')]",
         "AuthenticationConfiguration__IdentityProviders": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), '', parameters('authentication_identity_providers'))]",
         "AuthenticationConfiguration__Audience": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), '', parameters('authentication_audience'))]",
         "AuthenticationConfiguration__RedirectUrls": "[parameters('authentication_redirect_urls')]",
-        "FhirService__Url": "[variables('fhirServiceUrl')]",
+        "FhirService__Url": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))).authenticationConfiguration.audience]",
         "FhirClient__UseManagedIdentity": "true"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')]"
+        "[resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.Web/sites/sourcecontrols",
-      "apiVersion": "2021-03-01",
+      "apiVersion": "2022-03-01",
       "name": "[format('{0}/{1}', format('authorize-{0}', parameters('basename')), 'web')]",
       "properties": {
         "repoUrl": "[parameters('repository_url')]",
@@ -515,7 +486,7 @@
     },
     {
       "type": "Microsoft.Web/sites",
-      "apiVersion": "2020-06-01",
+      "apiVersion": "2022-03-01",
       "name": "[format('import-timer-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "kind": "functionapp",
@@ -540,30 +511,30 @@
     },
     {
       "type": "Microsoft.Web/sites/config",
-      "apiVersion": "2015-08-01",
+      "apiVersion": "2022-03-01",
       "name": "[format('{0}/{1}', format('import-timer-{0}', parameters('basename')), 'appsettings')]",
-      "location": "[parameters('location')]",
       "properties": {
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/Microsoft.Health.FitOnFhir.ImportTimerTrigger.csproj",
-        "AzureWebJobsStorage": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
-        "AzureConfiguration__StorageAccountConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
+        "AzureWebJobsStorage__accountName": "[replace(format('sa-{0}', parameters('basename')), '-', '')]",
+        "AzureConfiguration__FunctionPrincipalId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]",
+        "AzureConfiguration__TableServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.table]",
+        "AzureConfiguration__QueueServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.queue]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
-        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
-        "WEBSITE_CONTENTSHARE": "[format('import-timer-{0}-{1}', parameters('basename'), take(uniqueString('import-timer-', parameters('basename')), 4))]",
         "SCHEDULE": "0 0 * * * *"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')]"
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.Web/sites/sourcecontrols",
-      "apiVersion": "2021-03-01",
+      "apiVersion": "2022-03-01",
       "name": "[format('{0}/{1}', format('import-timer-{0}', parameters('basename')), 'web')]",
       "properties": {
         "repoUrl": "[parameters('repository_url')]",
@@ -577,7 +548,7 @@
     },
     {
       "type": "Microsoft.Web/sites",
-      "apiVersion": "2020-06-01",
+      "apiVersion": "2022-03-01",
       "name": "[format('import-data-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "kind": "functionapp",
@@ -602,40 +573,44 @@
     },
     {
       "type": "Microsoft.Web/sites/config",
-      "apiVersion": "2015-08-01",
+      "apiVersion": "2022-03-01",
       "name": "[format('{0}/{1}', format('import-data-{0}', parameters('basename')), 'appsettings')]",
-      "location": "[parameters('location')]",
       "properties": {
         "FUNCTIONS_EXTENSION_VERSION": "~4",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         "PROJECT": "src/Import/FitOnFhir.Import/Microsoft.Health.FitOnFhir.Import.csproj",
-        "AzureWebJobsStorage": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
-        "AzureConfiguration__StorageAccountConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
+        "AzureWebJobsStorage__accountName": "[replace(format('sa-{0}', parameters('basename')), '-', '')]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))).ConnectionString]",
-        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
-        "WEBSITE_CONTENTSHARE": "[format('import-data-{0}-{1}', parameters('basename'), take(uniqueString('import-data-', parameters('basename')), 4))]",
-        "AzureConfiguration__EventHubConnectionString": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'eventhub-connection-string')).secretUriWithVersion)]",
+        "AzureConfiguration__FunctionPrincipalId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]",
+        "AzureConfiguration__BlobServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.blob]",
+        "AzureConfiguration__TableServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.table]",
+        "AzureConfiguration__QueueServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.queue]",
+        "AzureConfiguration__EventHubFullyQualifiedNamespace": "[reference(resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))).serviceBusEndpoint]",
+        "AzureConfiguration__EventHubName": "ingest",
+        "AzureConfiguration__VaultUri": "[reference(resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))).vaultUri]",
         "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
         "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')).secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
         "GoogleFitDataImporterConfiguration__DatasetRequestLimit": "[parameters('google_dataset_request_limit')]",
         "GoogleFitDataImporterConfiguration__MaxConcurrency": "[parameters('google_max_concurrency')]",
         "GoogleFitDataImporterConfiguration__MaxRequestsPerMinute": "[parameters('google_max_requests_per_minute')]",
-        "GoogleFitDataImporterConfiguration__HistoricalImportTimeSpan": "[parameters('google_historical_import_time_span')]",
-        "AzureConfiguration__UsersKeyVaultUri": "[format('https://kv-{0}{1}', parameters('basename'), environment().suffixes.keyvaultDns)]"
+        "GoogleFitDataImporterConfiguration__HistoricalImportTimeSpan": "[parameters('google_historical_import_time_span')]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]",
         "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'eventhub-connection-string')]",
         "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')]",
-        "[resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')]"
+        "[resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.Web/sites/sourcecontrols",
-      "apiVersion": "2021-03-01",
+      "apiVersion": "2022-03-01",
       "name": "[format('{0}/{1}', format('import-data-{0}', parameters('basename')), 'web')]",
       "properties": {
         "repoUrl": "[parameters('repository_url')]",
@@ -649,7 +624,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces",
-      "apiVersion": "2021-01-01-preview",
+      "apiVersion": "2021-11-01",
       "name": "[format('en-{0}', parameters('basename'))]",
       "location": "[parameters('location')]",
       "sku": {
@@ -666,7 +641,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs",
-      "apiVersion": "2021-01-01-preview",
+      "apiVersion": "2021-11-01",
       "name": "[format('{0}/{1}', format('en-{0}', parameters('basename')), 'ingest')]",
       "properties": {
         "messageRetentionInDays": 1,
@@ -678,7 +653,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
-      "apiVersion": "2021-01-01-preview",
+      "apiVersion": "2021-11-01",
       "name": "[format('{0}/{1}/{2}', format('en-{0}', parameters('basename')), 'ingest', '$Default')]",
       "dependsOn": [
         "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]"
@@ -686,7 +661,7 @@
     },
     {
       "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",
-      "apiVersion": "2021-01-01-preview",
+      "apiVersion": "2021-11-01",
       "name": "[format('{0}/{1}/{2}', format('en-{0}', parameters('basename')), 'ingest', 'FunctionSender')]",
       "properties": {
         "rights": [
@@ -699,35 +674,29 @@
     },
     {
       "type": "Microsoft.HealthcareApis/workspaces",
-      "apiVersion": "2021-06-01-preview",
+      "apiVersion": "2022-06-01",
       "name": "[replace(format('hw-{0}', parameters('basename')), '-', '')]",
       "location": "[parameters('location')]",
       "properties": {}
     },
     {
       "type": "Microsoft.HealthcareApis/workspaces/fhirservices",
-      "apiVersion": "2021-06-01-preview",
-      "name": "[format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
+      "apiVersion": "2022-06-01",
+      "name": "[format('{0}/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
       "location": "[parameters('location')]",
       "kind": "fhir-R4",
       "identity": {
         "type": "SystemAssigned"
       },
-      "properties": {
-        "authenticationConfiguration": {
-          "authority": "[format('{0}{1}', environment().authentication.loginEndpoint, subscription().tenantId)]",
-          "audience": "[variables('fhirServiceUrl')]",
-          "smartProxyEnabled": false
-        }
-      },
+      "properties": {},
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]"
       ]
     },
     {
       "type": "Microsoft.HealthcareApis/workspaces/iotconnectors",
-      "apiVersion": "2021-06-01-preview",
-      "name": "[format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
+      "apiVersion": "2022-06-01",
+      "name": "[format('{0}/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]",
       "location": "[parameters('location')]",
       "identity": {
         "type": "SystemAssigned"
@@ -900,55 +869,13 @@
       ]
     },
     {
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2020-08-01-preview",
-      "scope": "[format('Microsoft.HealthcareApis/workspaces/{0}/fhirservices/{1}', split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]",
-      "name": "[guid(format('{0}-FhirWriter', resourceGroup().id))]",
-      "properties": {
-        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('fhirWriterRoleId'))]",
-        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1]), '2021-06-01-preview', 'Full').identity.principalId]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]",
-        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]"
-      ]
-    },
-    {
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2020-08-01-preview",
-      "scope": "[format('Microsoft.HealthcareApis/workspaces/{0}/fhirservices/{1}', split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]",
-      "name": "[guid(format('{0}-AuthFhirWriter', resourceGroup().id))]",
-      "properties": {
-        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('fhirWriterRoleId'))]",
-        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'Full').identity.principalId]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
-        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]"
-      ]
-    },
-    {
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2020-08-01-preview",
-      "scope": "[format('Microsoft.EventHub/namespaces/{0}/eventhubs/{1}', format('en-{0}', parameters('basename')), 'ingest')]",
-      "name": "[guid(format('{0}-EventHubDataReceiver', resourceGroup().id))]",
-      "properties": {
-        "roleDefinitionId": "[format('{0}/providers/Microsoft.Authorization/roleDefinitions/{1}', subscription().id, variables('eventHubReceiverRoleId'))]",
-        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1]), '2021-06-01-preview', 'Full').identity.principalId]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]",
-        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]"
-      ]
-    },
-    {
       "type": "Microsoft.HealthcareApis/workspaces/iotconnectors/fhirdestinations",
-      "apiVersion": "2021-06-01-preview",
-      "name": "[format('{0}/{1}/{2}', split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1], format('hd-{0}', parameters('basename')))]",
+      "apiVersion": "2022-06-01",
+      "name": "[format('{0}/{1}/{2}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')), format('hd-{0}', parameters('basename')))]",
       "location": "[parameters('location')]",
       "properties": {
         "resourceIdentityResolutionType": "Create",
-        "fhirServiceResourceId": "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]",
+        "fhirServiceResourceId": "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
         "fhirMapping": {
           "content": {
             "templateType": "CollectionFhir",
@@ -1115,9 +1042,191 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]",
-        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/fs-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]",
-        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[0], split(format('{0}/hi-{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename')), '/')[1])]"
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.HealthcareApis/workspaces/{0}/fhirservices/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+      "name": "[guid(variables('fhir_data_writer'), resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename'))))]",
+      "properties": {
+        "roleDefinitionId": "[variables('fhir_data_writer')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "name": "[guid(variables('storage_table_data_contributor'), resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
+      "properties": {
+        "roleDefinitionId": "[variables('storage_table_data_contributor')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "name": "[guid(variables('storage_blob_data_owner'), resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
+      "properties": {
+        "roleDefinitionId": "[variables('storage_blob_data_owner')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "name": "[guid(variables('storage_queue_data_message_sender'), resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
+      "properties": {
+        "roleDefinitionId": "[variables('storage_queue_data_message_sender')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "name": "[guid(variables('storage_table_data_contributor'), resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
+      "properties": {
+        "roleDefinitionId": "[variables('storage_table_data_contributor')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "name": "[guid(variables('storage_blob_data_owner'), resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
+      "properties": {
+        "roleDefinitionId": "[variables('storage_blob_data_owner')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "name": "[guid(variables('storage_queue_data_message_sender'), resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
+      "properties": {
+        "roleDefinitionId": "[variables('storage_queue_data_message_sender')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.EventHub/namespaces/{0}/eventhubs/{1}', format('en-{0}', parameters('basename')), 'ingest')]",
+      "name": "[guid(variables('event_hubs_data_sender'), resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest'))]",
+      "properties": {
+        "roleDefinitionId": "[variables('event_hubs_data_sender')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]",
+        "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "name": "[guid(variables('storage_table_data_contributor'), resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
+      "properties": {
+        "roleDefinitionId": "[variables('storage_table_data_contributor')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "name": "[guid(variables('storage_blob_data_owner'), resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
+      "properties": {
+        "roleDefinitionId": "[variables('storage_blob_data_owner')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
+      "name": "[guid(variables('storage_queue_data_message_processor'), resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
+      "properties": {
+        "roleDefinitionId": "[variables('storage_queue_data_message_processor')]",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('import-data-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.HealthcareApis/workspaces/{0}/fhirservices/{1}', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+      "name": "[guid(variables('fhir_data_writer'), resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename'))))]",
+      "properties": {
+        "roleDefinitionId": "[variables('fhir_data_writer')]",
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2022-06-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.EventHub/namespaces/{0}/eventhubs/{1}', format('en-{0}', parameters('basename')), 'ingest')]",
+      "name": "[guid(variables('event_hubs_data_receiver'), resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest'))]",
+      "properties": {
+        "roleDefinitionId": "[variables('event_hubs_data_receiver')]",
+        "principalId": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename'))), '2022-06-01', 'full').identity.principalId]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', format('en-{0}', parameters('basename')), 'ingest')]",
+        "[resourceId('Microsoft.HealthcareApis/workspaces/iotconnectors', replace(format('hw-{0}', parameters('basename')), '-', ''), format('hi-{0}', parameters('basename')))]"
       ]
     }
   ],

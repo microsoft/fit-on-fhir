@@ -22,7 +22,12 @@ namespace Microsoft.Health.FitOnFhir.Common
         /// <summary>
         /// The name of the Azure storage queue
         /// </summary>
-        public const string QueueName = "import-data";
+        public const string ImportDataQueueName = "import-data";
+
+        /// <summary>
+        /// The name of a blob container for auth data
+        /// </summary>
+        public const string AuthDataBlobContainerName = "authdata";
 
         /// <summary>
         /// Query parameter name for patient identifier in an external system.

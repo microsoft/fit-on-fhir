@@ -7,7 +7,7 @@ using Azure.Messaging.EventHubs.Producer;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Common.Service;
-using Microsoft.Health.FitOnFhir.Common.Config;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 using Microsoft.Health.FitOnFhir.Common.Requests;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Config;
@@ -28,8 +28,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
 
         public GoogleFitImportService(
             IGoogleFitClient googleFitClient,
-            AzureConfiguration azureConfiguration,
-            EventHubProducerClient eventHubProducerClient,
+            IEventHubProducerClientProvider eventHubProducerClientProvider,
             GoogleFitImportOptions options,
             Func<DateTimeOffset> utcNowFunc,
             ILogger<GoogleFitImportService> logger,
@@ -37,16 +36,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Services
             : base(options, options?.ParallelTaskOptions?.MaxConcurrency ?? 1)
         {
             _googleFitClient = EnsureArg.IsNotNull(googleFitClient, nameof(googleFitClient));
-            if (eventHubProducerClient == null)
-            {
-                var connectionString = EnsureArg.IsNotNullOrWhiteSpace(azureConfiguration?.EventHubConnectionString, nameof(azureConfiguration.EventHubConnectionString));
-                _eventHubProducerClient = new EventHubProducerClient(connectionString);
-            }
-            else
-            {
-                _eventHubProducerClient = eventHubProducerClient;
-            }
-
+            _eventHubProducerClient = EnsureArg.IsNotNull(eventHubProducerClientProvider, nameof(eventHubProducerClientProvider)).GetEventHubProducerClient();
             _options = EnsureArg.IsNotNull(options, nameof(options));
             _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
