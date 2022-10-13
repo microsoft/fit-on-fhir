@@ -1,14 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="10.1.0" />
-    <PackageReference Include="Google.Apis.Fitness.v1" Version="1.56.0.2454" />
+    <PackageReference Include="Google.Apis.Fitness.v1" Version="1.57.0.2454" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Health.Common" Version="1.0.0-20220906.2" />
-    <PackageReference Include="Microsoft.Health.Logging" Version="1.0.0-20220906.2" />
-    <PackageReference Include="Microsoft.Health.Fhir.Ingest.Template.Generator" Version="1.0.0-20220906.2" />
+    <PackageReference Include="Microsoft.Health.Common" Version="1.0.0-20220921.1" />
+    <PackageReference Include="Microsoft.Health.Logging" Version="1.0.0-20220921.1" />
+    <PackageReference Include="Microsoft.Health.Fhir.Ingest.Template.Generator" Version="1.0.0-20220921.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\GoogleFit\FitOnFhir.GoogleFit\Microsoft.Health.FitOnFhir.GoogleFit.csproj" />
