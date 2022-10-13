@@ -32,21 +32,11 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
         /// <inheritdoc/>
         public async Task SendQueueMessage(string userId, string platformUserId, string platformName, CancellationToken cancellationToken)
         {
-            await InitQueue();
-
             _logger.LogInformation("Adding user [{0}] to queue [{1}] for platform [{2}]", userId, Constants.ImportDataQueueName, platformName);
             var queueMessage = new QueueMessage(userId, platformUserId, platformName);
             var response = await _queueClient.SendMessageAsync(JsonConvert.SerializeObject(queueMessage), cancellationToken);
             var rawResponse = response.GetRawResponse();
             _logger.LogDebug("Response from message send: status '{0}', reason'{1}'", rawResponse.Status, rawResponse.ReasonPhrase);
-        }
-
-        private async Task InitQueue()
-        {
-            if (await _queueClient.CreateIfNotExistsAsync() != null)
-            {
-                _logger.LogInformation("Queue {0} created", Constants.ImportDataQueueName);
-            }
         }
     }
 }

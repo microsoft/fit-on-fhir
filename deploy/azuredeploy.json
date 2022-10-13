@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.11.1.770",
-      "templateHash": "2093625114022734447"
+      "templateHash": "14455992586852497616"
     }
   },
   "parameters": {
@@ -428,7 +428,8 @@
         "siteConfig": {
           "cors": {
             "allowedOrigins": "[parameters('authorize_allowed_origins')]"
-          }
+          },
+          "use32BitWorkerProcess": false
         }
       },
       "dependsOn": [
@@ -503,7 +504,10 @@
         "clientCertEnabled": false,
         "hostNamesDisabled": false,
         "containerSize": 1536,
-        "dailyMemoryTimeQuota": 0
+        "dailyMemoryTimeQuota": 0,
+        "siteConfig": {
+          "use32BitWorkerProcess": false
+        }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]"
@@ -565,7 +569,10 @@
         "clientCertEnabled": false,
         "hostNamesDisabled": false,
         "containerSize": 1536,
-        "dailyMemoryTimeQuota": 0
+        "dailyMemoryTimeQuota": 0,
+        "siteConfig": {
+          "use32BitWorkerProcess": false
+        }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', format('app-plan-{0}', parameters('basename')))]"
@@ -688,7 +695,13 @@
       "identity": {
         "type": "SystemAssigned"
       },
-      "properties": {},
+      "properties": {
+        "authenticationConfiguration": {
+          "authority": "[format('{0}{1}', environment().authentication.loginEndpoint, subscription().tenantId)]",
+          "audience": "[format('https://{0}-fs-{1}.fhir.azurehealthcareapis.com', replace(format('hw-{0}', parameters('basename')), '-', ''), parameters('basename'))]",
+          "smartProxyEnabled": false
+        }
+      },
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces', replace(format('hw-{0}', parameters('basename')), '-', ''))]"
       ]
@@ -1134,13 +1147,12 @@
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
       "scope": "[format('Microsoft.Storage/storageAccounts/{0}', replace(format('sa-{0}', parameters('basename')), '-', ''))]",
-      "name": "[guid(variables('storage_queue_data_message_sender'), resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
+      "name": "[guid(variables('storage_queue_data_message_sender'), resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')))]",
       "properties": {
         "roleDefinitionId": "[variables('storage_queue_data_message_sender')]",
         "principalId": "[reference(resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename'))), '2022-03-01', 'full').identity.principalId]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', format('authorize-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Web/sites', format('import-timer-{0}', parameters('basename')))]",
         "[resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))]"
       ]

@@ -315,6 +315,7 @@ resource authorize_basename 'Microsoft.Web/sites@2022-03-01' = {
       cors: {
         allowedOrigins: authorize_allowed_origins
       }
+      use32BitWorkerProcess: false
     }
   }
 }
@@ -377,6 +378,9 @@ resource import_timer_basename 'Microsoft.Web/sites@2022-03-01' = {
     hostNamesDisabled: false
     containerSize: 1536
     dailyMemoryTimeQuota: 0
+    siteConfig: {
+      use32BitWorkerProcess: false
+    }
   }
 }
 
@@ -428,6 +432,9 @@ resource import_data_basename 'Microsoft.Web/sites@2022-03-01' = {
     hostNamesDisabled: false
     containerSize: 1536
     dailyMemoryTimeQuota: 0
+    siteConfig: {
+      use32BitWorkerProcess: false
+    }
   }
 }
 
@@ -525,7 +532,13 @@ resource hw_basename_fs_basename 'Microsoft.HealthcareApis/workspaces/fhirservic
   identity: {
     type: 'SystemAssigned'
   }
-  properties: {}
+  properties: {
+    authenticationConfiguration: {
+      authority: '${environment().authentication.loginEndpoint}${subscription().tenantId}'
+      audience: 'https://${replace('hw-${basename}', '-', '')}-fs-${basename}.fhir.azurehealthcareapis.com'
+      smartProxyEnabled: false
+    }
+  }
 }
 
 resource hw_basename_hi_basename 'Microsoft.HealthcareApis/workspaces/iotconnectors@2022-06-01' = {
@@ -932,7 +945,7 @@ resource import_timer_storage_blob_data_owner 'Microsoft.Authorization/roleAssig
 
 resource import_timer_storage_queue_data_message_sender 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: sa_basename
-  name: guid(storage_queue_data_message_sender, authorize_basename.id, sa_basename.id)
+  name: guid(storage_queue_data_message_sender, import_timer_basename.id, sa_basename.id)
   properties: {
     roleDefinitionId: storage_queue_data_message_sender
     principalId: import_timer_basename.identity.principalId
