@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Health.Common" Version="1.0.0-20220921.1" />
     <PackageReference Include="Microsoft.Health.Extensions.Fhir.R4" Version="1.0.0-20220921.1" />
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.2.0" />
