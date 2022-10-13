@@ -19,7 +19,6 @@
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.1" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.23.1" />
     <PackageReference Include="Microsoft.IdentityModel.Logging" Version="6.23.1" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols" Version="6.23.1" />
