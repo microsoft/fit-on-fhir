@@ -41,7 +41,7 @@ param authentication_identity_providers string = ''
 param authentication_audience string = ''
 
 @description('The Google Fit data authorization scopes allowed for users of this service (see https://developers.google.com/fit/datatypes#authorization_scopes for more info)')
-param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read'
+param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/fitness.activity.read,https://www.googleapis.com/auth/fitness.sleep.read,https://www.googleapis.com/auth/fitness.reproductive_health.read,https://www.googleapis.com/auth/fitness.oxygen_saturation.read,https://www.googleapis.com/auth/fitness.nutrition.read,https://www.googleapis.com/auth/fitness.location.read,https://www.googleapis.com/auth/fitness.body_temperature.read,https://www.googleapis.com/auth/fitness.body.read,https://www.googleapis.com/auth/fitness.blood_pressure.read,https://www.googleapis.com/auth/fitness.blood_glucose.read,https://www.googleapis.com/auth/fitness.heart_rate.read'
 
 @description('A comma delimited list of approved redirect URLs that can be navigated to when authentication completes successfully.')
 param authentication_redirect_urls string
@@ -54,6 +54,7 @@ var event_hubs_data_receiver = resourceId('Microsoft.Authorization/roleDefinitio
 var event_hubs_data_sender = resourceId('Microsoft.Authorization/roleDefinitions', '2b629674-e913-4c01-ae53-ef4638d8f975')
 var storage_table_data_contributor = resourceId('Microsoft.Authorization/roleDefinitions', '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3')
 var storage_blob_data_owner = resourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')
+var storage_queue_data_contributor = resourceId('Microsoft.Authorization/roleDefinitions', '974c5e8b-45b9-4653-ba55-5f855dd0fb88')
 var storage_queue_data_message_sender = resourceId('Microsoft.Authorization/roleDefinitions', 'c6a89b2d-59bc-44d0-9896-0f6e12d7b80a')
 var storage_queue_data_message_processor = resourceId('Microsoft.Authorization/roleDefinitions', '8a0f0c08-91a1-4084-bc3d-661d67233fed')
 
@@ -103,6 +104,14 @@ resource kv_resource 'Microsoft.KeyVault/vaults@2022-07-01' = {
     tenantId: subscription().tenantId
     enableSoftDelete: true
     softDeleteRetentionInDays: 30
+  }
+}
+
+resource kv_storage_account_connection_string 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  parent: kv_resource
+  name: 'storage-account-connection-string'
+  properties: {
+    value: 'DefaultEndpointsProtocol=https;AccountName=${sa_basename.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${sa_basename.listKeys().keys[0].value}'
   }
 }
 
@@ -315,6 +324,7 @@ resource authorize_basename 'Microsoft.Web/sites@2022-03-01' = {
       cors: {
         allowedOrigins: authorize_allowed_origins
       }
+      netFrameworkVersion: 'v6.0'
       use32BitWorkerProcess: false
     }
   }
@@ -330,10 +340,11 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2022-03-01' 
     AzureWebJobsStorage__accountName: sa_basename.name
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(kv_storage_account_connection_string.id).secretUriWithVersion})'
+    WEBSITE_CONTENTSHARE: '${authorize_basename.name}-${take(uniqueString(authorize_basename.name), 4)}'
     GoogleFitAuthorizationConfiguration__ClientId: google_client_id
     GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(kv_google_client_secret.id).secretUriWithVersion})'
 	  GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
-    AzureConfiguration__FunctionPrincipalId: authorize_basename.identity.principalId
     AzureConfiguration__BlobServiceUri: sa_basename.properties.primaryEndpoints.blob
     AzureConfiguration__TableServiceUri: sa_basename.properties.primaryEndpoints.table
     AzureConfiguration__QueueServiceUri: sa_basename.properties.primaryEndpoints.queue
@@ -379,6 +390,7 @@ resource import_timer_basename 'Microsoft.Web/sites@2022-03-01' = {
     containerSize: 1536
     dailyMemoryTimeQuota: 0
     siteConfig: {
+      netFrameworkVersion: 'v6.0'
       use32BitWorkerProcess: false
     }
   }
@@ -392,11 +404,12 @@ resource import_timer_basename_appsettings 'Microsoft.Web/sites/config@2022-03-0
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/ImportTimerTrigger/FitOnFhir.ImportTimerTrigger/Microsoft.Health.FitOnFhir.ImportTimerTrigger.csproj'
     AzureWebJobsStorage__accountName: sa_basename.name
-    AzureConfiguration__FunctionPrincipalId: authorize_basename.identity.principalId
-    AzureConfiguration__TableServiceUri: sa_basename.properties.primaryEndpoints.table
-    AzureConfiguration__QueueServiceUri: sa_basename.properties.primaryEndpoints.queue
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(kv_storage_account_connection_string.id).secretUriWithVersion})'
+    WEBSITE_CONTENTSHARE: '${import_timer_basename.name}-${take(uniqueString(import_timer_basename.name), 4)}'
+    AzureConfiguration__TableServiceUri: sa_basename.properties.primaryEndpoints.table
+    AzureConfiguration__QueueServiceUri: sa_basename.properties.primaryEndpoints.queue
     SCHEDULE: '0 0 * * * *'
   }
 }
@@ -433,6 +446,7 @@ resource import_data_basename 'Microsoft.Web/sites@2022-03-01' = {
     containerSize: 1536
     dailyMemoryTimeQuota: 0
     siteConfig: {
+      netFrameworkVersion: 'v6.0'
       use32BitWorkerProcess: false
     }
   }
@@ -446,9 +460,11 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2022-03-01
     FUNCTIONS_WORKER_RUNTIME: 'dotnet'
     PROJECT: 'src/Import/FitOnFhir.Import/Microsoft.Health.FitOnFhir.Import.csproj'
     AzureWebJobsStorage__accountName: sa_basename.name
+    AzureWebJobsStorage__queueServiceUri: sa_basename.properties.primaryEndpoints.queue
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
-    AzureConfiguration__FunctionPrincipalId: authorize_basename.identity.principalId
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(kv_storage_account_connection_string.id).secretUriWithVersion})'
+    WEBSITE_CONTENTSHARE: '${import_data_basename.name}-${take(uniqueString(import_data_basename.name), 4)}'
     AzureConfiguration__BlobServiceUri: sa_basename.properties.primaryEndpoints.blob
     AzureConfiguration__TableServiceUri: sa_basename.properties.primaryEndpoints.table
     AzureConfiguration__QueueServiceUri: sa_basename.properties.primaryEndpoints.queue
@@ -896,6 +912,9 @@ resource authorize_fhir_data_writer 'Microsoft.Authorization/roleAssignments@202
     roleDefinitionId: fhir_data_writer
     principalId: authorize_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource authorize_storage_table_data_contributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -905,6 +924,9 @@ resource authorize_storage_table_data_contributor 'Microsoft.Authorization/roleA
     roleDefinitionId: storage_table_data_contributor
     principalId: authorize_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource authorize_storage_blob_data_owner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -914,6 +936,9 @@ resource authorize_storage_blob_data_owner 'Microsoft.Authorization/roleAssignme
     roleDefinitionId: storage_blob_data_owner
     principalId: authorize_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource authorize_storage_queue_data_message_sender 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -923,6 +948,9 @@ resource authorize_storage_queue_data_message_sender 'Microsoft.Authorization/ro
     roleDefinitionId: storage_queue_data_message_sender
     principalId: authorize_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource import_timer_storage_table_data_contributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -932,6 +960,9 @@ resource import_timer_storage_table_data_contributor 'Microsoft.Authorization/ro
     roleDefinitionId: storage_table_data_contributor
     principalId: import_timer_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource import_timer_storage_blob_data_owner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -941,6 +972,9 @@ resource import_timer_storage_blob_data_owner 'Microsoft.Authorization/roleAssig
     roleDefinitionId: storage_blob_data_owner
     principalId: import_timer_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource import_timer_storage_queue_data_message_sender 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -950,6 +984,9 @@ resource import_timer_storage_queue_data_message_sender 'Microsoft.Authorization
     roleDefinitionId: storage_queue_data_message_sender
     principalId: import_timer_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource import_data_event_hubs_data_sender 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -959,6 +996,9 @@ resource import_data_event_hubs_data_sender 'Microsoft.Authorization/roleAssignm
     roleDefinitionId: event_hubs_data_sender
     principalId: import_data_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource import_data_storage_table_data_contributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -968,6 +1008,9 @@ resource import_data_storage_table_data_contributor 'Microsoft.Authorization/rol
     roleDefinitionId: storage_table_data_contributor
     principalId: import_data_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource import_data_storage_blob_data_owner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -977,6 +1020,21 @@ resource import_data_storage_blob_data_owner 'Microsoft.Authorization/roleAssign
     roleDefinitionId: storage_blob_data_owner
     principalId: import_data_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
+}
+
+resource import_data_storage_queue_data_contributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: sa_basename
+  name: guid(storage_queue_data_contributor, import_data_basename.id, sa_basename.id)
+  properties: {
+    roleDefinitionId: storage_queue_data_contributor
+    principalId: import_data_basename.identity.principalId
+  }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource import_data_storage_queue_data_message_processor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -986,6 +1044,9 @@ resource import_data_storage_queue_data_message_processor 'Microsoft.Authorizati
     roleDefinitionId: storage_queue_data_message_processor
     principalId: import_data_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource hw_basename_hi_basename_fhir_data_writer 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -995,6 +1056,9 @@ resource hw_basename_hi_basename_fhir_data_writer 'Microsoft.Authorization/roleA
     roleDefinitionId: fhir_data_writer
     principalId: hw_basename_hi_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 resource hw_basename_hi_basename_event_hubs_data_receiver 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -1004,6 +1068,9 @@ resource hw_basename_hi_basename_event_hubs_data_receiver 'Microsoft.Authorizati
     roleDefinitionId: event_hubs_data_receiver
     principalId: hw_basename_hi_basename.identity.principalId
   }
+  dependsOn: [
+    hw_basename_hi_basename_hd_basename
+  ]
 }
 
 output authorizeAppName string = 'authorize-${basename}'

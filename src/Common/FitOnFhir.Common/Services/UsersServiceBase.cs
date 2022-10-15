@@ -68,7 +68,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                 // 3. A required identifier is not included in the Patient, so the identifierToAdd must be added.
                 // This ensures that both identifiers are included in the Patient Resource.
                 patient.Identifier.Add(identifierToAdd);
-                await _resourceManagementService.FhirService.UpdateResourceAsync(patient, cancellationToken: cancellationToken);
+                await _resourceManagementService.FhirService.UpdateResourceAsync(patient, ifMatchVersion: $"W/\"{patient.Meta.VersionId}\"", cancellationToken: cancellationToken);
             }
 
             // Check to see if the user exists in the repository.
