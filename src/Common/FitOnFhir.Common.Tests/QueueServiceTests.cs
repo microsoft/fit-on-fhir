@@ -49,44 +49,6 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         protected string ExpectedMessageText => JsonConvert.SerializeObject(new QueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName));
 
         [Fact]
-        public async Task GivenQueueExists_WhenInitQueueCalled_NoQueueIsCreated()
-        {
-            string loggerMsg = "Queue import-data created";
-            _queueClient.CreateIfNotExistsAsync().ReturnsNull();
-
-            await _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None);
-
-            _queueServiceLogger.DidNotReceive().Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Information),
-                Arg.Is<string>(msg => msg == loggerMsg));
-
-            await _queueClient.Received(1).CreateIfNotExistsAsync();
-        }
-
-        [Fact]
-        public async Task GivenQueueDoesNotExist_WhenInitQueueCalled_QueueIsCreated()
-        {
-            string loggerMsg = "Queue import-data created";
-            _queueClient.CreateIfNotExistsAsync().Returns(Substitute.For<Response>());
-
-            await _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None);
-
-            _queueServiceLogger.Received(1).Log(
-                Arg.Is<LogLevel>(lvl => lvl == LogLevel.Information),
-                Arg.Is<string>(msg => msg == loggerMsg));
-
-            await _queueClient.Received(1).CreateIfNotExistsAsync();
-        }
-
-        [Fact]
-        public async Task GivenCreateIfNotExistsAsyncThrowsRequestFailedException_WhenInitQueueCalled_ExceptionThrown()
-        {
-            _queueClient.CreateIfNotExistsAsync().Throws(new InvalidDataException());
-
-            await Assert.ThrowsAsync<InvalidDataException>(() => _queueService.SendQueueMessage(ExpectedUserId, ExpectedPlatformUserId, ExpectedPlatformName, CancellationToken.None));
-        }
-
-        [Fact]
         public async Task GivenSendMessageAsyncThrowsException_WhenSendQueueMessageCalled_ExceptionIsCaughtAndLogged()
         {
             _queueClient.SendMessageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Throws(new UnauthorizedAccessException());
