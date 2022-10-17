@@ -350,8 +350,8 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2022-03-01' 
     AzureConfiguration__QueueServiceUri: sa_basename.properties.primaryEndpoints.queue
     AzureConfiguration__VaultUri: kv_resource.properties.vaultUri
 	  AuthenticationConfiguration__IsAnonymousLoginEnabled : (authentication_anonymous_login_enabled == true) ? 'true' : 'false'
-	  AuthenticationConfiguration__IdentityProviders: (authentication_anonymous_login_enabled == true) ? '' : authentication_identity_providers
-	  AuthenticationConfiguration__Audience: (authentication_anonymous_login_enabled == true) ? '' : authentication_audience
+	  AuthenticationConfiguration__IdentityProviders: authentication_identity_providers
+	  AuthenticationConfiguration__Audience: authentication_audience
 	  AuthenticationConfiguration__RedirectUrls: authentication_redirect_urls
     FhirService__Url: hw_basename_fs_basename.properties.authenticationConfiguration.audience
     FhirClient__UseManagedIdentity: 'true'
@@ -468,7 +468,7 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2022-03-01
     AzureConfiguration__BlobServiceUri: sa_basename.properties.primaryEndpoints.blob
     AzureConfiguration__TableServiceUri: sa_basename.properties.primaryEndpoints.table
     AzureConfiguration__QueueServiceUri: sa_basename.properties.primaryEndpoints.queue
-    AzureConfiguration__EventHubFullyQualifiedNamespace:en_basename.properties.serviceBusEndpoint
+    AzureConfiguration__EventHubFullyQualifiedNamespace: split(replace(en_basename.properties.serviceBusEndpoint, '//', ''), ':')[1]
     AzureConfiguration__EventHubName:en_basename_ingest.name
     AzureConfiguration__VaultUri: kv_resource.properties.vaultUri
     GoogleFitAuthorizationConfiguration__ClientId: google_client_id

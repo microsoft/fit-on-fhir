@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.11.1.770",
-      "templateHash": "11243079365409850424"
+      "templateHash": "8901730091467810630"
     }
   },
   "parameters": {
@@ -471,8 +471,8 @@
         "AzureConfiguration__QueueServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.queue]",
         "AzureConfiguration__VaultUri": "[reference(resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))).vaultUri]",
         "AuthenticationConfiguration__IsAnonymousLoginEnabled": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), 'true', 'false')]",
-        "AuthenticationConfiguration__IdentityProviders": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), '', parameters('authentication_identity_providers'))]",
-        "AuthenticationConfiguration__Audience": "[if(equals(parameters('authentication_anonymous_login_enabled'), true()), '', parameters('authentication_audience'))]",
+        "AuthenticationConfiguration__IdentityProviders": "[parameters('authentication_identity_providers')]",
+        "AuthenticationConfiguration__Audience": "[parameters('authentication_audience')]",
         "AuthenticationConfiguration__RedirectUrls": "[parameters('authentication_redirect_urls')]",
         "FhirService__Url": "[reference(resourceId('Microsoft.HealthcareApis/workspaces/fhirservices', replace(format('hw-{0}', parameters('basename')), '-', ''), format('fs-{0}', parameters('basename')))).authenticationConfiguration.audience]",
         "FhirClient__UseManagedIdentity": "true"
@@ -614,7 +614,7 @@
         "AzureConfiguration__BlobServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.blob]",
         "AzureConfiguration__TableServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.table]",
         "AzureConfiguration__QueueServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', ''))).primaryEndpoints.queue]",
-        "AzureConfiguration__EventHubFullyQualifiedNamespace": "[reference(resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))).serviceBusEndpoint]",
+        "AzureConfiguration__EventHubFullyQualifiedNamespace": "[split(replace(reference(resourceId('Microsoft.EventHub/namespaces', format('en-{0}', parameters('basename')))).serviceBusEndpoint, '//', ''), ':')[1]]",
         "AzureConfiguration__EventHubName": "ingest",
         "AzureConfiguration__VaultUri": "[reference(resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename')))).vaultUri]",
         "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
