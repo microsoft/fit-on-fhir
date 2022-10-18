@@ -71,7 +71,9 @@ stages:
             inputs:
               command: publish
               publishWebProjects: false
-              projects: '**/*.csproj'
+              projects: |
+                **/*.csproj
+                !**/*Test.csproj
               zipAfterPublish: true
               arguments: >
                 --configuration Release
