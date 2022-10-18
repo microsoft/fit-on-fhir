@@ -6,9 +6,9 @@
 using Azure.Storage.Queues;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.FitOnFhir.Common.Config;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.Common.Services
@@ -20,46 +20,23 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QueueService"/> class.
-        /// Creates a <see cref="QueueClient"/> from the <see cref="AzureConfiguration"/>.StorageAccountConnectionString and <see cref="Constants"/>.QueueName
         /// </summary>
-        /// <param name="azureConfiguration">The <see cref="AzureConfiguration"/>
-        /// which contains the environment variable value for the storage account connection string.</param>
-        /// <param name="queueClient">An optional <see cref="QueueClient"/> that may be passed in, primarily for testing purposes.</param>
+        /// <param name="queueClientProvider">an instance of <see cref="IQueueClientProvider"/></param>
         /// <param name="logger">An instance of a logger for this class.</param>
-        public QueueService(AzureConfiguration azureConfiguration, QueueClient queueClient, ILogger<QueueService> logger)
+        public QueueService(IQueueClientProvider queueClientProvider, ILogger<QueueService> logger)
         {
+            _queueClient = EnsureArg.IsNotNull(queueClientProvider, nameof(queueClientProvider)).GetQueueClient(Constants.ImportDataQueueName);
             _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-
-            if (queueClient == null)
-            {
-                var connectionString = EnsureArg.IsNotNullOrWhiteSpace(azureConfiguration?.StorageAccountConnectionString);
-                QueueClientOptions queueOptions = new () { MessageEncoding = QueueMessageEncoding.Base64 };
-                _queueClient = new QueueClient(connectionString, Constants.QueueName, queueOptions);
-            }
-            else
-            {
-                _queueClient = queueClient;
-            }
         }
 
         /// <inheritdoc/>
         public async Task SendQueueMessage(string userId, string platformUserId, string platformName, CancellationToken cancellationToken)
         {
-            await InitQueue();
-
-            _logger.LogInformation("Adding user [{0}] to queue [{1}] for platform [{2}]", userId, Constants.QueueName, platformName);
+            _logger.LogInformation("Adding user [{0}] to queue [{1}] for platform [{2}]", userId, Constants.ImportDataQueueName, platformName);
             var queueMessage = new QueueMessage(userId, platformUserId, platformName);
             var response = await _queueClient.SendMessageAsync(JsonConvert.SerializeObject(queueMessage), cancellationToken);
             var rawResponse = response.GetRawResponse();
             _logger.LogDebug("Response from message send: status '{0}', reason'{1}'", rawResponse.Status, rawResponse.ReasonPhrase);
-        }
-
-        private async Task InitQueue()
-        {
-            if (await _queueClient.CreateIfNotExistsAsync() != null)
-            {
-                _logger.LogInformation("Queue {0} created", Constants.QueueName);
-            }
         }
     }
 }

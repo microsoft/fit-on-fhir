@@ -80,7 +80,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             {
                 await _fhirService.Received(1).SearchForResourceAsync(ResourceType.Patient, $"identifier={ExpectedExternalSystem}|{ExpectedExternalPatientId}");
                 await _fhirService.Received(1).CreateResourceAsync(Arg.Is<Patient>(x => IsExpected(x, true, false)));
-                await _fhirService.Received(1).UpdateResourceAsync(Arg.Is<Patient>(x => IsExpected(x, true, true)), null, null, Arg.Any<CancellationToken>());
+                await _fhirService.Received(1).UpdateResourceAsync(Arg.Is<Patient>(x => IsExpected(x, true, true)), "W/\"1\"", null, Arg.Any<CancellationToken>());
                 await UsersTableRepository.Received(1).GetById(Arg.Any<string>(), Arg.Any<CancellationToken>());
                 await UsersTableRepository.Received(1).Insert(Arg.Is<User>(x => IsExpected(x, DataImportState.ReadyToImport)), Arg.Any<CancellationToken>());
                 await QueueService.Received(1).SendQueueMessage(Arg.Is<string>(x => x == ExpectedPatientId), Arg.Is<string>(x => x == ExpectedPlatformUserId), Arg.Is<string>(x => x == ExpectedPlatform), Arg.Any<CancellationToken>());
@@ -101,7 +101,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             Received.InOrder(async () =>
             {
                 await _fhirService.Received(1).SearchForResourceAsync(ResourceType.Patient, $"identifier={ExpectedExternalSystem}|{ExpectedExternalPatientId}");
-                await _fhirService.Received(1).UpdateResourceAsync(Arg.Is<Patient>(x => IsExpected(x, true, true)), null, null, Arg.Any<CancellationToken>());
+                await _fhirService.Received(1).UpdateResourceAsync(Arg.Is<Patient>(x => IsExpected(x, true, true)), "W/\"1\"", null, Arg.Any<CancellationToken>());
                 await UsersTableRepository.Received(1).GetById(Arg.Any<string>(), Arg.Any<CancellationToken>());
                 await UsersTableRepository.Received(1).Update(Arg.Is<User>(x => IsExpected(x, DataImportState.ReadyToImport)), Arg.Any<Func<User, User, User>>(), Arg.Any<CancellationToken>());
                 await QueueService.Received(1).SendQueueMessage(Arg.Is<string>(x => x == ExpectedPatientId), Arg.Is<string>(x => x == ExpectedPlatformUserId), Arg.Is<string>(x => x == ExpectedPlatform), Arg.Any<CancellationToken>());
@@ -117,7 +117,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             await ExecuteAuthorizationCallback();
 
             await _fhirService.DidNotReceive().CreateResourceAsync(Arg.Any<Patient>());
-            await _fhirService.DidNotReceive().UpdateResourceAsync(Arg.Any<Patient>(), null, null, Arg.Any<CancellationToken>());
+            await _fhirService.DidNotReceive().UpdateResourceAsync(Arg.Any<Patient>(), "W/\"1\"", null, Arg.Any<CancellationToken>());
             await UsersTableRepository.DidNotReceive().Insert(Arg.Any<User>(), Arg.Any<CancellationToken>());
 
             Received.InOrder(async () =>
@@ -138,7 +138,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             await ExecuteAuthorizationCallback();
 
             await _fhirService.DidNotReceive().CreateResourceAsync(Arg.Any<Patient>());
-            await _fhirService.DidNotReceive().UpdateResourceAsync(Arg.Any<Patient>(), null, null, Arg.Any<CancellationToken>());
+            await _fhirService.DidNotReceive().UpdateResourceAsync(Arg.Any<Patient>(), "W/\"1\"", null, Arg.Any<CancellationToken>());
             await UsersTableRepository.DidNotReceive().Insert(Arg.Any<User>(), Arg.Any<CancellationToken>());
 
             Received.InOrder(async () =>
@@ -154,6 +154,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         {
             patient = patient ?? new Patient();
             patient.Id = ExpectedPatientId;
+            patient.Meta = new Hl7.Fhir.Model.Meta() { VersionId = "1" };
 
             if (includePlatformIdentifier)
             {

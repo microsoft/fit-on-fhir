@@ -3,25 +3,25 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using EnsureThat;
 using Microsoft.Health.FitOnFhir.Common.Config;
 
 namespace Microsoft.Health.FitOnFhir.Common.Providers
 {
-    public class SecretClientProvider : ISecretClientProvider
+    public class SecretClientProvider : CredentialedProvider, ISecretClientProvider
     {
-        private readonly AzureConfiguration _configuration;
+        private readonly Uri _vaultUri;
 
-        public SecretClientProvider(AzureConfiguration configuration)
+        public SecretClientProvider(AzureConfiguration configuration, ITokenCredentialProvider tokenCredentialProvider)
+            : base(tokenCredentialProvider)
         {
-            _configuration = EnsureArg.IsNotNull(configuration, nameof(configuration));
+            _vaultUri = EnsureArg.IsNotNull(configuration?.VaultUri, nameof(configuration.VaultUri));
         }
 
         public SecretClient GetSecretClient()
         {
-            return new SecretClient(_configuration.UsersKeyVaultUri, new DefaultAzureCredential());
+            return new SecretClient(_vaultUri, GetTokenCredential());
         }
     }
 }

@@ -15,6 +15,7 @@ using Microsoft.Health.FitOnFhir.Common.Exceptions;
 using Microsoft.Health.FitOnFhir.Common.ExtensionMethods;
 using Microsoft.Health.FitOnFhir.Common.Interfaces;
 using Microsoft.Health.FitOnFhir.Common.Models;
+using Microsoft.Health.FitOnFhir.Common.Providers;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.FitOnFhir.Common.Services
@@ -23,33 +24,17 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
     {
         private string _base36Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         private BlobContainerClient _blobContainerClient;
-        private BlobServiceClient _blobServiceClient;
         private readonly AuthenticationConfiguration _authenticationConfiguration;
         private readonly IJwtSecurityTokenHandlerProvider _jwtSecurityTokenHandlerProvider;
         private readonly Func<DateTimeOffset> _utcNowFunc;
 
         public AuthStateService(
-            AzureConfiguration azureConfiguration,
             AuthenticationConfiguration authenticationConfiguration,
+            IBlobContainerClientProvider blobContainerClientProvider,
             IJwtSecurityTokenHandlerProvider jwtSecurityTokenHandlerProvider,
-            BlobServiceClient blobServiceClient,
             Func<DateTimeOffset> utcNowFunc)
         {
-            EnsureArg.IsNotNull(azureConfiguration, nameof(azureConfiguration));
-
-            if (blobServiceClient == null)
-            {
-                var connectionString = EnsureArg.IsNotNullOrWhiteSpace(
-                    azureConfiguration.StorageAccountConnectionString,
-                    nameof(azureConfiguration.StorageAccountConnectionString));
-                _blobServiceClient = new BlobServiceClient(connectionString);
-            }
-            else
-            {
-                _blobServiceClient = blobServiceClient;
-            }
-
-            _blobContainerClient = _blobServiceClient.GetBlobContainerClient(azureConfiguration.BlobContainerName);
+            _blobContainerClient = EnsureArg.IsNotNull(blobContainerClientProvider, nameof(blobContainerClientProvider)).GetBlobContainerClient(Constants.AuthDataBlobContainerName);
             _authenticationConfiguration = EnsureArg.IsNotNull(authenticationConfiguration, nameof(authenticationConfiguration));
             _jwtSecurityTokenHandlerProvider = EnsureArg.IsNotNull(jwtSecurityTokenHandlerProvider, nameof(jwtSecurityTokenHandlerProvider));
             _utcNowFunc = EnsureArg.IsNotNull(utcNowFunc);

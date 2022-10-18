@@ -40,6 +40,7 @@ namespace Microsoft.Health.FitOnFhir.Import
             builder.Services.AddSingleton<IGoogleFitClient, GoogleFitClient>();
             builder.Services.AddSingleton<ISecretClientProvider, SecretClientProvider>();
             builder.Services.AddSingleton<IUsersKeyVaultRepository, UsersKeyVaultRepository>();
+            builder.Services.AddSingleton<IEventHubProducerClientProvider, EventHubProducerClientProvider>();
             builder.Services.AddSingleton<IGoogleFitAuthService, GoogleFitAuthService>();
             builder.Services.AddSingleton<IGoogleFitUserTableRepository, GoogleFitUserTableRepository>();
             builder.Services.AddSingleton<IUsersService, UsersService>();

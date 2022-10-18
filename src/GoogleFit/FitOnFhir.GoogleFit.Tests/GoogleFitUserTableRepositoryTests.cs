@@ -23,7 +23,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
         public GoogleFitUserTableRepositoryTests()
         {
             _googleFitUserTableRepositoryLogger = Substitute.For<MockLogger<GoogleFitUserTableRepository>>();
-            TableRepository = new GoogleFitUserTableRepository(AzureConfig, TableClient, _googleFitUserTableRepositoryLogger);
+            TableRepository = new GoogleFitUserTableRepository(TableClientProvider, _googleFitUserTableRepositoryLogger);
 
             PartitionKey = GoogleFitConstants.GoogleFitPartitionKey;
             MergedEntityId = _mergedUserId;

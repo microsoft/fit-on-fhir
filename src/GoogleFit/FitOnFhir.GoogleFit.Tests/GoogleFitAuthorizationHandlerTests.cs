@@ -18,7 +18,6 @@ using Microsoft.Health.FitOnFhir.GoogleFit.Client.Handlers;
 using Microsoft.Health.FitOnFhir.GoogleFit.Client.Responses;
 using Microsoft.Health.FitOnFhir.GoogleFit.Common;
 using Microsoft.Health.FitOnFhir.GoogleFit.Services;
-using Newtonsoft.Json;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -123,13 +122,13 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Tests
             var actualJsonResult = result as JsonResult;
 
             AuthorizeResponseData expectedAuthResponseData = new AuthorizeResponseData(_fakeRedirectUri, now);
-            var expectedJsonResult = new JsonResult(JsonConvert.SerializeObject(expectedAuthResponseData)) { StatusCode = (int?)HttpStatusCode.OK };
+            var expectedJsonResult = new JsonResult(expectedAuthResponseData) { StatusCode = (int?)HttpStatusCode.OK };
 
             // verify 200 OK response
             Assert.Equal(expectedJsonResult.StatusCode, actualJsonResult?.StatusCode);
 
             // verify the URL and ExpiresAt timestamp
-            var actualAuthResponseDataResult = JsonConvert.DeserializeObject<AuthorizeResponseData>(actualJsonResult.Value.ToString());
+            var actualAuthResponseDataResult = actualJsonResult.Value as AuthorizeResponseData;
             Assert.Equal(expectedAuthResponseData.AuthUrl, actualAuthResponseDataResult.AuthUrl);
             Assert.Equal(expectedAuthResponseData.ExpiresAt, actualAuthResponseDataResult.ExpiresAt);
         }

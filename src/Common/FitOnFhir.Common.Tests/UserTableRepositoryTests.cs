@@ -24,7 +24,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         public UserTableRepositoryTests()
         {
             _usersTableRepositoryLogger = Substitute.For<MockLogger<UsersTableRepository>>();
-            TableRepository = new UsersTableRepository(AzureConfig, TableClient, _usersTableRepositoryLogger);
+            TableRepository = new UsersTableRepository(TableClientProvider, _usersTableRepositoryLogger);
 
             PartitionKey = Constants.UsersPartitionKey;
             MergedEntityId = _mergedUserId;

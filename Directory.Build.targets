@@ -31,7 +31,6 @@
         <When Condition="'$(TargetFramework)' == 'net6.0'">
           <PropertyGroup>
             <AnalysisLevel>latest-All</AnalysisLevel>
-            <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
           </PropertyGroup>
         </When>
         <Otherwise>
