@@ -73,7 +73,7 @@ stages:
               publishWebProjects: false
               projects: |
                 **/*.csproj
-                !**/*Test.csproj
+                !**/*Tests.csproj
               zipAfterPublish: true
               arguments: >
                 --configuration Release
