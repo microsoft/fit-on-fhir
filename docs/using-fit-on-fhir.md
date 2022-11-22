@@ -26,7 +26,7 @@ In the overview section of the Function copy the base URL. Append the base URL w
 ## Configuring Access to your Authorization Function
 
 Access to the Authorization function can be configured to either allow for anonymous login, or login with authentication.  This setting is configured by setting
-*AuthenticationConfiguration__IsAnonymousLoginEnabled* to true for anonymous logins, and false for login with authentication.  This can be found in can be found in the Settings for the Authorization fuction
+*AuthenticationConfiguration__IsAnonymousLoginEnabled* to true for anonymous logins, and false for login with authentication.  This can be found in can be found in the Settings for the Authorization function
 ![Anonymous Login Setting](../media/anonymous-login-setting.png)
 
 It can also be set here in the azuredeploy.parameters.json file, by changing the defaultValue between false and true

@@ -22,8 +22,8 @@ You must provide the following parameters when deploying the ARM Template.
 |---|---|---
 |**basename**|**A name that is used to name provisioned resources.** *Should be alphanumeric and less than 16 characters. Must be globally unique.*|true
 |**location**|**The location where the resources(s) are deployed.** *Choose the Azure region that's right for you and your customers. Not every resource is available in every region. The default value will be the location defined for the resource group.*|false
-|**google_client_id**|**The Google OAuth2 web application client id.**|true
-|**google_client_secret**|**The Google OAuth2 web application secret.**|true
+|**google_client_id**|**The Google OAuth2 web application client id.** *[Where to find your Google Client Id and Secret](./finding-google-client-id-and-secret.md)*|true
+|**google_client_secret**|**The Google OAuth2 web application secret.** [Where to find your Google Client Id and Secret](./finding-google-client-id-and-secret.md)*|true
 |**repository_url**|**The repository where the fit-on-fhir source code resides.** *The default value is 'https://github.com/Microsoft/fit-on-fhir'*|false
 |**repository_branch**|**The source code branch to be deployed.** *The default value is 'main'*|false
 |**google_dataset_request_limit**|**The maximum Google Fit data points returned per dataset request.** *The default value is 1000*|false
@@ -66,3 +66,6 @@ az deployment group create \
 ```
 
 NOTE: To deploy as an ARM template instead of a Bicep template, repeat the command above replacing the following argument `--template-file azuredeploy.json`.
+
+Once the deployment has completed, if the Authorized Redirect URI has not been set be sure to configure it. Instructions can be found [here](./setting-redirect-uris.md).
+

@@ -67,13 +67,10 @@ next step below.
 
  While these are the only data required, it would be useful to also provide a list of test users that are allowed access to your app. You can also update the list of test users later in the **OAuth consent screen** in the left side pane.
 
-## Add javascript origin URLs
+## Add Authorized redirect URLs
 
-Lastly, you need configure the base URI and callback URI for your project.  Click the button labeled **Add URI** under *Authorized JavaScript origins*
-to add the base URI.
-
-Click the button labeled **Add URI** under *Authorized redirect URIs* to add the callback URI.
+Lastly, you need configure callback URI for your project.  Click the button labeled **Add URI** under *Authorized redirect URIs* to add the callback URI. The format of the URI will be **[https://authorize-{YOUR_BASE_NAME}.azurewebsites.net/api/googlefit/callback]()**.
 
 ![Add Authorized URIs](../media/authorized-uris.png)
 
-**Note -** You will not be able to add these values until after you have deployed the solution. The *Authorized JavaScript origins* and *Authorized redirect URIs* are based off of the Authorization Function app URL and won't be available until after it is deployed.
+**Note -** You may want to add this value after you have deployed the solution to Azure. *Authorized redirect URIs* are based off of the Authorization Function app URL and won't be available until after it is deployed.

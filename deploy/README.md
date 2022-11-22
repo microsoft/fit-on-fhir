@@ -33,7 +33,7 @@ Note: More detail on the following functions can be found in the /src directory 
 * Storage Account: Contains the following sub-resources that enable data sync with FHIR
     * Blob Service: (TODO: What is this used for?)
     * Queue Service: Contains the Sync Event queue
-        * Queue: Receives messages from the Sync Event Generator function.  Each messsage contains a userId for data that needs to be retrieved from Google Fit and pushed to FHIR
+        * Queue: Receives messages from the Sync Event Generator function.  Each message contains a userId for data that needs to be retrieved from Google Fit and pushed to FHIR
     * Table Service: Contains the User Table
         * Table: Stores a list of user IDs for users that have authenticated to Google Fit and authorized their data to be synced to FHIR server
 
