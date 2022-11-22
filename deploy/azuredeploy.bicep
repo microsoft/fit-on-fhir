@@ -58,7 +58,7 @@ var storage_queue_data_contributor = resourceId('Microsoft.Authorization/roleDef
 var storage_queue_data_message_sender = resourceId('Microsoft.Authorization/roleDefinitions', 'c6a89b2d-59bc-44d0-9896-0f6e12d7b80a')
 var storage_queue_data_message_processor = resourceId('Microsoft.Authorization/roleDefinitions', '8a0f0c08-91a1-4084-bc3d-661d67233fed')
 
-resource kv_resource 'Microsoft.KeyVault/vaults@2022-07-01' = {
+resource kv_basename 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: 'kv-${basename}'
   location: location
   properties: {
@@ -75,7 +75,7 @@ resource kv_resource 'Microsoft.KeyVault/vaults@2022-07-01' = {
             'get'
             'set'
             'delete'
-            'list'      
+            'list'
           ]
         }
       }
@@ -96,7 +96,7 @@ resource kv_resource 'Microsoft.KeyVault/vaults@2022-07-01' = {
             'get'
             'set'
             'delete'
-            'list' 
+            'list'
           ]
         }
       }
@@ -108,7 +108,7 @@ resource kv_resource 'Microsoft.KeyVault/vaults@2022-07-01' = {
 }
 
 resource kv_storage_account_connection_string 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  parent: kv_resource
+  parent: kv_basename
   name: 'storage-account-connection-string'
   properties: {
     value: 'DefaultEndpointsProtocol=https;AccountName=${sa_basename.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${sa_basename.listKeys().keys[0].value}'
@@ -116,7 +116,7 @@ resource kv_storage_account_connection_string 'Microsoft.KeyVault/vaults/secrets
 }
 
 resource kv_google_client_secret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  parent: kv_resource
+  parent: kv_basename
   name: 'google-client-secret'
   properties: {
     value: google_client_secret
@@ -180,7 +180,7 @@ resource sa_basename_default 'Microsoft.Storage/storageAccounts/blobServices@202
       days: 7
     }
     isVersioningEnabled: false
-	lastAccessTimeTrackingPolicy: {
+    lastAccessTimeTrackingPolicy: {
       blobType: [
         'blockBlob'
       ]
@@ -207,13 +207,13 @@ resource sa_basename_default_management_policy 'Microsoft.Storage/storageAccount
                 enableAutoTierToHotFromCool: false
               }
             }
-			filters: {
+            filters: {
               blobTypes: [
                 'blockBlob'
               ]
-			  prefixMatch: [
-				'authdata/'
-			  ]
+              prefixMatch: [
+                'authdata/'
+              ]
             }
           }
           enabled: true
@@ -344,15 +344,15 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2022-03-01' 
     WEBSITE_CONTENTSHARE: '${authorize_basename.name}-${take(uniqueString(authorize_basename.name), 4)}'
     GoogleFitAuthorizationConfiguration__ClientId: google_client_id
     GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(kv_google_client_secret.id).secretUriWithVersion})'
-	  GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
+    GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
     AzureConfiguration__BlobServiceUri: sa_basename.properties.primaryEndpoints.blob
     AzureConfiguration__TableServiceUri: sa_basename.properties.primaryEndpoints.table
     AzureConfiguration__QueueServiceUri: sa_basename.properties.primaryEndpoints.queue
-    AzureConfiguration__VaultUri: kv_resource.properties.vaultUri
+    AzureConfiguration__VaultUri: kv_basename.properties.vaultUri
 	  AuthenticationConfiguration__IsAnonymousLoginEnabled : (authentication_anonymous_login_enabled == true) ? 'true' : 'false'
-	  AuthenticationConfiguration__IdentityProviders: authentication_identity_providers
-	  AuthenticationConfiguration__Audience: authentication_audience
-	  AuthenticationConfiguration__RedirectUrls: authentication_redirect_urls
+    AuthenticationConfiguration__IdentityProviders: authentication_identity_providers
+    AuthenticationConfiguration__Audience: authentication_audience
+    AuthenticationConfiguration__RedirectUrls: authentication_redirect_urls
     FhirService__Url: hw_basename_fs_basename.properties.authenticationConfiguration.audience
     FhirClient__UseManagedIdentity: 'true'
   }
@@ -470,12 +470,12 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2022-03-01
     AzureConfiguration__QueueServiceUri: sa_basename.properties.primaryEndpoints.queue
     AzureConfiguration__EventHubFullyQualifiedNamespace: split(replace(en_basename.properties.serviceBusEndpoint, '//', ''), ':')[1]
     AzureConfiguration__EventHubName:en_basename_ingest.name
-    AzureConfiguration__VaultUri: kv_resource.properties.vaultUri
+    AzureConfiguration__VaultUri: kv_basename.properties.vaultUri
     GoogleFitAuthorizationConfiguration__ClientId: google_client_id
     GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(kv_google_client_secret.id).secretUriWithVersion})'
-	  GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
-	  GoogleFitDataImporterConfiguration__DatasetRequestLimit: google_dataset_request_limit
-	  GoogleFitDataImporterConfiguration__MaxConcurrency: google_max_concurrency
+    GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
+    GoogleFitDataImporterConfiguration__DatasetRequestLimit: google_dataset_request_limit
+    GoogleFitDataImporterConfiguration__MaxConcurrency: google_max_concurrency
     GoogleFitDataImporterConfiguration__MaxRequestsPerMinute: google_max_requests_per_minute
     GoogleFitDataImporterConfiguration__HistoricalImportTimeSpan: google_historical_import_time_span
   }
@@ -592,22 +592,34 @@ resource hw_basename_hi_basename 'Microsoft.HealthcareApis/workspaces/iotconnect
                 }
                 {
                   valueName: 'temporal_relation_to_meal'
-                  valueExpression: 'matchedToken.value[1].intVal'
+                  valueExpression: {
+                    value: 'matchedToken.value[1].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'FIELD_TEMPORAL_RELATION_TO_MEAL_GENERAL\'},{"v":@,"n":`2`,"s":\'FIELD_TEMPORAL_RELATION_TO_MEAL_FASTING\'},{"v":@,"n":`3`,"s":\'FIELD_TEMPORAL_RELATION_TO_MEAL_BEFORE_MEAL\'},{"v":@,"n":`4`,"s":\'FIELD_TEMPORAL_RELATION_TO_MEAL_AFTER_MEAL\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
                 }
                 {
                   valueName: 'meal_type'
-                  valueExpression: 'matchedToken.value[2].intVal'
+                  valueExpression: {
+                    value: 'matchedToken.value[2].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'MEAL_TYPE_UNKNOWN\'},{"v":@,"n":`2`,"s":\'MEAL_TYPE_BREAKFAST\'},{"v":@,"n":`3`,"s":\'MEAL_TYPE_LUNCH\'},{"v":@,"n":`4`,"s":\'MEAL_TYPE_DINNER\'},{"v":@,"n":`5`,"s":\'MEAL_TYPE_SNACK\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
                 }
                 {
                   valueName: 'temporal_relation_to_sleep'
-                  valueExpression: 'matchedToken.value[3].intVal'
+                  valueExpression: {
+                    value: 'matchedToken.value[3].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'TEMPORAL_RELATION_TO_SLEEP_FULLY_AWAKE\'},{"v":@,"n":`2`,"s":\'TEMPORAL_RELATION_TO_SLEEP_BEFORE_SLEEP\'},{"v":@,"n":`3`,"s":\'TEMPORAL_RELATION_TO_SLEEP_ON_WAKING\'},{"v":@,"n":`4`,"s":\'TEMPORAL_RELATION_TO_SLEEP_DURING_SLEEP\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
                 }
                 {
                   valueName: 'blood_glucose_specimen_source'
-                  valueExpression: 'matchedToken.value[4].intVal'
+                  valueExpression: {
+                    value: 'matchedToken.value[4].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_INTERSTITIAL_FLUID\'},{"v":@,"n":`2`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_CAPILLARY_BLOOD\'},{"v":@,"n":`3`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_PLASMA\'},{"v":@,"n":`4`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_SERUM\'},{"v":@,"n":`5`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_TEARS\'},{"v":@,"n":`6`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_WHOLE_BLOOD\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
                 }
               ]
-              typeName: '3ag4h5u7xcmu69zxupcx'
+              typeName: 'derived:com.google.blood_glucose:com.google.android.gms:merged'
             }
           }
           {
@@ -633,14 +645,147 @@ resource hw_basename_hi_basename 'Microsoft.HealthcareApis/workspaces/iotconnect
                 }
                 {
                   valueName: 'body_position'
-                  valueExpression: 'matchedToken.value[2].intVal'
+                  valueExpression: {
+                    value: 'matchedToken.value[2].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'BODY_POSITION_STANDING\'},{"v":@,"n":`2`,"s":\'BODY_POSITION_SITTING\'},{"v":@,"n":`3`,"s":\'BODY_POSITION_LYING_DOWN\'},{"v":@,"n":`4`,"s":\'BODY_POSITION_SEMI_RECUMBENT\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
                 }
                 {
                   valueName: 'blood_pressure_measurement_location'
-                  valueExpression: 'matchedToken.value[3].intVal'
+                  valueExpression: {
+                    value: 'matchedToken.value[3].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'BLOOD_PRESSURE_MEASUREMENT_LOCATION_LEFT_WRIST\'},{"v":@,"n":`2`,"s":\'BLOOD_PRESSURE_MEASUREMENT_LOCATION_RIGHT_WRIST\'},{"v":@,"n":`3`,"s":\'BLOOD_PRESSURE_MEASUREMENT_LOCATION_LEFT_UPPER_ARM\'},{"v":@,"n":`4`,"s":\'BLOOD_PRESSURE_MEASUREMENT_LOCATION_RIGHT_UPPER_ARM\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
                 }
               ]
-              typeName: 'lwo9eoim0lfnurbfdlfk'
+              typeName: 'derived:com.google.blood_pressure:com.google.android.gms:merged'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.body.fat.percentage\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merged/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'percentage'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.body.fat.percentage:com.google.android.gms:merged'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.body.fat.percentage\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.fitkit/ && $.Body.dataSourceId =~ /apple/ && $.Body.dataSourceId =~ /iphone/ && $.Body.dataSourceId =~ /local_data/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'percentage'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.body.fat.percentage:com.google.fitkit:apple:iphone:local_data'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.body.temperature\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merged/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'body_temperature'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'body_temperature_measurement_location'
+                  valueExpression: {
+                    value: 'matchedToken.value[1].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_AXILLARY\'},{"v":@,"n":`2`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_FINGER\'},{"v":@,"n":`3`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_FOREHEAD\'},{"v":@,"n":`4`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_ORAL\'},{"v":@,"n":`5`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_RECTAL\'},{"v":@,"n":`6`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_TEMPORAL_ARTERY\'},{"v":@,"n":`7`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_TOE\'},{"v":@,"n":`8`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_TYMPANIC\'},{"v":@,"n":`9`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_WRIST\'},{"v":@,"n":`10`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_VAGINAL\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+              ]
+              typeName: 'derived:com.google.body.temperature:com.google.android.gms:merged'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.heart_minutes\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merge_heart_minutes/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'intensity'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.heart_minutes:com.google.android.gms:merge_heart_minutes'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.heart_minutes\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.ios.fit/ && $.Body.dataSourceId =~ /appleinc./ && $.Body.dataSourceId =~ /iphone/ && $.Body.dataSourceId =~ /top_level/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'intensity'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.heart_minutes:com.google.ios.fit:appleinc.:iphone:top_level'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.heart_minutes\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.ios.fit/ && $.Body.dataSourceId =~ /appleinc./ && $.Body.dataSourceId =~ /watch/ && $.Body.dataSourceId =~ /top_level/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'intensity'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.heart_minutes:com.google.ios.fit:appleinc.:watch:top_level'
             }
           }
           {
@@ -660,7 +805,127 @@ resource hw_basename_hi_basename 'Microsoft.HealthcareApis/workspaces/iotconnect
                   required: true
                 }
               ]
-              typeName: 'qucm2rppd42yod4rpt14'
+              typeName: 'derived:com.google.heart_rate.bpm:com.google.android.gms:merge_heart_rate_bpm'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.heart_rate.bpm\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /resting_heart_rate<-merge_heart_rate_bpm/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'bpm'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.heart_rate.bpm:com.google.android.gms:resting_heart_rate<-merge_heart_rate_bpm'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.heart_rate.bpm\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.fitkit/ && $.Body.dataSourceId =~ /apple/ && $.Body.dataSourceId =~ /iphone/ && $.Body.dataSourceId =~ /local_data/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'bpm'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.heart_rate.bpm:com.google.fitkit:apple:iphone:local_data'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.heart_rate.bpm\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.fitkit/ && $.Body.dataSourceId =~ /apple/ && $.Body.dataSourceId =~ /iphone/ && $.Body.dataSourceId =~ /top_level/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'bpm'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.heart_rate.bpm:com.google.fitkit:apple:iphone:top_level'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.heart_rate.bpm\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.ios.fit/ && $.Body.dataSourceId =~ /appleinc./ && $.Body.dataSourceId =~ /watch/ && $.Body.dataSourceId =~ /top_level/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'bpm'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.heart_rate.bpm:com.google.ios.fit:appleinc.:watch:top_level'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.height\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merge_height/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'height'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.height:com.google.android.gms:merge_height'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.height\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.fitkit/ && $.Body.dataSourceId =~ /apple/ && $.Body.dataSourceId =~ /iphone/ && $.Body.dataSourceId =~ /local_data/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'height'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.height:com.google.fitkit:apple:iphone:local_data'
             }
           }
           {
@@ -686,18 +951,93 @@ resource hw_basename_hi_basename 'Microsoft.HealthcareApis/workspaces/iotconnect
                 }
                 {
                   valueName: 'oxygen_therapy_administration_mode'
-                  valueExpression: 'matchedToken.value[2].intVal'
+                  valueExpression: {
+                    value: 'matchedToken.value[2].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'OXYGEN_THERAPY_ADMINISTRATION_MODE_NASAL_CANULA\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
                 }
                 {
                   valueName: 'oxygen_saturation_system'
-                  valueExpression: 'matchedToken.value[3].intVal'
+                  valueExpression: {
+                    value: 'matchedToken.value[3].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'OXYGEN_SATURATION_SYSTEM_PERIPHERAL_CAPILLARY\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
                 }
                 {
                   valueName: 'oxygen_saturation_measurement_method'
-                  valueExpression: 'matchedToken.value[4].intVal'
+                  valueExpression: {
+                    value: 'matchedToken.value[4].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'OXYGEN_SATURATION_MEASUREMENT_METHOD_PULSE_OXIMETRY\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
                 }
               ]
-              typeName: 'h3yjzapqywycu85xk8g0'
+              typeName: 'derived:com.google.oxygen_saturation:com.google.android.gms:merged'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.oxygen_saturation\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.fitkit/ && $.Body.dataSourceId =~ /apple/ && $.Body.dataSourceId =~ /iphone/ && $.Body.dataSourceId =~ /local_data/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'oxygen_saturation'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'supplemental_oxygen_flow_rate'
+                  valueExpression: 'matchedToken.value[1].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'oxygen_therapy_administration_mode'
+                  valueExpression: {
+                    value: 'matchedToken.value[2].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'OXYGEN_THERAPY_ADMINISTRATION_MODE_NASAL_CANULA\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+                {
+                  valueName: 'oxygen_saturation_system'
+                  valueExpression: {
+                    value: 'matchedToken.value[3].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'OXYGEN_SATURATION_SYSTEM_PERIPHERAL_CAPILLARY\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+                {
+                  valueName: 'oxygen_saturation_measurement_method'
+                  valueExpression: {
+                    value: 'matchedToken.value[4].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'OXYGEN_SATURATION_MEASUREMENT_METHOD_PULSE_OXIMETRY\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+              ]
+              typeName: 'derived:com.google.oxygen_saturation:com.google.fitkit:apple:iphone:local_data'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.step_count.delta\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /estimated_steps/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'steps'
+                  valueExpression: 'matchedToken.value[0].intVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps'
             }
           }
           {
@@ -717,7 +1057,387 @@ resource hw_basename_hi_basename 'Microsoft.HealthcareApis/workspaces/iotconnect
                   required: true
                 }
               ]
-              typeName: 'ioaj1bdvxoztpyjgwufq'
+              typeName: 'derived:com.google.step_count.delta:com.google.android.gms:merge_step_deltas'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.step_count.delta\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.ios.fit/ && $.Body.dataSourceId =~ /appleinc./ && $.Body.dataSourceId =~ /iphone/ && $.Body.dataSourceId =~ /top_level/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'steps'
+                  valueExpression: 'matchedToken.value[0].intVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.step_count.delta:com.google.ios.fit:appleinc.:iphone:top_level'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.step_count.delta\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.ios.fit/ && $.Body.dataSourceId =~ /appleinc./ && $.Body.dataSourceId =~ /watch/ && $.Body.dataSourceId =~ /top_level/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'steps'
+                  valueExpression: 'matchedToken.value[0].intVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.step_count.delta:com.google.ios.fit:appleinc.:watch:top_level'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.weight\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /merge_weight/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'weight'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.weight:com.google.android.gms:merge_weight'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.weight\' && $.Body.dataSourceId =~ /derived/ && $.Body.dataSourceId =~ /com.google.fitkit/ && $.Body.dataSourceId =~ /apple/ && $.Body.dataSourceId =~ /iphone/ && $.Body.dataSourceId =~ /local_data/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'weight'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'derived:com.google.weight:com.google.fitkit:apple:iphone:local_data'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.blood_glucose\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.apps.fitness/ && $.Body.dataSourceId =~ /user_input/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'blood_glucose_level'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'temporal_relation_to_meal'
+                  valueExpression: {
+                    value: 'matchedToken.value[1].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'FIELD_TEMPORAL_RELATION_TO_MEAL_GENERAL\'},{"v":@,"n":`2`,"s":\'FIELD_TEMPORAL_RELATION_TO_MEAL_FASTING\'},{"v":@,"n":`3`,"s":\'FIELD_TEMPORAL_RELATION_TO_MEAL_BEFORE_MEAL\'},{"v":@,"n":`4`,"s":\'FIELD_TEMPORAL_RELATION_TO_MEAL_AFTER_MEAL\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+                {
+                  valueName: 'meal_type'
+                  valueExpression: {
+                    value: 'matchedToken.value[2].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'MEAL_TYPE_UNKNOWN\'},{"v":@,"n":`2`,"s":\'MEAL_TYPE_BREAKFAST\'},{"v":@,"n":`3`,"s":\'MEAL_TYPE_LUNCH\'},{"v":@,"n":`4`,"s":\'MEAL_TYPE_DINNER\'},{"v":@,"n":`5`,"s":\'MEAL_TYPE_SNACK\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+                {
+                  valueName: 'temporal_relation_to_sleep'
+                  valueExpression: {
+                    value: 'matchedToken.value[3].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'TEMPORAL_RELATION_TO_SLEEP_FULLY_AWAKE\'},{"v":@,"n":`2`,"s":\'TEMPORAL_RELATION_TO_SLEEP_BEFORE_SLEEP\'},{"v":@,"n":`3`,"s":\'TEMPORAL_RELATION_TO_SLEEP_ON_WAKING\'},{"v":@,"n":`4`,"s":\'TEMPORAL_RELATION_TO_SLEEP_DURING_SLEEP\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+                {
+                  valueName: 'blood_glucose_specimen_source'
+                  valueExpression: {
+                    value: 'matchedToken.value[4].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_INTERSTITIAL_FLUID\'},{"v":@,"n":`2`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_CAPILLARY_BLOOD\'},{"v":@,"n":`3`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_PLASMA\'},{"v":@,"n":`4`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_SERUM\'},{"v":@,"n":`5`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_TEARS\'},{"v":@,"n":`6`,"s":\'BLOOD_GLUCOSE_SPECIMEN_SOURCE_WHOLE_BLOOD\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+              ]
+              typeName: 'raw:com.google.blood_glucose:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.blood_pressure\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.apps.fitness/ && $.Body.dataSourceId =~ /user_input/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'blood_pressure_systolic'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'blood_pressure_diastolic'
+                  valueExpression: 'matchedToken.value[1].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'body_position'
+                  valueExpression: {
+                    value: 'matchedToken.value[2].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'BODY_POSITION_STANDING\'},{"v":@,"n":`2`,"s":\'BODY_POSITION_SITTING\'},{"v":@,"n":`3`,"s":\'BODY_POSITION_LYING_DOWN\'},{"v":@,"n":`4`,"s":\'BODY_POSITION_SEMI_RECUMBENT\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+                {
+                  valueName: 'blood_pressure_measurement_location'
+                  valueExpression: {
+                    value: 'matchedToken.value[3].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'BLOOD_PRESSURE_MEASUREMENT_LOCATION_LEFT_WRIST\'},{"v":@,"n":`2`,"s":\'BLOOD_PRESSURE_MEASUREMENT_LOCATION_RIGHT_WRIST\'},{"v":@,"n":`3`,"s":\'BLOOD_PRESSURE_MEASUREMENT_LOCATION_LEFT_UPPER_ARM\'},{"v":@,"n":`4`,"s":\'BLOOD_PRESSURE_MEASUREMENT_LOCATION_RIGHT_UPPER_ARM\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+              ]
+              typeName: 'raw:com.google.blood_pressure:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.body.fat.percentage\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.apps.fitness/ && $.Body.dataSourceId =~ /user_input/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'percentage'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'raw:com.google.body.fat.percentage:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.body.temperature\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.apps.fitness/ && $.Body.dataSourceId =~ /user_input/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'body_temperature'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'body_temperature_measurement_location'
+                  valueExpression: {
+                    value: 'matchedToken.value[1].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_AXILLARY\'},{"v":@,"n":`2`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_FINGER\'},{"v":@,"n":`3`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_FOREHEAD\'},{"v":@,"n":`4`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_ORAL\'},{"v":@,"n":`5`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_RECTAL\'},{"v":@,"n":`6`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_TEMPORAL_ARTERY\'},{"v":@,"n":`7`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_TOE\'},{"v":@,"n":`8`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_TYMPANIC\'},{"v":@,"n":`9`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_WRIST\'},{"v":@,"n":`10`,"s":\'BODY_TEMPERATURE_MEASUREMENT_LOCATION_VAGINAL\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+              ]
+              typeName: 'raw:com.google.body.temperature:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.heart_rate.bpm\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.apps.fitness/ && $.Body.dataSourceId =~ /user_input/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'bpm'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'raw:com.google.heart_rate.bpm:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.heart_rate.bpm\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /appleinc./ && $.Body.dataSourceId =~ /watch/ && $.Body.dataSourceId =~ /from_device/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'bpm'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'raw:com.google.heart_rate.bpm:com.google.android.gms:appleinc.:watch:from_device'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.height\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.apps.fitness/ && $.Body.dataSourceId =~ /user_input/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'height'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'raw:com.google.height:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.oxygen_saturation\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.apps.fitness/ && $.Body.dataSourceId =~ /user_input/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'oxygen_saturation'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'supplemental_oxygen_flow_rate'
+                  valueExpression: 'matchedToken.value[1].fpVal'
+                  required: true
+                }
+                {
+                  valueName: 'oxygen_therapy_administration_mode'
+                  valueExpression: {
+                    value: 'matchedToken.value[2].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'OXYGEN_THERAPY_ADMINISTRATION_MODE_NASAL_CANULA\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+                {
+                  valueName: 'oxygen_saturation_system'
+                  valueExpression: {
+                    value: 'matchedToken.value[3].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'OXYGEN_SATURATION_SYSTEM_PERIPHERAL_CAPILLARY\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+                {
+                  valueName: 'oxygen_saturation_measurement_method'
+                  valueExpression: {
+                    value: 'matchedToken.value[4].intVal | [{"v":@,"n":`0`,"s":\'UNSPECIFIED\'},{"v":@,"n":`1`,"s":\'OXYGEN_SATURATION_MEASUREMENT_METHOD_PULSE_OXIMETRY\'}][?v == n].s | @[0]'
+                    language: 'JmesPath'
+                  }
+                }
+              ]
+              typeName: 'raw:com.google.oxygen_saturation:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.step_count.delta\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /appleinc./ && $.Body.dataSourceId =~ /iphone/ && $.Body.dataSourceId =~ /derive_step_deltas/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'steps'
+                  valueExpression: 'matchedToken.value[0].intVal'
+                  required: true
+                }
+              ]
+              typeName: 'raw:com.google.step_count.delta:com.google.android.gms:appleinc.:iphone:derive_step_deltas'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.step_count.delta\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.gms/ && $.Body.dataSourceId =~ /appleinc./ && $.Body.dataSourceId =~ /watch/ && $.Body.dataSourceId =~ /derive_step_deltas/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'steps'
+                  valueExpression: 'matchedToken.value[0].intVal'
+                  required: true
+                }
+              ]
+              typeName: 'raw:com.google.step_count.delta:com.google.android.gms:appleinc.:watch:derive_step_deltas'
+            }
+          }
+          {
+            templateType: 'CalculatedContent'
+            template: {
+              typeMatchExpression: '$..[?(@dataTypeName == \'com.google.weight\' && $.Body.dataSourceId =~ /raw/ && $.Body.dataSourceId =~ /com.google.android.apps.fitness/ && $.Body.dataSourceId =~ /user_input/)]'
+              deviceIdExpression: '$.Body.deviceIdentifier'
+              patientIdExpression: '$.Body.patientIdentifier'
+              timestampExpression: {
+                value: 'fromUnixTimestampMs(ceil(multiply(matchedToken.endTimeNanos, `0.000001`)))'
+                language: 'JmesPath'
+              }
+              values: [
+                {
+                  valueName: 'weight'
+                  valueExpression: 'matchedToken.value[0].fpVal'
+                  required: true
+                }
+              ]
+              typeName: 'raw:com.google.weight:com.google.android.apps.fitness:user_input'
             }
           }
         ]
@@ -747,24 +1467,67 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
             template: {
               codes: [
                 {
-                  code: '15074-8'
-                  display: 'Glucose [Moles/volume] in Blood'
-                  system: 'http://loinc.org'
-                }
-                {
-                  code: '434912009'
-                  display: 'Blood glucose concentration'
-                  system: 'http://snomed.info/sct'
+                  code: 'com.google.blood_glucose'
                 }
               ]
-              typeName: '3ag4h5u7xcmu69zxupcx'
-              value: {
-                valueName: 'blood_glucose_level'
-                valueType: 'Quantity'
-                code: 'mmol/L'
-                unit: 'mmol/L'
-                system: 'http://loinc.org'
-              }
+              components: [
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_glucose.blood_glucose_level'
+                    }
+                  ]
+                  value: {
+                    valueName: 'blood_glucose_level'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_glucose.temporal_relation_to_meal'
+                    }
+                  ]
+                  value: {
+                    valueName: 'temporal_relation_to_meal'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_glucose.meal_type'
+                    }
+                  ]
+                  value: {
+                    valueName: 'meal_type'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_glucose.temporal_relation_to_sleep'
+                    }
+                  ]
+                  value: {
+                    valueName: 'temporal_relation_to_sleep'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_glucose.blood_glucose_specimen_source'
+                    }
+                  ]
+                  value: {
+                    valueName: 'blood_glucose_specimen_source'
+                    valueType: 'String'
+                  }
+                }
+              ]
+              typeName: 'derived:com.google.blood_glucose:com.google.android.gms:merged'
             }
           }
           {
@@ -772,35 +1535,28 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
             template: {
               codes: [
                 {
-                  code: '85354-9'
-                  display: 'Blood pressure panel'
-                  system: 'http://loinc.org'
-                }
-                {
-                  code: '75367002'
-                  display: 'Blood pressure'
-                  system: 'http://snomed.info/sct'
+                  code: 'com.google.blood_pressure'
                 }
               ]
-              typeName: 'lwo9eoim0lfnurbfdlfk'
               components: [
                 {
                   codes: [
                     {
-                      code: '8867-4'
-                      display: 'Diastolic blood pressure'
-                      system: 'http://loinc.org'
-                    }
-                    {
-                      code: '271650006'
-                      display: 'Diastolic blood pressure'
-                      system: 'http://snomed.info/sct'
+                      code: 'com.google.blood_pressure.blood_pressure_systolic'
                     }
                   ]
                   value: {
-                    system: 'http://unitsofmeasure.org'
-                    code: 'mmHg'
-                    unit: 'mmHg'
+                    valueName: 'blood_pressure_systolic'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_pressure.blood_pressure_diastolic'
+                    }
+                  ]
+                  value: {
                     valueName: 'blood_pressure_diastolic'
                     valueType: 'Quantity'
                   }
@@ -808,25 +1564,593 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
                 {
                   codes: [
                     {
-                      code: '8480-6'
-                      display: 'Systolic blood pressure'
-                      system: 'http://loinc.org'
-                    }
-                    {
-                      code: '271649006'
-                      display: 'Systolic blood pressure'
-                      system: 'http://snomed.info/sct'
+                      code: 'com.google.blood_pressure.body_position'
                     }
                   ]
                   value: {
-                    system: 'http://unitsofmeasure.org'
-                    code: 'mmHg'
-                    unit: 'mmHg'
+                    valueName: 'body_position'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_pressure.blood_pressure_measurement_location'
+                    }
+                  ]
+                  value: {
+                    valueName: 'blood_pressure_measurement_location'
+                    valueType: 'String'
+                  }
+                }
+              ]
+              typeName: 'derived:com.google.blood_pressure:com.google.android.gms:merged'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.body.fat.percentage'
+                }
+              ]
+              value: {
+                valueName: 'percentage'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.body.fat.percentage:com.google.android.gms:merged'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.body.fat.percentage'
+                }
+              ]
+              value: {
+                valueName: 'percentage'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.body.fat.percentage:com.google.fitkit:apple:iphone:local_data'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.body.temperature'
+                }
+              ]
+              components: [
+                {
+                  codes: [
+                    {
+                      code: 'com.google.body.temperature.body_temperature'
+                    }
+                  ]
+                  value: {
+                    valueName: 'body_temperature'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.body.temperature.body_temperature_measurement_location'
+                    }
+                  ]
+                  value: {
+                    valueName: 'body_temperature_measurement_location'
+                    valueType: 'String'
+                  }
+                }
+              ]
+              typeName: 'derived:com.google.body.temperature:com.google.android.gms:merged'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.heart_minutes'
+                }
+              ]
+              value: {
+                valueName: 'intensity'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.heart_minutes:com.google.android.gms:merge_heart_minutes'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.heart_minutes'
+                }
+              ]
+              value: {
+                valueName: 'intensity'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.heart_minutes:com.google.ios.fit:appleinc.:iphone:top_level'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.heart_minutes'
+                }
+              ]
+              value: {
+                valueName: 'intensity'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.heart_minutes:com.google.ios.fit:appleinc.:watch:top_level'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.heart_rate.bpm'
+                }
+              ]
+              value: {
+                valueName: 'bpm'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.heart_rate.bpm:com.google.android.gms:merge_heart_rate_bpm'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.heart_rate.bpm'
+                }
+              ]
+              value: {
+                valueName: 'bpm'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.heart_rate.bpm:com.google.android.gms:resting_heart_rate<-merge_heart_rate_bpm'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.heart_rate.bpm'
+                }
+              ]
+              value: {
+                valueName: 'bpm'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.heart_rate.bpm:com.google.fitkit:apple:iphone:local_data'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.heart_rate.bpm'
+                }
+              ]
+              value: {
+                valueName: 'bpm'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.heart_rate.bpm:com.google.fitkit:apple:iphone:top_level'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.heart_rate.bpm'
+                }
+              ]
+              value: {
+                valueName: 'bpm'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.heart_rate.bpm:com.google.ios.fit:appleinc.:watch:top_level'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.height'
+                }
+              ]
+              value: {
+                valueName: 'height'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.height:com.google.android.gms:merge_height'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.height'
+                }
+              ]
+              value: {
+                valueName: 'height'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.height:com.google.fitkit:apple:iphone:local_data'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.oxygen_saturation'
+                }
+              ]
+              components: [
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_saturation'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_saturation'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.supplemental_oxygen_flow_rate'
+                    }
+                  ]
+                  value: {
+                    valueName: 'supplemental_oxygen_flow_rate'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_therapy_administration_mode'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_therapy_administration_mode'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_saturation_system'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_saturation_system'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_saturation_measurement_method'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_saturation_measurement_method'
+                    valueType: 'String'
+                  }
+                }
+              ]
+              typeName: 'derived:com.google.oxygen_saturation:com.google.android.gms:merged'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.oxygen_saturation'
+                }
+              ]
+              components: [
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_saturation'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_saturation'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.supplemental_oxygen_flow_rate'
+                    }
+                  ]
+                  value: {
+                    valueName: 'supplemental_oxygen_flow_rate'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_therapy_administration_mode'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_therapy_administration_mode'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_saturation_system'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_saturation_system'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_saturation_measurement_method'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_saturation_measurement_method'
+                    valueType: 'String'
+                  }
+                }
+              ]
+              typeName: 'derived:com.google.oxygen_saturation:com.google.fitkit:apple:iphone:local_data'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.step_count.delta'
+                }
+              ]
+              value: {
+                valueName: 'steps'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.step_count.delta'
+                }
+              ]
+              value: {
+                valueName: 'steps'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.step_count.delta:com.google.android.gms:merge_step_deltas'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.step_count.delta'
+                }
+              ]
+              value: {
+                valueName: 'steps'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.step_count.delta:com.google.ios.fit:appleinc.:iphone:top_level'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.step_count.delta'
+                }
+              ]
+              value: {
+                valueName: 'steps'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.step_count.delta:com.google.ios.fit:appleinc.:watch:top_level'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.weight'
+                }
+              ]
+              value: {
+                valueName: 'weight'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.weight:com.google.android.gms:merge_weight'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.weight'
+                }
+              ]
+              value: {
+                valueName: 'weight'
+                valueType: 'Quantity'
+              }
+              typeName: 'derived:com.google.weight:com.google.fitkit:apple:iphone:local_data'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.blood_glucose'
+                }
+              ]
+              components: [
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_glucose.blood_glucose_level'
+                    }
+                  ]
+                  value: {
+                    valueName: 'blood_glucose_level'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_glucose.temporal_relation_to_meal'
+                    }
+                  ]
+                  value: {
+                    valueName: 'temporal_relation_to_meal'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_glucose.meal_type'
+                    }
+                  ]
+                  value: {
+                    valueName: 'meal_type'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_glucose.temporal_relation_to_sleep'
+                    }
+                  ]
+                  value: {
+                    valueName: 'temporal_relation_to_sleep'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_glucose.blood_glucose_specimen_source'
+                    }
+                  ]
+                  value: {
+                    valueName: 'blood_glucose_specimen_source'
+                    valueType: 'String'
+                  }
+                }
+              ]
+              typeName: 'raw:com.google.blood_glucose:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.blood_pressure'
+                }
+              ]
+              components: [
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_pressure.blood_pressure_systolic'
+                    }
+                  ]
+                  value: {
                     valueName: 'blood_pressure_systolic'
                     valueType: 'Quantity'
                   }
                 }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_pressure.blood_pressure_diastolic'
+                    }
+                  ]
+                  value: {
+                    valueName: 'blood_pressure_diastolic'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_pressure.body_position'
+                    }
+                  ]
+                  value: {
+                    valueName: 'body_position'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.blood_pressure.blood_pressure_measurement_location'
+                    }
+                  ]
+                  value: {
+                    valueName: 'blood_pressure_measurement_location'
+                    valueType: 'String'
+                  }
+                }
               ]
+              typeName: 'raw:com.google.blood_pressure:com.google.android.apps.fitness:user_input'
             }
           }
           {
@@ -834,24 +2158,64 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
             template: {
               codes: [
                 {
-                  code: '8867-4'
-                  system: 'http://loinc.org'
-                  display: 'Heart rate'
-                }
-                {
-                  code: '364075005'
-                  system: 'http://snomed.info/sct'
-                  display: 'Heart rate'
+                  code: 'com.google.body.fat.percentage'
                 }
               ]
-              typeName: 'qucm2rppd42yod4rpt14'
               value: {
-                system: 'http://unitsofmeasure.org'
-                code: 'count/min'
-                unit: 'count/min'
+                valueName: 'percentage'
+                valueType: 'Quantity'
+              }
+              typeName: 'raw:com.google.body.fat.percentage:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.body.temperature'
+                }
+              ]
+              components: [
+                {
+                  codes: [
+                    {
+                      code: 'com.google.body.temperature.body_temperature'
+                    }
+                  ]
+                  value: {
+                    valueName: 'body_temperature'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.body.temperature.body_temperature_measurement_location'
+                    }
+                  ]
+                  value: {
+                    valueName: 'body_temperature_measurement_location'
+                    valueType: 'String'
+                  }
+                }
+              ]
+              typeName: 'raw:com.google.body.temperature:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.heart_rate.bpm'
+                }
+              ]
+              value: {
                 valueName: 'bpm'
                 valueType: 'Quantity'
               }
+              typeName: 'raw:com.google.heart_rate.bpm:com.google.android.apps.fitness:user_input'
             }
           }
           {
@@ -859,24 +2223,14 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
             template: {
               codes: [
                 {
-                  system: 'http://loinc.org'
-                  code: '2708-6'
-                  display: 'Oxygen saturation in Arterial blood'
-                }
-                {
-                  system: 'http://snomed.info/sct'
-                  code: '103228002'
-                  display: 'Hemoglobin saturation with oxygen '
+                  code: 'com.google.heart_rate.bpm'
                 }
               ]
-              typeName: 'h3yjzapqywycu85xk8g0'
               value: {
-                system: 'http://unitsofmeasure.org'
-                code: '%'
-                unit: '%'
-                valueName: 'oxygen_saturation'
+                valueName: 'bpm'
                 valueType: 'Quantity'
               }
+              typeName: 'raw:com.google.heart_rate.bpm:com.google.android.gms:appleinc.:watch:from_device'
             }
           }
           {
@@ -884,19 +2238,127 @@ resource hw_basename_hi_basename_hd_basename 'Microsoft.HealthcareApis/workspace
             template: {
               codes: [
                 {
-                  code: '55423-8'
-                  system: 'http://loinc.org'
-                  display: 'Number of steps'
+                  code: 'com.google.height'
                 }
               ]
-              typeName: 'ioaj1bdvxoztpyjgwufq'
               value: {
-                system: 'http://unitsofmeasure.org'
-                code: 'count'
-                unit: 'count'
+                valueName: 'height'
+                valueType: 'Quantity'
+              }
+              typeName: 'raw:com.google.height:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.oxygen_saturation'
+                }
+              ]
+              components: [
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_saturation'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_saturation'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.supplemental_oxygen_flow_rate'
+                    }
+                  ]
+                  value: {
+                    valueName: 'supplemental_oxygen_flow_rate'
+                    valueType: 'Quantity'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_therapy_administration_mode'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_therapy_administration_mode'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_saturation_system'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_saturation_system'
+                    valueType: 'String'
+                  }
+                }
+                {
+                  codes: [
+                    {
+                      code: 'com.google.oxygen_saturation.oxygen_saturation_measurement_method'
+                    }
+                  ]
+                  value: {
+                    valueName: 'oxygen_saturation_measurement_method'
+                    valueType: 'String'
+                  }
+                }
+              ]
+              typeName: 'raw:com.google.oxygen_saturation:com.google.android.apps.fitness:user_input'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.step_count.delta'
+                }
+              ]
+              value: {
                 valueName: 'steps'
                 valueType: 'Quantity'
               }
+              typeName: 'raw:com.google.step_count.delta:com.google.android.gms:appleinc.:iphone:derive_step_deltas'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.step_count.delta'
+                }
+              ]
+              value: {
+                valueName: 'steps'
+                valueType: 'Quantity'
+              }
+              typeName: 'raw:com.google.step_count.delta:com.google.android.gms:appleinc.:watch:derive_step_deltas'
+            }
+          }
+          {
+            templateType: 'CodeValueFhir'
+            template: {
+              codes: [
+                {
+                  code: 'com.google.weight'
+                }
+              ]
+              value: {
+                valueName: 'weight'
+                valueType: 'Quantity'
+              }
+              typeName: 'raw:com.google.weight:com.google.android.apps.fitness:user_input'
             }
           }
         ]
