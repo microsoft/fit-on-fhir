@@ -12,14 +12,11 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Microsoft.Health.Common" Version="1.0.0-20221208.1" />
     <PackageReference Include="Microsoft.Health.Extensions.Fhir.R4" Version="1.0.0-20221208.1" />
-    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.3.53" />
     <PackageReference Include="Microsoft.Health.Logging" Version="1.0.0-20221208.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.25.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Logging" Version="6.25.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols" Version="6.25.1" />	
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.25.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>
   <PropertyGroup>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>

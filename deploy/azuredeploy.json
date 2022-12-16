@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.12.40.16777",
-      "templateHash": "8339987072951842180"
+      "version": "0.13.1.58284",
+      "templateHash": "16036029631409426225"
     }
   },
   "parameters": {
@@ -113,9 +113,9 @@
       }
     },
     "authorize_allowed_origins": {
-      "type": "array",
+      "type": "string",
       "metadata": {
-        "description": "An array of allowed origins that can make requests to the authorize API (CORS)."
+        "description": "A comma delimited list of of allowed origins that can make requests to the authorize API (CORS)."
       }
     }
   },
@@ -440,7 +440,7 @@
         "dailyMemoryTimeQuota": 0,
         "siteConfig": {
           "cors": {
-            "allowedOrigins": "[parameters('authorize_allowed_origins')]"
+            "allowedOrigins": "[split(replace(parameters('authorize_allowed_origins'), ' ', ''), ',')]"
           },
           "netFrameworkVersion": "v6.0",
           "use32BitWorkerProcess": false

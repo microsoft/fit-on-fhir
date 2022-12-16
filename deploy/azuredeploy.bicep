@@ -46,8 +46,8 @@ param google_fit_scopes string = 'https://www.googleapis.com/auth/userinfo.profi
 @description('A comma delimited list of approved redirect URLs that can be navigated to when authentication completes successfully.')
 param authentication_redirect_urls string
 
-@description('An array of allowed origins that can make requests to the authorize API (CORS).')
-param authorize_allowed_origins array
+@description('A comma delimited list of of allowed origins that can make requests to the authorize API (CORS).')
+param authorize_allowed_origins string
 
 var fhir_data_writer = resourceId('Microsoft.Authorization/roleDefinitions', '3f88fce4-5892-4214-ae73-ba5294559913')
 var event_hubs_data_receiver = resourceId('Microsoft.Authorization/roleDefinitions', 'a638d3c7-ab3a-418d-83e6-5f17a39d4fde')
@@ -322,7 +322,7 @@ resource authorize_basename 'Microsoft.Web/sites@2022-03-01' = {
     dailyMemoryTimeQuota: 0
     siteConfig: {
       cors: {
-        allowedOrigins: authorize_allowed_origins
+        allowedOrigins: split(replace(authorize_allowed_origins, ' ', ''), ',')
       }
       netFrameworkVersion: 'v6.0'
       use32BitWorkerProcess: false

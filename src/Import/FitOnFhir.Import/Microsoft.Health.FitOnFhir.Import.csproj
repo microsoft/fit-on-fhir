@@ -5,14 +5,11 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.14.1" />
-    <PackageReference Include="Azure.Data.Tables" Version="12.7.1" />
-    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.7.5" />
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
+    <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.1" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage.Queues" Version="5.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Health.Common" Version="1.0.0-20221208.1" />
+    <PackageReference Include="Microsoft.Health.Logging" Version="1.0.0-20221208.1" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.3" />
   </ItemGroup>
   <ItemGroup>
@@ -25,10 +22,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\GoogleFit\FitOnFhir.GoogleFit\Microsoft.Health.FitOnFhir.GoogleFit.csproj" />
+    <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
   </ItemGroup>
   <ItemGroup>
-    <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
+    <ProjectReference Include="..\..\Common\FitOnFhir.Common\Microsoft.Health.FitOnFhir.Common.csproj" />
+    <ProjectReference Include="..\..\GoogleFit\FitOnFhir.GoogleFit\Microsoft.Health.FitOnFhir.GoogleFit.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
