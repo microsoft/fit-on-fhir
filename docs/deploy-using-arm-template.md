@@ -68,4 +68,3 @@ az deployment group create \
 NOTE: To deploy as an ARM template instead of a Bicep template, repeat the command above replacing the following argument `--template-file azuredeploy.json`.
 
 Once the deployment has completed, if the Authorized Redirect URI has not been set be sure to configure it. Instructions can be found [here](./setting-redirect-uris.md).
-

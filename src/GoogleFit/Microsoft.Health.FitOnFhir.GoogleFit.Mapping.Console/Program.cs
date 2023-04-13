@@ -81,7 +81,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping.Console
             // Generate devicecontent.
             var deviceContentGenerator = new DeviceContentTemplateCollectionGenerator(includedDataStreamExpressions);
             JObject deviceContent = await deviceContentGenerator.GenerateTemplateCollection(dataSources.ToObject<IEnumerable<DataSource>>(), CancellationToken.None);
-            IEnumerable<CalculatedFunctionContentTemplate> deviceTemplates = GetTemplates<CalculatedFunctionContentTemplate>(deviceContent);
+            IList<CalculatedFunctionContentTemplate> deviceTemplates = GetTemplates<CalculatedFunctionContentTemplate>(deviceContent).ToList();
 
             // Check if any Device Content templates were generated.
             if (!deviceTemplates.Any())
@@ -92,12 +92,12 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping.Console
 
             string deviceContentPath = Path.Combine(fullOutputPath, "devicecontent.json");
             WriteData(deviceContentPath, deviceContent.ToString());
-            System.Console.WriteLine($"\n{deviceTemplates.Count()} Device Content templates generated and saved to: '{deviceContentPath}'\n");
+            System.Console.WriteLine($"\n{deviceTemplates.Count} Device Content templates generated and saved to: '{deviceContentPath}'\n");
 
             // Generate fhirmapping.
             var fhirMappingGenerator = new FhirMappingTemplateCollectionGenerator();
             JObject fhirMapping = await fhirMappingGenerator.GenerateTemplateCollection(deviceTemplates, CancellationToken.None);
-            IEnumerable<CodeValueFhirTemplate> fhirTemplates = GetTemplates<CodeValueFhirTemplate>(fhirMapping);
+            IList<CodeValueFhirTemplate> fhirTemplates = GetTemplates<CodeValueFhirTemplate>(fhirMapping).ToList();
 
             // Check if any FHIR Mapping templates were generated.
             if (!fhirTemplates.Any())
@@ -109,7 +109,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping.Console
 
             string fhirMappingPath = Path.Combine(fullOutputPath, "fhirmapping.json");
             WriteData(fhirMappingPath, fhirMapping.ToString());
-            System.Console.WriteLine($"\n{fhirTemplates.Count()} FHIR Mapping templates generated and saved to: '{fhirMappingPath}'\n");
+            System.Console.WriteLine($"\n{fhirTemplates.Count} FHIR Mapping templates generated and saved to: '{fhirMappingPath}'\n");
         }
 
         private static string[] GetIncludedDataStreamExpressions(string includedDataStreams)
