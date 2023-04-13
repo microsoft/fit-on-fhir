@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.12.40.16777",
-      "templateHash": "8339987072951842180"
+      "version": "0.16.2.56959",
+      "templateHash": "18031267111669782301"
     }
   },
   "parameters": {
@@ -31,7 +31,7 @@
       }
     },
     "google_client_secret": {
-      "type": "secureString",
+      "type": "securestring",
       "metadata": {
         "description": "The Google OAuth2 web application client secret."
       }
