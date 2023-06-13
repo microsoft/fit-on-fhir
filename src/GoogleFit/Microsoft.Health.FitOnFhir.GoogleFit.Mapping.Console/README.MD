@@ -44,4 +44,3 @@ GoogleFitMappingGenerator.exe generateMappings -d Samples/DataSources.json -o Sa
 Once the "mappings" have been generated, the contents of the devicecontent.json file can be copied and pasted to the MedTech service Device Mapping section and the fhirmapping.json can be copied and pasted to the Destination section. The MedTech service will now transform the incoming Google Fit data to FHIR Observations.
 
 **NOTE:** Any data streams that are not "mapped" will be ignored by the MedTech service.
-
