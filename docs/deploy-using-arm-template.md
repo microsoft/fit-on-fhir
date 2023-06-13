@@ -24,7 +24,7 @@ You must provide the following parameters when deploying the ARM Template.
 |**location**|**The location where the resources(s) are deployed.** *Choose the Azure region that's right for you and your customers. Not every resource is available in every region. The default value will be the location defined for the resource group.*|false
 |**google_client_id**|**The Google OAuth2 web application client id.** *[Where to find your Google Client Id and Secret](./finding-google-client-id-and-secret.md)*|true
 |**google_client_secret**|**The Google OAuth2 web application secret.** [Where to find your Google Client Id and Secret](./finding-google-client-id-and-secret.md)*|true
-|**repository_url**|**The repository where the fit-on-fhir source code resides.** *The default value is 'https://github.com/Microsoft/fit-on-fhir'*|false
+|**repository_url**|**The repository where the fit-on-fhir source code resides.** *The default value is '[https://github.com/Microsoft/fit-on-fhir]()'*|false
 |**repository_branch**|**The source code branch to be deployed.** *The default value is 'main'*|false
 |**google_dataset_request_limit**|**The maximum Google Fit data points returned per dataset request.** *The default value is 1000*|false
 |**google_max_concurrency**|**The maximum concurrent tasks allowed per Google Fit dataset request.** *The default value is 10*|false
