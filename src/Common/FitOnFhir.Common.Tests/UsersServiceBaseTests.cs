@@ -32,7 +32,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             // Default responses.
             _fhirService.SearchForResourceAsync(ResourceType.Patient, Arg.Any<string>()).Returns(Task.FromResult(GetBundle(EnsurePatient(null, true, true))));
-            _fhirService.CreateResourceAsync(Arg.Any<Patient>()).Returns(x => EnsurePatient(x.ArgAt<Patient>(0), false, false));
+            _fhirService.UpdateResourceAsync(Arg.Any<Patient>(), null, null, default).Returns(x => EnsurePatient(x.ArgAt<Patient>(0), false, false));
             AuthStateService.RetrieveAuthState(Arg.Is<string>(str => str == AuthorizationNonce), Arg.Any<CancellationToken>()).Returns(RetrieveAuthStateReturnFunc());
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
         [Fact]
         public async Task GivenPatientAndUserDoNotExist_WhenProcessAuthorizationCallbackCalled_NewPatientAndUserCreatedAndMessageQueued()
         {
-            _fhirService.SearchForResourceAsync(ResourceType.Patient, Arg.Any<string>()).Returns(Task.FromResult(new Bundle()));
+            _fhirService.SearchForResourceAsync(ResourceType.Patient, Arg.Any<string>(), default, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new Bundle()));
             UsersTableRepository.GetById(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult<User>(null));
 
             await ExecuteAuthorizationCallback();
@@ -78,9 +78,9 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
 
             Received.InOrder(async () =>
             {
-                await _fhirService.Received(1).SearchForResourceAsync(ResourceType.Patient, $"identifier={ExpectedExternalSystem}|{ExpectedExternalPatientId}");
-                await _fhirService.Received(1).CreateResourceAsync(Arg.Is<Patient>(x => IsExpected(x, true, false)));
-                await _fhirService.Received(1).UpdateResourceAsync(Arg.Is<Patient>(x => IsExpected(x, true, true)), "W/\"1\"", null, Arg.Any<CancellationToken>());
+                await _fhirService.Received(1).SearchForResourceAsync(ResourceType.Patient, $"identifier={ExpectedExternalSystem}|{ExpectedExternalPatientId}", default, Arg.Any<CancellationToken>());
+                await _fhirService.Received(1).UpdateResourceAsync(Arg.Is<Patient>(x => IsExpected(x, true, false)), null, null, default);
+                await _fhirService.Received(1).UpdateResourceAsync(Arg.Is<Patient>(x => IsExpected(x, true, true)), "W/\"1\"", null, default);
                 await UsersTableRepository.Received(1).GetById(Arg.Any<string>(), Arg.Any<CancellationToken>());
                 await UsersTableRepository.Received(1).Insert(Arg.Is<User>(x => IsExpected(x, DataImportState.ReadyToImport)), Arg.Any<CancellationToken>());
                 await QueueService.Received(1).SendQueueMessage(Arg.Is<string>(x => x == ExpectedPatientId), Arg.Is<string>(x => x == ExpectedPlatformUserId), Arg.Is<string>(x => x == ExpectedPlatform), Arg.Any<CancellationToken>());
