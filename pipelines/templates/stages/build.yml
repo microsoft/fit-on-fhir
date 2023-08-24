@@ -31,6 +31,8 @@ stages:
         displayName: Project
         steps:
 
+          - task: NuGetAuthenticate@1
+          
           - task: DotNetCoreCLI@2
             displayName: Test
             inputs:
