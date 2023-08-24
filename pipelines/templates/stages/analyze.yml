@@ -20,23 +20,6 @@ stages:
               verbosity: Verbose
               alertWarningLevel: High
 
-      - job: CodeQL
-        displayName: CodeQL (Semmle)
-        dependsOn:
-          - CredScan
-          - ComponentGovernanceDetection
-        steps:
-          - task: Semmle@1
-            env:
-              SYSTEM_ACCESSTOKEN: $(PATTOKEN)
-            inputs:
-              sourceCodeDirectory: $(Build.SourcesDirectory)
-              language: csharp
-              querySuite: Recommended
-              timeout: 1800
-              ram: 16384
-              addProjectDirToScanningExclusionList: true
-
       - job: PublishSecurityAnalysisLogs
         displayName: Publish security analysis logs
         dependsOn:
