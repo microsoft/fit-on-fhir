@@ -13,7 +13,7 @@ stages:
             inputs:
               command: pack
               configuration: '$(buildConfiguration)'
-              packagesToPack: '**/*.csproj;!**/*.Authorization.csproj;!**/*.Import.csproj;!**/*.ImportTimerTrigger.csproj'
+              packagesToPack: '**/*.GoogleFit.csproj;**/*.Common.csproj'
               packDirectory: '$(build.artifactStagingDirectory)/nupkgs'
               versioningScheme: 'byEnvVar'
               versionEnvVar: 'nuget_version'
