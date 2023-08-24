@@ -30,6 +30,9 @@ stages:
       - job: BuildGoogleFitOnFhir
         displayName: Project
         steps:
+
+          - task: NuGetAuthenticate@1
+          
           - task: DotNetCoreCLI@2
             displayName: Test
             inputs:
@@ -40,6 +43,7 @@ stages:
                 /p:CoverletOutput=$(System.DefaultWorkingDirectory)\Cobertura.xml
               publishTestResults: false
               projects: '**/**/*.Tests.csproj'
+              nugetConfigPath: nuget.config
 
           - bash: |
               sudo apt-get -y install libxml2-utils
@@ -57,7 +61,6 @@ stages:
               TARGETDIR: -targetdir:.
               REPORTTYPE: -reporttypes:Cobertura
               REPORTDR: -reports:$(System.DefaultWorkingDirectory)/Cobertura.xml
-
 
           - task: PublishCodeCoverageResults@1
             displayName: Publish Code Coverage

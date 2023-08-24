@@ -4,15 +4,15 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.16.2.56959",
-      "templateHash": "18031267111669782301"
+      "version": "0.20.4.51522",
+      "templateHash": "2152635353540272877"
     }
   },
   "parameters": {
     "basename": {
       "type": "string",
-      "maxLength": 16,
       "minLength": 3,
+      "maxLength": 16,
       "metadata": {
         "description": "Base name that is used to name provisioned resources. Should be alphanumeric, at least 3 characters and less than 16 characters."
       }
@@ -461,10 +461,10 @@
         "AzureWebJobsStorage__accountName": "[replace(format('sa-{0}', parameters('basename')), '-', '')]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename'))), '2020-02-02').InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename'))), '2020-02-02').ConnectionString]",
-        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
+        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string'), '2022-07-01').secretUriWithVersion)]",
         "WEBSITE_CONTENTSHARE": "[format('{0}-{1}', format('authorize-{0}', parameters('basename')), take(uniqueString(format('authorize-{0}', parameters('basename'))), 4))]",
         "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
-        "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')).secretUriWithVersion)]",
+        "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret'), '2022-07-01').secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
         "AzureConfiguration__BlobServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2022-05-01').primaryEndpoints.blob]",
         "AzureConfiguration__TableServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2022-05-01').primaryEndpoints.table]",
@@ -541,7 +541,7 @@
         "AzureWebJobsStorage__accountName": "[replace(format('sa-{0}', parameters('basename')), '-', '')]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename'))), '2020-02-02').InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename'))), '2020-02-02').ConnectionString]",
-        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
+        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string'), '2022-07-01').secretUriWithVersion)]",
         "WEBSITE_CONTENTSHARE": "[format('{0}-{1}', format('import-timer-{0}', parameters('basename')), take(uniqueString(format('import-timer-{0}', parameters('basename'))), 4))]",
         "AzureConfiguration__TableServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2022-05-01').primaryEndpoints.table]",
         "AzureConfiguration__QueueServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2022-05-01').primaryEndpoints.queue]",
@@ -609,7 +609,7 @@
         "AzureWebJobsStorage__queueServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2022-05-01').primaryEndpoints.queue]",
         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename'))), '2020-02-02').InstrumentationKey]",
         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(resourceId('Microsoft.Insights/components', format('ai-{0}', parameters('basename'))), '2020-02-02').ConnectionString]",
-        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string')).secretUriWithVersion)]",
+        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'storage-account-connection-string'), '2022-07-01').secretUriWithVersion)]",
         "WEBSITE_CONTENTSHARE": "[format('{0}-{1}', format('import-data-{0}', parameters('basename')), take(uniqueString(format('import-data-{0}', parameters('basename'))), 4))]",
         "AzureConfiguration__BlobServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2022-05-01').primaryEndpoints.blob]",
         "AzureConfiguration__TableServiceUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', replace(format('sa-{0}', parameters('basename')), '-', '')), '2022-05-01').primaryEndpoints.table]",
@@ -618,7 +618,7 @@
         "AzureConfiguration__EventHubName": "ingest",
         "AzureConfiguration__VaultUri": "[reference(resourceId('Microsoft.KeyVault/vaults', format('kv-{0}', parameters('basename'))), '2022-07-01').vaultUri]",
         "GoogleFitAuthorizationConfiguration__ClientId": "[parameters('google_client_id')]",
-        "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret')).secretUriWithVersion)]",
+        "GoogleFitAuthorizationConfiguration__ClientSecret": "[format('@Microsoft.KeyVault(SecretUri={0})', reference(resourceId('Microsoft.KeyVault/vaults/secrets', format('kv-{0}', parameters('basename')), 'google-client-secret'), '2022-07-01').secretUriWithVersion)]",
         "GoogleFitAuthorizationConfiguration__Scopes": "[parameters('google_fit_scopes')]",
         "GoogleFitDataImporterConfiguration__DatasetRequestLimit": "[parameters('google_dataset_request_limit')]",
         "GoogleFitDataImporterConfiguration__MaxConcurrency": "[parameters('google_max_concurrency')]",

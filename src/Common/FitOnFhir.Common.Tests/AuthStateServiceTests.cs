@@ -102,7 +102,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 AuthState authState = _authStateService.CreateAuthState(Request);
-                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+                Assert.Fail("Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
@@ -146,7 +146,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 AuthState authState = _authStateService.CreateAuthState(Request);
-                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+                Assert.Fail("Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
@@ -165,7 +165,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 AuthState authState = _authStateService.CreateAuthState(Request);
-                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+                Assert.Fail("Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
@@ -181,7 +181,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 AuthState authState = _authStateService.CreateAuthState(Request);
-                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+                Assert.Fail("Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
@@ -210,7 +210,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 AuthState authState = _authStateService.CreateAuthState(Request);
-                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+                Assert.Fail("Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
@@ -234,7 +234,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 AuthState authState = _authStateService.CreateAuthState(Request);
-                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+                Assert.Fail("Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {
@@ -253,7 +253,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Tests
             try
             {
                 AuthState authState = _authStateService.CreateAuthState(Request);
-                Assert.True(false, "Expected exception not thrown."); // CreateAuthState() did not throw an exception
+                Assert.Fail("Expected exception not thrown."); // CreateAuthState() did not throw an exception
             }
             catch (AuthStateException ex)
             {

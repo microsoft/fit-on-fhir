@@ -340,10 +340,10 @@ resource authorize_basename_appsettings 'Microsoft.Web/sites/config@2022-03-01' 
     AzureWebJobsStorage__accountName: sa_basename.name
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(kv_storage_account_connection_string.id).secretUriWithVersion})'
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${kv_storage_account_connection_string.properties.secretUriWithVersion})'
     WEBSITE_CONTENTSHARE: '${authorize_basename.name}-${take(uniqueString(authorize_basename.name), 4)}'
     GoogleFitAuthorizationConfiguration__ClientId: google_client_id
-    GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(kv_google_client_secret.id).secretUriWithVersion})'
+    GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${kv_google_client_secret.properties.secretUriWithVersion})'
     GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
     AzureConfiguration__BlobServiceUri: sa_basename.properties.primaryEndpoints.blob
     AzureConfiguration__TableServiceUri: sa_basename.properties.primaryEndpoints.table
@@ -406,7 +406,7 @@ resource import_timer_basename_appsettings 'Microsoft.Web/sites/config@2022-03-0
     AzureWebJobsStorage__accountName: sa_basename.name
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(kv_storage_account_connection_string.id).secretUriWithVersion})'
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${kv_storage_account_connection_string.properties.secretUriWithVersion})'
     WEBSITE_CONTENTSHARE: '${import_timer_basename.name}-${take(uniqueString(import_timer_basename.name), 4)}'
     AzureConfiguration__TableServiceUri: sa_basename.properties.primaryEndpoints.table
     AzureConfiguration__QueueServiceUri: sa_basename.properties.primaryEndpoints.queue
@@ -463,7 +463,7 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2022-03-01
     AzureWebJobsStorage__queueServiceUri: sa_basename.properties.primaryEndpoints.queue
     APPINSIGHTS_INSTRUMENTATIONKEY: ai_basename.properties.InstrumentationKey
     APPLICATIONINSIGHTS_CONNECTION_STRING: ai_basename.properties.ConnectionString
-    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${reference(kv_storage_account_connection_string.id).secretUriWithVersion})'
+    WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: '@Microsoft.KeyVault(SecretUri=${kv_storage_account_connection_string.properties.secretUriWithVersion})'
     WEBSITE_CONTENTSHARE: '${import_data_basename.name}-${take(uniqueString(import_data_basename.name), 4)}'
     AzureConfiguration__BlobServiceUri: sa_basename.properties.primaryEndpoints.blob
     AzureConfiguration__TableServiceUri: sa_basename.properties.primaryEndpoints.table
@@ -472,7 +472,7 @@ resource import_data_basename_appsettings 'Microsoft.Web/sites/config@2022-03-01
     AzureConfiguration__EventHubName:en_basename_ingest.name
     AzureConfiguration__VaultUri: kv_basename.properties.vaultUri
     GoogleFitAuthorizationConfiguration__ClientId: google_client_id
-    GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${reference(kv_google_client_secret.id).secretUriWithVersion})'
+    GoogleFitAuthorizationConfiguration__ClientSecret: '@Microsoft.KeyVault(SecretUri=${kv_google_client_secret.properties.secretUriWithVersion})'
     GoogleFitAuthorizationConfiguration__Scopes: google_fit_scopes
     GoogleFitDataImporterConfiguration__DatasetRequestLimit: google_dataset_request_limit
     GoogleFitDataImporterConfiguration__MaxConcurrency: google_max_concurrency

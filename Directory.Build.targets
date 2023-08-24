@@ -14,32 +14,9 @@
       <PropertyGroup>
         <IsPackable>true</IsPackable>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\CustomAnalysisRules.ruleset</CodeAnalysisRuleSet>
+        <AnalysisLevel>latest-All</AnalysisLevel>
       </PropertyGroup>
     </Otherwise>
-  </Choose>
-
-  <Choose>
-    <When Condition="!$(MSBuildProjectName.Contains('Test'))">
-      <Choose>
-        <When Condition="'$(TargetFramework)' == 'net5.0'">
-          <PropertyGroup>
-            <AnalysisLevel>5.0</AnalysisLevel>
-            <AnalysisMode>AllEnabledByDefault</AnalysisMode>
-            <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
-          </PropertyGroup>
-        </When>
-        <When Condition="'$(TargetFramework)' == 'net6.0'">
-          <PropertyGroup>
-            <AnalysisLevel>latest-All</AnalysisLevel>
-          </PropertyGroup>
-        </When>
-        <Otherwise>
-          <ItemGroup>
-            <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="6.0.0" PrivateAssets="All" />
-          </ItemGroup>
-        </Otherwise>
-      </Choose>
-    </When>
   </Choose>
 
 </Project>
