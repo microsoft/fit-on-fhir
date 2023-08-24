@@ -155,7 +155,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
 
             // deserialize the AuthState
             using StreamReader reader = new StreamReader(response.Value.Content.ToStream());
-            string json = await reader.ReadToEndAsync();
+            string json = await reader.ReadToEndAsync(cancellationToken);
             return AuthState.Parse(json);
         }
 
