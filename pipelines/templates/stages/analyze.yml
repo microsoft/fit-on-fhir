@@ -25,7 +25,6 @@ stages:
         dependsOn:
           - CredScan
           - ComponentGovernanceDetection
-          - CodeQL
         steps:
           - task: PublishSecurityAnalysisLogs@3
             inputs:
