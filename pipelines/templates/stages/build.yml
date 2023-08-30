@@ -31,8 +31,6 @@ stages:
         displayName: Project
         steps:
 
-          - task: NuGetAuthenticate@1
-
           - task: UseDotNet@2
             displayName: 'Use .NET Core sdk 7.0.x'
             inputs:

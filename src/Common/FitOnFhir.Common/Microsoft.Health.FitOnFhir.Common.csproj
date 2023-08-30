@@ -11,10 +11,10 @@
     <PackageReference Include="Azure.Storage.Queues" Version="12.15.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.10" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-    <PackageReference Include="Microsoft.Health.Common" Version="2.0.77" />
-    <PackageReference Include="Microsoft.Health.Extensions.Fhir.R4" Version="2.0.77" />
-    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.277" />
-    <PackageReference Include="Microsoft.Health.Logging" Version="2.0.77" />
+    <PackageReference Include="Microsoft.Health.Common" Version="2.0.79" />
+    <PackageReference Include="Microsoft.Health.Extensions.Fhir.R4" Version="2.0.79" />
+    <PackageReference Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.280" />
+    <PackageReference Include="Microsoft.Health.Logging" Version="2.0.79" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.13.3" />
   </ItemGroup>
   <PropertyGroup>
