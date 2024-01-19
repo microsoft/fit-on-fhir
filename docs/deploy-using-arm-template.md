@@ -7,7 +7,7 @@ This guide details provisioning and configuring a working Fit on FHIR solution t
 You can start the deploying to your Azure subscription by simply clicking the button below.
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoft%2Ffit-on-fhir%2Fmain%2Fdeploy%2Fazuredeploy.json" target="_blank">
-    <img src="../media/deploy-button.png"/>
+    <img src="../media/deploy-button.png", alt="Deploy Button"/>
 </a>
 
 ### Prerequisites
