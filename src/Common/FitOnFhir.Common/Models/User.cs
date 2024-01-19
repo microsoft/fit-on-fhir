@@ -111,7 +111,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Models
                 InternalTableEntity.Add(_lastTouchedKey, serializedLastTouched);
             }
 
-            if (_platformUserInfo != null && _platformUserInfo.Any())
+            if (_platformUserInfo != null && !_platformUserInfo.IsEmpty)
             {
                 string serializedPlatformInfo = JsonConvert.SerializeObject(_platformUserInfo);
                 InternalTableEntity.Add(_platformsKey, serializedPlatformInfo);

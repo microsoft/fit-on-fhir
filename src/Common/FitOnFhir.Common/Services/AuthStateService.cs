@@ -69,7 +69,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                     errorParams.Add($"{Constants.RedirectUrlQueryParameter}");
                 }
 
-                if (errorParams.Any())
+                if (errorParams.Count > 0)
                 {
                     string errorMessageFormat = "{0}, {1}, {2} are required query parameters with anonymous authorization. The request is missing {3}.";
                     string missing = string.Join(", ", errorParams);
@@ -90,7 +90,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Services
                     errorParams.Add($"{Constants.ExternalSystemQueryParameter}");
                 }
 
-                if (errorParams.Any())
+                if (errorParams.Count > 0)
                 {
                     string errorMessageFormat = "{0} and {1} are forbidden query parameters with authenticated authorization. The request contains {2}.";
                     string present = string.Join(", ", errorParams);

@@ -16,7 +16,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping
 {
     public class DeviceContentTemplateGenerator : CalculatedContentTemplateGenerator<DataSource>
     {
-        private IList<string> _includedDataStreamExpressions = new List<string>();
+        private List<string> _includedDataStreamExpressions = new List<string>();
 
         /// <summary>
         /// A format string that allows the TypeMatchExpression to match a specific DataSource.DataType.Name .
@@ -47,7 +47,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping
 
         public DeviceContentTemplateGenerator(params string[] includedDataStreamExpressions)
         {
-            if (includedDataStreamExpressions != null && includedDataStreamExpressions.Any())
+            if (includedDataStreamExpressions != null && includedDataStreamExpressions.Length > 0)
             {
                 foreach (var expression in includedDataStreamExpressions)
                 {
@@ -62,7 +62,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping
 
             var typeNames = new List<string>();
 
-            if (_includedDataStreamExpressions.Any())
+            if (_includedDataStreamExpressions.Count > 0)
             {
                 foreach (var expression in _includedDataStreamExpressions)
                 {
@@ -133,7 +133,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping
         {
             EnsureArg.IsNotNull(model, nameof(model));
 
-            IList<CalculatedFunctionValueExpression> values = new List<CalculatedFunctionValueExpression>();
+            List<CalculatedFunctionValueExpression> values = new List<CalculatedFunctionValueExpression>();
 
             for (int i = 0; i < model.DataType.Field.Count; i++)
             {
@@ -147,7 +147,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping
                 });
             }
 
-            return Task.FromResult(values);
+            return Task.FromResult<IList<CalculatedFunctionValueExpression>>(values);
         }
 
         private static string GenerateTypeMatchString(DataSource dataSource)
@@ -200,7 +200,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping
             };
         }
 
-        private static IEnumerable<string> GetDataSourceIdComponents(DataSource dataSource, bool includeDataTypeName = true)
+        private static List<string> GetDataSourceIdComponents(DataSource dataSource, bool includeDataTypeName = true)
         {
             EnsureArg.IsNotNull(dataSource, nameof(dataSource));
 
@@ -236,7 +236,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping
                 components.Add(dataSource.DataStreamName);
             }
 
-            if (!components.Any())
+            if (components.Count == 0)
             {
                 throw new InvalidOperationException($"A data could not be generated for DataSource: {dataSource}");
             }

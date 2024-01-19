@@ -47,7 +47,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping
 
             if (values.Count > 1)
             {
-                IList<CodeValueMapping> components = new List<CodeValueMapping>();
+                List<CodeValueMapping> components = new List<CodeValueMapping>();
 
                 foreach (var value in values)
                 {
@@ -60,7 +60,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping
                     });
                 }
 
-                return Task.FromResult(components);
+                return Task.FromResult<IList<CodeValueMapping>>(components);
             }
 
             return Task.FromResult<IList<CodeValueMapping>>(null);

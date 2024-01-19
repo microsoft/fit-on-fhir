@@ -4,11 +4,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="10.1.0" />
-    <PackageReference Include="Google.Apis.Fitness.v1" Version="1.61.0.3105" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Health.Common" Version="2.0.79" />
-    <PackageReference Include="Microsoft.Health.Logging" Version="2.0.79" />
-    <PackageReference Include="Microsoft.Health.Fhir.Ingest.Template.Generator" Version="2.0.79" />
+    <PackageReference Include="Google.Apis.Fitness.v1" Version="1.66.0.3232" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Health.Common" Version="3.0.2" />
+    <PackageReference Include="Microsoft.Health.Logging" Version="3.0.2" />
+    <PackageReference Include="Microsoft.Health.Fhir.Ingest.Template.Generator" Version="3.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\GoogleFit\FitOnFhir.GoogleFit\Microsoft.Health.FitOnFhir.GoogleFit.csproj" />

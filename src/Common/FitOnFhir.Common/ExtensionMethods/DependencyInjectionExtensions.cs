@@ -27,7 +27,7 @@ namespace Microsoft.Health.FitOnFhir.Common.ExtensionMethods
             params Type[] handlerTypes)
             where TResult : class
         {
-            if (handlerTypes.Any() && handlerTypes.All(handler => handler.GetInterfaces().Contains(typeof(IResponsibilityHandler<TRequest, TResult>))))
+            if (handlerTypes != null && handlerTypes.Length > 0 && handlerTypes.All(handler => handler.GetInterfaces().Contains(typeof(IResponsibilityHandler<TRequest, TResult>))))
             {
                 IResponsibilityHandler<TRequest, TResult> previousHandler = null;
 

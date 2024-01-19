@@ -33,7 +33,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
         {
             get
             {
-                if (_providerMetadataEndpoints != null && _providerMetadataEndpoints.Any())
+                if (_providerMetadataEndpoints != null && _providerMetadataEndpoints.Length > 0)
                 {
                     return string.Join(", ", _providerMetadataEndpoints);
                 }
@@ -63,7 +63,7 @@ namespace Microsoft.Health.FitOnFhir.Common.Config
         {
             get
             {
-                if (_approvedRedirectUrls != null && _approvedRedirectUrls.Any())
+                if (_approvedRedirectUrls != null && _approvedRedirectUrls.Length > 0)
                 {
                     return string.Join(", ", _approvedRedirectUrls);
                 }

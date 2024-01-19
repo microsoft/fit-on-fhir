@@ -30,7 +30,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Client.Config
         {
             get
             {
-                if (_scopes != null && _scopes.Any())
+                if (_scopes != null && _scopes.Length > 0)
                 {
                     return string.Join(", ", _scopes);
                 }

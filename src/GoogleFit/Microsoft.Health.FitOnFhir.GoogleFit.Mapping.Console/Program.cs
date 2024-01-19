@@ -16,6 +16,10 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping.Console
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1303:Do not pass literals as localized parameters", Justification = "Messages will not be localized.")]
     public static class Program
     {
+        private static readonly string[] DataSourcePathAliases = new string[] { "--dataSourcePath", "-d" };
+        private static readonly string[] OutputPathAliases = new string[] { "--outputPath", "-o" };
+        private static readonly string[] IncludedDataStreamsAliases = new string[] { "--includedDataStreams", "-i" };
+
         public static void Main(string[] args)
         {
             ParseArgumentsAndExecute(args);
@@ -29,15 +33,15 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping.Console
             var generateMappingsCommand = new Command("generateMappings", "Generate Device Content and FHIR Mapping templates for use with Med Tech Service")
             {
                 new Option<string>(
-                    new string[] { "--dataSourcePath", "-d" },
+                    DataSourcePathAliases,
                     getDefaultValue: () => string.Empty,
                     description: "The path to a Google Fitness DataSources API response json used to generate the mappings."),
                 new Option<string>(
-                    new string[] { "--outputPath", "-o" },
+                    OutputPathAliases,
                     getDefaultValue: () => null,
                     description: "The path where the mappings should be written."),
                 new Option<string>(
-                    new string[] { "--includedDataStreams", "-i" },
+                    IncludedDataStreamsAliases,
                     getDefaultValue: () => null,
                     description: "An optional comma separated list of regex strings used to select specific data streams from the DataSources API response. If not provided, all DataSources will be used."),
             };
@@ -149,7 +153,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping.Console
             return finalPath;
         }
 
-        private static IEnumerable<T> GetTemplates<T>(JObject containerJson)
+        private static List<T> GetTemplates<T>(JObject containerJson)
             where T : Template
         {
             var templates = new List<T>();

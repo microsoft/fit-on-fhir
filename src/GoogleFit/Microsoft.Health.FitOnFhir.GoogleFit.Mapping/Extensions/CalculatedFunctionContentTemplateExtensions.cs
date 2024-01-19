@@ -11,7 +11,7 @@ namespace Microsoft.Health.FitOnFhir.GoogleFit.Mapping.Extensions
 {
     public static class CalculatedFunctionContentTemplateExtensions
     {
-        private static IDictionary<string, Type> _valueTypeMap = new Dictionary<string, Type>()
+        private static Dictionary<string, Type> _valueTypeMap = new Dictionary<string, Type>()
         {
             { MappingConstants.StringValue, typeof(StringFhirValueType) },
             { MappingConstants.IntegerValue, typeof(QuantityFhirValueType) },
