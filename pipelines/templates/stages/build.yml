@@ -18,14 +18,13 @@ stages:
               if [ $? -ne  0 ]; then
                 echo ''
                 az bicep version
-                if [ ! -f /tmp/azuredeploy.json ]; then echo "File not found!";
                 echo ''
                 echo '🚨 Compiled ARM json does not match'
                 echo '⚠️ This error can be caused by a new release of Bicep'
                 echo '⚠️ To fix this issue:'
                 echo '⚠️ Update Bicep (az bicep upgrade)'
                 echo '⚠️ Rebuild the arm template (from the deploy folder run az bicep build -f azuredeploy.bicep)'
-                echo '⚠️ Commit the changes'                
+                echo '⚠️ Commit the changes'
                 exit 0
               fi
             displayName: Verify built bicep matches ARM in repo
