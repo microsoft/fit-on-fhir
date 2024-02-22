@@ -16,6 +16,7 @@ stages:
           - bash: |
               diff <(tail -n +9 /tmp/azuredeploy.json) <(tail -n +9 deploy/azuredeploy.json)
               if [ $? -ne  0 ]; then
+                echo ''
                 az bicep version
                 echo ''
                 echo '🚨 Compiled ARM json does not match'
